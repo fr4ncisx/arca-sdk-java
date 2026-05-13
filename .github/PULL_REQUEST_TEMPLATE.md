@@ -4,11 +4,11 @@
 
 ## Tarea de backlog
 
-Closes #<!-- ID de la tarea, ej: CORE-003 -->
+**ID:** <!-- CORE-003, TEST-001, etc. -->
 
 ## Checklist
 
-- [ ] El codigo compila con `mvn clean verify` sin errores
+- [ ] El codigo compila con `mvn clean verify` sin errores (32 tests)
 - [ ] Se agregaron tests para la nueva funcionalidad
 - [ ] Los tests existentes siguen pasando
 - [ ] JavaDoc actualizado en la API publica
