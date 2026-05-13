@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FECAESolicitarResult xmlns="http://ar.gov.afip.dif.FEV1/">
+  <FeDetResp>
+    <FECAEDetResponse>
+      <Resultado>R</Resultado>
+      <Observaciones>
+        <Obs>
+          <Code>100</Code>
+          <Msg>Importe total invalido</Msg>
+        </Obs>
+      </Observaciones>
+    </FECAEDetResponse>
+  </FeDetResp>
+  <Errors>
+    <Err>
+      <Code>100</Code>
+      <Msg>Importe Total invalido</Msg>
+    </Err>
+  </Errors>
+</FECAESolicitarResult>
