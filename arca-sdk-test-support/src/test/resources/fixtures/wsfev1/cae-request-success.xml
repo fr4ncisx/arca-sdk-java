@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FECAESolicitarResult xmlns="http://ar.gov.afip.dif.FEV1/">
+  <FeDetResp>
+    <FECAEDetResponse>
+      <Resultado>A</Resultado>
+      <CAE>12345678901234</CAE>
+      <CAEFchVto>20260813</CAEFchVto>
+    </FECAEDetResponse>
+  </FeDetResp>
+</FECAESolicitarResult>

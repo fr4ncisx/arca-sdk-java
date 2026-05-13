@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Fault xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <faultcode>soap:Server</faultcode>
+  <faultstring>Error de autenticacion: certificado invalido</faultstring>
+</soap:Fault>
