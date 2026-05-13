@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fr4ncisx</groupId>
+        <artifactId>arca-sdk-java</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>arca-sdk-bundle</artifactId>
+    <packaging>pom</packaging>
+
+    <name>ARCA SDK Bundle</name>
+    <description>Artefacto de conveniencia que incluye todos los módulos del SDK y sus dependencias de runtime.</description>
+
+    <dependencies>
+        <!-- Módulos del SDK -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-soap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-wsaa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-wsfev1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-test-support</artifactId>
+        </dependency>
+
+        <!-- Dependencias de runtime -->
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

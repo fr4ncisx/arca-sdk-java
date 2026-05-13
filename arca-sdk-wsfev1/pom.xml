@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.fr4ncisx</groupId>
+        <artifactId>arca-sdk-java</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>arca-sdk-wsfev1</artifactId>
+
+    <name>ARCA SDK WSFEv1</name>
+    <description>Facade pública para factura electrónica WSFEv1 y mapeo hacia stubs internos generados por wsimport.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-wsaa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-soap</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>generate-stubs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.sun.xml.ws</groupId>
+                        <artifactId>jaxws-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>generate-wsfev1-stubs</id>
+                                <goals>
+                                    <goal>wsimport</goal>
+                                </goals>
+                                <configuration>
+                                    <wsdlDirectory>src/main/resources/wsdl</wsdlDirectory>
+                                    <wsdlFiles>
+                                        <wsdlFile>wsfev1.wsdl</wsdlFile>
+                                    </wsdlFiles>
+                                    <packageName>io.github.fr4ncisx.arca.wsfev1.internal.generated</packageName>
+                                    <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
+                                    <xnocompile>true</xnocompile>
+                                    <keep>true</keep>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
