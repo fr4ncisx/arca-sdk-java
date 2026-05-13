@@ -23,8 +23,8 @@ puras, Spring Boot, herramientas CLI o cualquier runtime que ejecute Java 21+.
 ## Módulos
 
 **`arca-sdk-bundle` es el módulo recomendado para consumidores externos.**
-Agrupa todos los módulos runtime en una sola dependencia. Los módulos
-individuales existen para desarrollo interno y mantenibilidad del SDK.
+Agrupa los módulos runtime en una sola dependencia. Para tests de integración
+usá `arca-sdk-test-support` con scope `test`.
 
 | Módulo | Responsabilidad |
 |---|---|
@@ -34,7 +34,7 @@ individuales existen para desarrollo interno y mantenibilidad del SDK.
 | `arca-sdk-wsfev1` | Integración con facturación electrónica WSFEv1: consulta de último comprobante, solicitud de CAE y modelos de negocio tipados |
 | `arca-sdk-test-support` | Cliente mock basado en WireMock, fixtures XML de ejemplo y utilidades para escribir tests sin conexión a ARCA |
 | `arca-sdk-bom` | Bill of Materials que centraliza las versiones de todos los módulos y sus dependencias externas |
-| `arca-sdk-bundle` | Artefacto de conveniencia (packaging POM) que agrupa los módulos runtime en una sola dependencia |
+| `arca-sdk-bundle` | Artefacto de conveniencia (packaging POM) que agrupa los módulos runtime en una sola dependencia (sin dependencias de test) |
 
 ## Arquitectura
 
