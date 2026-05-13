@@ -1,0 +1,48 @@
+# Maven
+target/
+/target/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/build/
+
+# VS Code
+.vscode/
+
+# Internal local planning/workbench
+/dev/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.orig
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# AI Agents
+.opencode
