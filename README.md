@@ -1,6 +1,6 @@
 # ARCA SDK Java
 
-[![Java](https://img.shields.io/badge/Java-25-blue)](https://jdk.java.net/25/)
+[![Java](https://img.shields.io/badge/Java-21-blue)](https://jdk.java.net/21/)
 [![version](https://img.shields.io/github/v/tag/fr4ncisx/arca-sdk-java?style=flat&label=version&sort=semver)]()
 [![build](https://img.shields.io/github/actions/workflow/status/fr4ncisx/arca-sdk-java/ci.yml?branch=main)]()
 [![licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)](LICENSE)
@@ -11,20 +11,20 @@ para facturación electrónica (WSFEv1) y manejo seguro de datos sensibles en
 registros de auditoría.
 
 Está diseñado para ser **agnóstico de framework**: funciona en aplicaciones Java
-puras, Spring Boot, herramientas CLI o cualquier runtime que ejecute Java 25+.
+puras, Spring Boot, herramientas CLI o cualquier runtime que ejecute Java 21+.
 
 ## Requisitos
 
 | Herramienta | Versión |
 |---|---|
-| Java | 25 o superior |
+| Java | 21 o superior |
 | Maven | 3.9 o superior |
 
 ## Módulos
 
 **`arca-sdk-bundle` es el módulo recomendado para consumidores externos.**
-Agrupa todos los módulos runtime en una sola dependencia. Los módulos
-individuales existen para desarrollo interno y mantenibilidad del SDK.
+Agrupa los módulos runtime en una sola dependencia. Para tests de integración
+usá `arca-sdk-test-support` con scope `test`.
 
 | Módulo | Responsabilidad |
 |---|---|
@@ -34,7 +34,7 @@ individuales existen para desarrollo interno y mantenibilidad del SDK.
 | `arca-sdk-wsfev1` | Integración con facturación electrónica WSFEv1: consulta de último comprobante, solicitud de CAE y modelos de negocio tipados |
 | `arca-sdk-test-support` | Cliente mock basado en WireMock, fixtures XML de ejemplo y utilidades para escribir tests sin conexión a ARCA |
 | `arca-sdk-bom` | Bill of Materials que centraliza las versiones de todos los módulos y sus dependencias externas |
-| `arca-sdk-bundle` | Artefacto de conveniencia (packaging POM) que agrupa los módulos runtime en una sola dependencia |
+| `arca-sdk-bundle` | Artefacto de conveniencia (packaging POM) que agrupa los módulos runtime en una sola dependencia (sin dependencias de test) |
 
 ## Arquitectura
 
@@ -171,7 +171,7 @@ ni en mensajes de error:
 | WSFEv1 - Referencia de operaciones | https://servicios1.afip.gov.ar/wsfev1/service.asmx |
 | WSFEv1 - Manual del desarrollador (PDF) | https://www.afip.gob.ar/fe/ayuda/documentos/Manual-desarrollador-V.2.21.pdf |
 | WSASS - Autoservicio de certificados | https://auth.afip.gob.ar/contribuyente_/login.xhtml |
-| JDK 25 | https://jdk.java.net/25/ |
+| JDK 21 | https://jdk.java.net/21/ |
 | Maven | https://maven.apache.org/ |
 
 ## Licencia
