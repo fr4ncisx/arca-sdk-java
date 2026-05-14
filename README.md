@@ -5,12 +5,36 @@
 [![build](https://img.shields.io/github/actions/workflow/status/fr4ncisx/arca-sdk-java/ci.yml?branch=main)]()
 [![licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)](LICENSE)
 
-SDK Java puro para integrarse con los servicios web de **ARCA** (ex AFIP).
-Cubre el flujo completo de autenticación WSAA, transporte SOAP, modelos tipados
-para facturación electrónica (WSFEv1) y manejo seguro de datos sensibles en
-registros de auditoría.
+SDK Java puro para integrarse con servicios web de **ARCA** mediante una API
+agnóstica de framework. El objetivo del proyecto es cubrir autenticación WSAA,
+transporte SOAP, facturación electrónica WSFEv1 y servicios complementarios sin
+exponer stubs generados ni datos sensibles.
 
-Está diseñado para ser **agnóstico de framework**: funciona con cualquier runtime Java 21+ (Spring Boot, Quarkus, Micronaut, Jakarta EE, etc.).
+El repositorio está en desarrollo activo. La versión actual `0.1.1-M2` no está
+lista para producción: contiene la base técnica del reactor Maven, parte de
+`core`, soporte de fixtures y el WSDL de WSFEv1 versionado. WSAA end to end,
+cliente SOAP reusable, clientes WSFEv1 y `registry` siguen en backlog.
+
+## Estado actual
+
+Implementado hoy:
+
+- Reactor Maven multi-módulo con Java 21.
+- `arca-sdk-core` con ambiente, reloj configurable y jerarquía base de
+  excepciones.
+- `arca-sdk-test-support` con carga de fixtures XML y datos de prueba.
+- `arca-sdk-wsfev1` con WSDL oficial versionado en `src/main/resources/wsdl`.
+- Módulos `wsaa`, `soap`, `registry`, `bom` y `bundle` creados como estructura
+  base.
+
+Pendiente antes de uso real:
+
+- Crear el flujo completo de autenticación WSAA, firma CMS y caché de tickets.
+- Crear el transporte SOAP reusable con timeouts, handlers y sanitización.
+- Crear `WsfeClient`, `ArcaClient` y casos de uso de consulta/emisión.
+- Crear validaciones de negocio para comprobantes, puntos de venta, monedas,
+  conceptos, IVA, CAE y CAEA.
+- Validar integración con certificados reales en homologación de ARCA.
 
 ## Requisitos
 
@@ -21,157 +45,107 @@ Está diseñado para ser **agnóstico de framework**: funciona con cualquier run
 
 ## Módulos
 
-**`arca-sdk-bundle` es el módulo recomendado para consumidores externos.**
-Agrupa los módulos runtime en una sola dependencia. Para tests de integración
-usá `arca-sdk-test-support` con scope `test`.
+| Módulo | Estado | Responsabilidad |
+|---|---|---|
+| `arca-sdk-core` | Parcial | Tipos compartidos, ambientes, errores, reloj, sanitización y utilidades comunes |
+| `arca-sdk-soap` | Scaffold | Transporte SOAP común, handlers JAX-WS, timeouts y adaptación de errores |
+| `arca-sdk-wsaa` | Scaffold | TRA, firma CMS/PKCS#7, `LoginCms`, tickets y renovación automática |
+| `arca-sdk-wsfev1` | Scaffold + WSDL | API de facturación electrónica WSFEv1, mappers, modelos y casos de uso |
+| `arca-sdk-registry` | Scaffold | Futuras consultas tributarias y registrales |
+| `arca-sdk-test-support` | Parcial | Fixtures XML, utilidades de test y soporte para mocks |
+| `arca-sdk-bom` | Scaffold | Bill of Materials para centralizar versiones |
+| `arca-sdk-bundle` | Scaffold | Dependencia de conveniencia para consumidores externos |
 
-| Módulo | Responsabilidad |
-|---|---|
-| `arca-sdk-core` | Configuración, enumeraciones de ambiente, jerarquía de excepciones sellada, modelos compartidos y sanitización de logs |
-| `arca-sdk-soap` | Cliente SOAP genérico, handlers JAX-WS, configuración de timeouts y adaptadores de transporte |
-| `arca-sdk-wsaa` | Autenticación contra WSAA: generación del TRA, firma CMS/PKCS#7, invocación a LoginCms y gestión de tickets con caché |
-| `arca-sdk-wsfev1` | Integración con facturación electrónica WSFEv1: consulta de último comprobante, solicitud de CAE y modelos de negocio tipados |
-| `arca-sdk-test-support` | Cliente mock basado en WireMock, fixtures XML de ejemplo y utilidades para escribir tests sin conexión a ARCA |
-| `arca-sdk-bom` | Bill of Materials que centraliza las versiones de todos los módulos y sus dependencias externas |
-| `arca-sdk-bundle` | Artefacto de conveniencia (packaging POM) que agrupa los módulos runtime en una sola dependencia (sin dependencias de test) |
+## Arquitectura objetivo
 
-## Arquitectura
+La arquitectura objetivo sigue **arquitectura hexagonal**, Clean Code,
+principios SOLID y separación estricta entre dominio, aplicación e
+infraestructura. La API pública debe depender de modelos propios del SDK; los
+stubs JAXB generados desde WSDL quedan aislados en paquetes internos.
 
-El SDK sigue una arquitectura hexagonal con tres capas bien definidas:
+```text
+API pública
+ArcaClient, WsfeClient, RegistryClient, requests y responses tipados
 
-```
-┌─────────────────────────────────────────────────┐
-│                   API Pública                     │
-│  ArcaClient, WsfeClient, ArcaEnvironment,        │
-│  LastVoucherRequest, CaeRequest, CaeResponse     │
-├─────────────────────────────────────────────────┤
-│                Capa de Aplicación                 │
-│  DefaultAuthProvider, GetLastVoucherUseCase,      │
-│  RequestCaeUseCase, BatchProcessUseCase          │
-├─────────────────────────────────────────────────┤
-│              Capa de Infraestructura              │
-│  ArcaSoapClient (Metro/JAX-WS), LoginCmsClient,  │
-│  CmsSigner, TicketCache, MetricsSoapPort         │
-├─────────────────────────────────────────────────┤
-│              Generado (aislado)                   │
-│  Stubs JAXB desde WSDL oficial de ARCA           │
-└─────────────────────────────────────────────────┘
+Capa de aplicación
+Casos de uso, puertos, validaciones, reglas de negocio y orquestación
+
+Capa de infraestructura
+Clientes SOAP, WSAA, firma CMS, caché, métricas, logging y adapters externos
+
+Generado
+Stubs JAXB/JAX-WS aislados, sin exposición en contratos públicos
 ```
 
-Puntos clave de la arquitectura:
+Las reglas de seguridad se alinean con OWASP Top 10: no registrar secretos,
+validar entradas, controlar errores, limitar exposición de XML sensible y
+mantener dependencias auditables.
 
-- **La API pública no expone tipos generados**: los stubs JAXB del WSDL están
-  encapsulados en el paquete `internal.generated` y nunca atraviesan la frontera
-  pública.
-- **Los puertos (interfaces) están en la capa de aplicación**: `AuthProvider`,
-  `TicketCache`, `ArcaSoapPort` son interfaces definidas en el dominio, no en la
-  infraestructura.
-- **Las excepciones son selladas**: `ArcaException` es una jerarquía sellada con
-  `ArcaAuthException`, `ArcaSoapException` y `ArcaValidationException`, lo que
-  permite a los consumidores hacer `switch` exhaustivo sobre el tipo de error.
-- **Las métricas son neutrales**: `ArcaMetrics` se define en `core` sin depender
-  de SOAP ni de ninguna implementación concreta.
-
-## Versionado
-
-Cada milestone se libera cuando todas las tareas del backlog asignadas a esa
-versión están completas y superan los criterios definidos en
-`milestoneDefinitions`. La progresión es:
-
-1. **Batches de desarrollo incremental** (`0.1.0-M1`, `0.1.0-M2`, etc.)
-2. **Release candidate** (`0.1.0-rc1`) para validación final
-3. **Release oficial** (`0.1.0`) cuando el RC está verificado
-4. **Hotfix** (`0.1.1`) si aparece un bug después del release oficial
-
-## Compilar
+## Compilar y probar
 
 ```bash
 mvn clean verify
 ```
 
-Para regenerar las clases Java a partir del WSDL oficial de ARCA:
-
-```bash
-mvn clean verify -Pgenerate-stubs
-```
-
-Para ejecutar los tests de integración contra credenciales reales de ARCA
-(requiere certificado digital configurado):
-
-```bash
-mvn verify -Darca.integration=true
-```
-
-Para compilar y probar un módulo específico:
+Compila todos los módulos y ejecuta las pruebas disponibles.
 
 ```bash
 mvn test -pl arca-sdk-core
 ```
 
-## Cómo usar el SDK
+Ejecuta solo las pruebas de `arca-sdk-core`.
 
-### Configuración básica
+```bash
+mvn clean verify -Pgenerate-stubs
+```
+
+Regenera clases Java desde los WSDL cuando el perfil esté configurado para el
+módulo correspondiente.
+
+```bash
+mvn verify -Darca.integration=true
+```
+
+Reserva este comando para pruebas de integración con credenciales reales de
+ARCA. No debe ejecutarse sin certificado, CUIT y ambiente configurados.
+
+## API pública objetivo
+
+Los siguientes nombres describen la superficie buscada para consumidores del
+SDK. Todavía no deben tomarse como API disponible hasta que el backlog los
+marque implementados.
 
 ```java
 ArcaClient arca = ArcaClient.builder()
     .environment(ArcaEnvironment.HOMOLOGACION)
     .cuit(20333333339L)
     .certificate(Paths.get("certificado.p12"), "password".toCharArray())
-    .connectTimeout(Duration.ofSeconds(10))
     .build();
-```
-
-### Consultar el último comprobante
-
-```java
-private static final System.Logger LOG = System.getLogger("WsfeClient");
 
 WsfeClient wsfe = arca.wsfev1();
-LastVoucherResponse response = wsfe.getLastAuthorizedVoucher(
+LastVoucherResponse last = wsfe.getLastAuthorizedVoucher(
     new LastVoucherRequest(1, VoucherType.FACTURA_A));
-LOG.log(System.Logger.Level.INFO, "Último comprobante: {0}", response.cbteNro());
-```
-
-### Solicitar un CAE
-
-```java
-CaeResponse cae = wsfe.requestCae(new CaeRequest(
-    1, VoucherType.FACTURA_A, ConceptType.PRODUCTO,
-    new MonetaryAmount(10000.00), LocalDate.now()));
-if (cae.success()) {
-    LOG.log(System.Logger.Level.INFO, "CAE asignado: {0}", cae.cae().orElseThrow());
-} else {
-    LOG.log(System.Logger.Level.ERROR, "Errores: {0}", cae.errores());
-}
 ```
 
 ## Seguridad
 
-El SDK está diseñado para no exponer datos sensibles en registros de auditoría
-ni en mensajes de error:
+- No registrar tokens, firmas, claves privadas ni contraseñas de keystore.
+- Redactar datos sensibles antes de emitir logs o errores.
+- Validar datos de entrada antes de construir requests SOAP.
+- Encapsular excepciones externas en errores propios del SDK.
+- Mantener tests para sanitización, fixtures y contratos públicos.
 
-- El token y la firma del ticket de acceso siempre se redactan en logs
-- Las claves privadas nunca se registran
-- Las contraseñas del keystore nunca se registran
-- Los mensajes CMS firmados completos nunca se registran
-- Los XML SOAP de producción nunca se registran en texto plano
-- Las excepciones no incluyen tokens base64 ni firmas en sus mensajes
-
-## Recursos útiles
+## Recursos oficiales
 
 | Recurso | URL |
 |---|---|
-| Portal Web Services ARCA | https://www.afip.gob.ar/ws/documentacion/ |
-| WSAA - Documentación oficial | https://www.afip.gob.ar/ws/documentacion/wsaa.asp |
-| WSAA - Especificación técnica (PDF) | https://www.afip.gob.ar/ws/wsaa/especificacion_tecnica_wsaa_1.2.2.pdf |
-| WSAA - Manual del desarrollador (PDF) | https://www.afip.gob.ar/ws/WSAA/WSAAmanualDev.pdf |
-| WSAA - WSDL (homologación) | https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl |
-| WSFEv1 - Documentación oficial | https://www.afip.gob.ar/ws/documentacion/ws-factura-electronica.asp |
-| WSFEv1 - Referencia de operaciones | https://servicios1.afip.gov.ar/wsfev1/service.asmx |
-| WSFEv1 - Manual del desarrollador (PDF) | https://www.afip.gob.ar/fe/ayuda/documentos/Manual-desarrollador-V.2.21.pdf |
-| WSASS - Autoservicio de certificados | https://auth.afip.gob.ar/contribuyente_/login.xhtml |
-| JDK 21 | https://jdk.java.net/21/ |
-| Maven | https://maven.apache.org/ |
+| Web Services SOAP ARCA | https://www.arca.gob.ar/ws/documentacion/ |
+| Factura electrónica ARCA | https://www.arca.gob.ar/fe/ |
+| Ayuda WSFEv1 | https://www.arca.gob.ar/fe/ayuda/webservice.asp |
+| Manual WSFEv1 vigente listado por ARCA | https://www.arca.gob.ar/fe/ayuda/documentos/wsfev1-RG-4291.pdf |
+| WSDL WSFEv1 homologación | https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL |
+| WSDL WSFEv1 producción | https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL |
+| WSASS certificados homologación | https://www.arca.gob.ar/ws/documentacion/certificados.asp |
 
 ## Licencia
 

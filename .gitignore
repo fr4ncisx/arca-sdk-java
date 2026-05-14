@@ -45,6 +45,3 @@ target/
 Thumbs.db
 *.swp
 *~
-
-# AI Agents
-.opencode
