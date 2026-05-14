@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.config;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,10 +9,6 @@ import java.net.URI;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Unit tests for ArcaEnvironment enum.
- * Verifies immutability, correct endpoint values, and serialisation safety.
- */
 class ArcaEnvironmentTest {
 
     @Test

@@ -1,18 +1,18 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.exception;
 
 /**
- * Authentication error returned by WSAA.
- * Thrown when the WSAA service rejects a login request
- * (invalid CMS, expired certificate, malformed TRA).
+ * SOAP communication failure.
+ * Thrown when a SOAP call fails due to timeouts, network errors,
+ * or SOAPFault responses from the ARCA service.
  */
-public non-sealed class ArcaAuthException extends ArcaException {
+public non-sealed class ArcaSoapException extends ArcaException {
 
     /**
      * Creates a new exception with the given detail message.
      *
      * @param message the detail message.
      */
-    public ArcaAuthException(String message) {
+    public ArcaSoapException(String message) {
         super(message);
     }
 
@@ -22,7 +22,7 @@ public non-sealed class ArcaAuthException extends ArcaException {
      * @param message the detail message.
      * @param cause the underlying cause.
      */
-    public ArcaAuthException(String message, Throwable cause) {
+    public ArcaSoapException(String message, Throwable cause) {
         super(message, cause);
     }
 }

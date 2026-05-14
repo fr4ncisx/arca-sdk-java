@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.clock;
 
 import java.time.Instant;
 
@@ -18,6 +18,7 @@ public sealed interface ArcaClock permits SystemClock, FixedClock {
 
     /**
      * Returns the current instant according to this clock.
+     *
      * @return current instant, never null
      */
     Instant now();

@@ -12,6 +12,14 @@ public final class TestFixtureLoader {
     private TestFixtureLoader() {
     }
 
+    /**
+     * Loads an XML fixture from the classpath.
+     *
+     * @param fixturePath the classpath-relative path to the fixture file.
+     * @return the file content as a UTF-8 string.
+     * @throws IllegalArgumentException if the fixture is not found on the classpath.
+     * @throws IllegalStateException    if the fixture cannot be read.
+     */
     public static String load(String fixturePath) {
         String normalizedPath = fixturePath.startsWith("/") ? fixturePath.substring(1) : fixturePath;
         try (InputStream stream = TestFixtureLoader.class.getClassLoader().getResourceAsStream(normalizedPath)) {

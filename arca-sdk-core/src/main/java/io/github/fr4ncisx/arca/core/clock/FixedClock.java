@@ -1,4 +1,6 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.clock;
+
+import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 
 import java.time.Instant;
 
@@ -17,6 +19,7 @@ public record FixedClock(Instant fixed) implements ArcaClock {
 
     /**
      * Compact constructor that rejects null instants.
+     *
      * @param fixed the fixed instant, must not be null
      * @throws ArcaValidationException if fixed is null
      */
@@ -28,6 +31,7 @@ public record FixedClock(Instant fixed) implements ArcaClock {
 
     /**
      * Returns the fixed instant configured at construction time.
+     *
      * @return the fixed instant, never null
      */
     @Override
@@ -38,6 +42,7 @@ public record FixedClock(Instant fixed) implements ArcaClock {
     /**
      * Returns a new FixedClock with a different fixed instant.
      * This clock remains unchanged (immutable).
+     *
      * @param newFixed the new fixed instant, must not be null
      * @return new FixedClock instance with the given instant
      */

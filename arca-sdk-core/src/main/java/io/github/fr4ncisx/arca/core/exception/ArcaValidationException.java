@@ -1,18 +1,18 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.exception;
 
 /**
- * SOAP communication failure.
- * Thrown when a SOAP call fails due to timeouts, network errors,
- * or SOAPFault responses from the ARCA service.
+ * Input validation error.
+ * Thrown when a method argument or configuration value fails validation
+ * (null, out of range, wrong format).
  */
-public non-sealed class ArcaSoapException extends ArcaException {
+public non-sealed class ArcaValidationException extends ArcaException {
 
     /**
      * Creates a new exception with the given detail message.
      *
      * @param message the detail message.
      */
-    public ArcaSoapException(String message) {
+    public ArcaValidationException(String message) {
         super(message);
     }
 
@@ -22,7 +22,7 @@ public non-sealed class ArcaSoapException extends ArcaException {
      * @param message the detail message.
      * @param cause the underlying cause.
      */
-    public ArcaSoapException(String message, Throwable cause) {
+    public ArcaValidationException(String message, Throwable cause) {
         super(message, cause);
     }
 }

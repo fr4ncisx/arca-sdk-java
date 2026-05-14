@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.exception;
 
 /**
  * Base exception for all ARCA SDK errors.

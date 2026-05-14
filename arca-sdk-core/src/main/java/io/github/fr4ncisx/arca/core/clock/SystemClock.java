@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.clock;
 
 import java.time.Instant;
 
@@ -11,6 +11,7 @@ import java.time.Instant;
  * @see FixedClock
  * @see ArcaClock
  */
+@SuppressWarnings("java:S6548")
 public enum SystemClock implements ArcaClock {
 
     /** Single instance. */
@@ -18,6 +19,7 @@ public enum SystemClock implements ArcaClock {
 
     /**
      * Returns the current system instant.
+     *
      * @return current Instant from the system clock, never null
      */
     @Override

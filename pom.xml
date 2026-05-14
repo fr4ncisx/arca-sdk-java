@@ -42,6 +42,7 @@
         <module>arca-sdk-wsaa</module>
         <module>arca-sdk-wsfev1</module>
         <module>arca-sdk-test-support</module>
+        <module>arca-sdk-registry</module>
     </modules>
 
     <properties>

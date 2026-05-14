@@ -1,13 +1,12 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.config;
 
 import java.net.URI;
 
 /**
- * Ambientes oficiales de ARCA con los endpoints de WSAA y WSFEv1.
+ * Official ARCA environments with WSAA and WSFEv1 endpoints.
  * <p>
- * Cada constante expone las URLs completas de los servicios de autenticacion
- * (WSAA) y facturacion electronica (WSFEv1) mediante {@link #getWsaaUrl()}
- * y {@link #getWsfev1Url()}.
+ * Each constant exposes the full URLs for the authentication
+ * (WSAA) and electronic invoicing (WSFEv1) services.
  *
  * @see <a href="https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl">WSDL WSAA Homologacion</a>
  * @see <a href="https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl">WSDL WSAA Produccion</a>
@@ -15,8 +14,9 @@ import java.net.URI;
  * @see <a href="https://servicios1.afip.gov.ar/wsfev1/service.asmx?wsdl">WSDL WSFEv1 Produccion</a>
  */
 public enum ArcaEnvironment {
+
     /**
-     * Ambiente de homologacion (testing) de ARCA.
+     * ARCA testing (homologacion) environment.
      * <p>
      * WSAA: {@code https://wsaahomo.afip.gov.ar/ws/services/LoginCms}
      * <p>
@@ -27,7 +27,7 @@ public enum ArcaEnvironment {
             URI.create("https://wswhomo.afip.gov.ar/wsfev1/service.asmx")),
 
     /**
-     * Ambiente de produccion de ARCA.
+     * ARCA production environment.
      * <p>
      * WSAA: {@code https://wsaa.afip.gov.ar/ws/services/LoginCms}
      * <p>
@@ -46,18 +46,18 @@ public enum ArcaEnvironment {
     }
 
     /**
-     * Retorna la URL del servicio WSAA (autenticacion).
+     * Returns the WSAA authentication service URL.
      *
-     * @return URI del endpoint LoginCms correspondiente al ambiente.
+     * @return URI of the LoginCms endpoint for this environment.
      */
     public URI getWsaaUrl() {
         return wsaaUrl;
     }
 
     /**
-     * Retorna la URL del servicio WSFEv1 (facturacion electronica).
+     * Returns the WSFEv1 electronic invoicing service URL.
      *
-     * @return URI del endpoint WSFEv1 correspondiente al ambiente.
+     * @return URI of the WSFEv1 endpoint for this environment.
      */
     public URI getWsfev1Url() {
         return wsfev1Url;

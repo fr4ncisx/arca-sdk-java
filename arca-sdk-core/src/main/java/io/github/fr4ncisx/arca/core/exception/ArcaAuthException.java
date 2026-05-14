@@ -1,18 +1,18 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.exception;
 
 /**
- * Input validation error.
- * Thrown when a method argument or configuration value fails validation
- * (null, out of range, wrong format).
+ * Authentication error returned by WSAA.
+ * Thrown when the WSAA service rejects a login request
+ * (invalid CMS, expired certificate, malformed TRA).
  */
-public non-sealed class ArcaValidationException extends ArcaException {
+public non-sealed class ArcaAuthException extends ArcaException {
 
     /**
      * Creates a new exception with the given detail message.
      *
      * @param message the detail message.
      */
-    public ArcaValidationException(String message) {
+    public ArcaAuthException(String message) {
         super(message);
     }
 
@@ -22,7 +22,7 @@ public non-sealed class ArcaValidationException extends ArcaException {
      * @param message the detail message.
      * @param cause the underlying cause.
      */
-    public ArcaValidationException(String message, Throwable cause) {
+    public ArcaAuthException(String message, Throwable cause) {
         super(message, cause);
     }
 }

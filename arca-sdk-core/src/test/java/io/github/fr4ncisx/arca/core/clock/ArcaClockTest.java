@@ -1,15 +1,12 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.clock;
 
 import java.time.Instant;
+
+import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Unit tests for ArcaClock, SystemClock, and FixedClock.
- * Verifies thread-safety, immutability, sealed hierarchy enforcement,
- * and deterministic time control for testing.
- */
 class ArcaClockTest {
 
     @Test

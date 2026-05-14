@@ -1,15 +1,10 @@
-package io.github.fr4ncisx.arca.core;
+package io.github.fr4ncisx.arca.core.exception;
 
 import java.util.Base64;
+
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Unit tests for the ArcaException sealed hierarchy.
- * Verifies that exactly three subclasses are permitted, constructors work
- * correctly, instanceof relationships hold, and no sensitive data leaks
- * through exception messages.
- */
 class ArcaExceptionTest {
 
     @Test
