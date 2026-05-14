@@ -10,8 +10,7 @@ Cubre el flujo completo de autenticación WSAA, transporte SOAP, modelos tipados
 para facturación electrónica (WSFEv1) y manejo seguro de datos sensibles en
 registros de auditoría.
 
-Está diseñado para ser **agnóstico de framework**: funciona en aplicaciones Java
-puras, Spring Boot, herramientas CLI o cualquier runtime que ejecute Java 21+.
+Está diseñado para ser **agnóstico de framework**: funciona con cualquier runtime Java 21+ (Spring Boot, Quarkus, Micronaut, Jakarta EE, etc.).
 
 ## Requisitos
 
