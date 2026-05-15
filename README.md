@@ -5,36 +5,19 @@
 [![build](https://img.shields.io/github/actions/workflow/status/fr4ncisx/arca-sdk-java/ci.yml?branch=main)]()
 [![licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)](LICENSE)
 
-SDK Java puro para integrarse con servicios web de **ARCA** mediante una API
-agnóstica de framework. El objetivo del proyecto es cubrir autenticación WSAA,
-transporte SOAP, facturación electrónica WSFEv1 y servicios complementarios sin
-exponer stubs generados ni datos sensibles.
+SDK Java para integrarse con los servicios web de **ARCA** (ex AFIP) sin lidiar con SOAP, XML ni stubs generados. Proporciona una API limpia y tipada que abstrae toda la complejidad de la comunicación con los servidores de ARCA, desde la autenticación hasta la emisión de comprobantes fiscales electrónicos.
 
-El repositorio está en desarrollo activo. La versión actual `0.1.1-M2` no está
-lista para producción: contiene la base técnica del reactor Maven, parte de
-`core`, soporte de fixtures y el WSDL de WSFEv1 versionado. WSAA end to end,
-cliente SOAP reusable, clientes WSFEv1 y `registry` siguen en backlog.
+**¿Para qué sirve?**
 
-## Estado actual
+- **Emitir comprobantes electrónicos**: Solicitar CAE/CAEA para facturas A, B, C, notas de crédito y débito.
+- **Consultar comprobantes**: Verificar el estado de facturas emitidas y obtener el último comprobante autorizado.
+- **Gestionar puntos de venta**: Listar y validar los puntos de venta asociados a un CUIT.
+- **Validar contribuyentes**: Consultar datos tributarios de un receptor (razón social, condición IVA, estado) antes de emitir.
+- **Automatizar procesos fiscales**: Procesamiento por lote de comprobantes, health checks y manejo tipado de errores.
 
-Implementado hoy:
+**¿Qué resuelve?**
 
-- Reactor Maven multi-módulo con Java 21.
-- `arca-sdk-core` con ambiente, reloj configurable y jerarquía base de
-  excepciones.
-- `arca-sdk-test-support` con carga de fixtures XML y datos de prueba.
-- `arca-sdk-wsfev1` con WSDL oficial versionado en `src/main/resources/wsdl`.
-- Módulos `wsaa`, `soap`, `registry`, `bom` y `bundle` creados como estructura
-  base.
-
-Pendiente antes de uso real:
-
-- Crear el flujo completo de autenticación WSAA, firma CMS y caché de tickets.
-- Crear el transporte SOAP reusable con timeouts, handlers y sanitización.
-- Crear `WsfeClient`, `ArcaClient` y casos de uso de consulta/emisión.
-- Crear validaciones de negocio para comprobantes, puntos de venta, monedas,
-  conceptos, IVA, CAE y CAEA.
-- Validar integración con certificados reales en homologación de ARCA.
+El SDK elimina la necesidad de interactuar directamente con WSDLs, generar stubs JAXB, construir XMLs TRA, firmar mensajes CMS/PKCS#7, gestionar tickets de acceso, renovar credenciales, parsear SOAPFaults o sanitizar datos sensibles en logs. Todo eso queda encapsulado internamente; el consumidor solo usa records, enums y métodos con nombres semánticos.
 
 ## Requisitos
 
@@ -45,16 +28,16 @@ Pendiente antes de uso real:
 
 ## Módulos
 
-| Módulo | Estado | Responsabilidad |
-|---|---|---|
-| `arca-sdk-core` | Parcial | Tipos compartidos, ambientes, errores, reloj, sanitización y utilidades comunes |
-| `arca-sdk-soap` | Scaffold | Transporte SOAP común, handlers JAX-WS, timeouts y adaptación de errores |
-| `arca-sdk-wsaa` | Scaffold | TRA, firma CMS/PKCS#7, `LoginCms`, tickets y renovación automática |
-| `arca-sdk-wsfev1` | Scaffold + WSDL | API de facturación electrónica WSFEv1, mappers, modelos y casos de uso |
-| `arca-sdk-registry` | Scaffold | Futuras consultas tributarias y registrales |
-| `arca-sdk-test-support` | Parcial | Fixtures XML, utilidades de test y soporte para mocks |
-| `arca-sdk-bom` | Scaffold | Bill of Materials para centralizar versiones |
-| `arca-sdk-bundle` | Scaffold | Dependencia de conveniencia para consumidores externos |
+| Módulo | Responsabilidad |
+|---|---|
+| `arca-sdk-core` | Tipos compartidos, ambientes, errores, reloj, sanitización y utilidades comunes |
+| `arca-sdk-soap` | Transporte SOAP común, handlers JAX-WS, timeouts y adaptación de errores |
+| `arca-sdk-wsaa` | TRA, firma CMS/PKCS#7, `LoginCms`, tickets y renovación automática |
+| `arca-sdk-wsfev1` | API de facturación electrónica WSFEv1, mappers, modelos y casos de uso |
+| `arca-sdk-registry` | Consultas tributarias y registrales |
+| `arca-sdk-test-support` | Fixtures XML, utilidades de test y soporte para mocks |
+| `arca-sdk-bom` | Bill of Materials para centralizar versiones |
+| `arca-sdk-bundle` | Dependencia de conveniencia para consumidores externos |
 
 ## Arquitectura objetivo
 
@@ -109,11 +92,73 @@ mvn verify -Darca.integration=true
 Reserva este comando para pruebas de integración con credenciales reales de
 ARCA. No debe ejecutarse sin certificado, CUIT y ambiente configurados.
 
-## API pública objetivo
+## Instalación
 
-Los siguientes nombres describen la superficie buscada para consumidores del
-SDK. Todavía no deben tomarse como API disponible hasta que el backlog los
-marque implementados.
+Este SDK **no está publicado en Maven Central**. Instálalo primero desde el código fuente:
+
+```bash
+git clone https://github.com/fr4ncisx/arca-sdk-java.git
+cd arca-sdk-java
+mvn clean install -DskipTests
+```
+
+Esto publica los artefactos en tu repositorio local de Maven (`~/.m2/repository`).
+
+Luego, en tu propio proyecto, elige **una** de estas dos opciones:
+
+### Opción A — BOM + módulos individuales
+
+Importa el BOM para gestionar versiones automáticamente:
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fr4ncisx</groupId>
+            <artifactId>arca-sdk-bom</artifactId>
+            <version>0.1.1</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Y agrega solo los módulos que necesites:
+
+```xml
+<dependencies>
+    <!-- Facturación electrónica WSFEv1 -->
+    <dependency>
+        <groupId>io.github.fr4ncisx</groupId>
+        <artifactId>arca-sdk-wsfev1</artifactId>
+    </dependency>
+
+    <!-- Consultas tributarias -->
+    <dependency>
+        <groupId>io.github.fr4ncisx</groupId>
+        <artifactId>arca-sdk-registry</artifactId>
+    </dependency>
+</dependencies>
+```
+
+### Opción B — Bundle (todo incluido)
+
+Sin BOM, una sola dependencia con todos los módulos:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.github.fr4ncisx</groupId>
+        <artifactId>arca-sdk-bundle</artifactId>
+        <version>0.1.1</version>
+    </dependency>
+</dependencies>
+```
+
+## Uso
+
+### Cliente principal
 
 ```java
 ArcaClient arca = ArcaClient.builder()
@@ -123,9 +168,135 @@ ArcaClient arca = ArcaClient.builder()
     .build();
 
 WsfeClient wsfe = arca.wsfev1();
+```
+
+### Consultar último comprobante autorizado
+
+```java
 LastVoucherResponse last = wsfe.getLastAuthorizedVoucher(
     new LastVoucherRequest(1, VoucherType.FACTURA_A));
+
+System.out.printf("Último comprobante: %d - %d%n",
+    last.voucherFrom(), last.voucherTo());
 ```
+
+### Solicitar CAE
+
+```java
+CaeRequest request = new CaeRequest(
+    VoucherType.FACTURA_A,
+    1,                              // salesPoint
+    ConceptType.PRODUCTOS_Y_SERVICIOS,
+    BigDecimal.valueOf(1210.00),    // importeTotal
+    BigDecimal.valueOf(1000.00),    // importeGravado
+    BigDecimal.valueOf(210.00),     // importeIva
+    LocalDate.now(),                // fechaEmision
+    LocalDate.now().plusDays(30),   // fechaVencimiento
+    Currency.PES,                   // moneda
+    BigDecimal.ONE                  // cotización
+);
+
+CaeResponse response = wsfe.requestCae(request);
+
+if (response.success()) {
+    System.out.println("CAE: " + response.cae().orElse(""));
+    System.out.println("Vence: " + response.expirationDate().orElse(""));
+} else {
+    response.errors().forEach(e ->
+        System.err.printf("Error %d: %s%n", e.code(), e.message()));
+}
+```
+
+### Health check
+
+```java
+boolean available = wsfe.ping();
+System.out.println("ARCA disponible: " + available);
+```
+
+### Listar puntos de venta
+
+```java
+List<SalesPoint> salesPoints = wsfe.getSalesPoints();
+for (SalesPoint sp : salesPoints) {
+    System.out.printf("Pto %d | Emisión: %s | Bloqueado: %s%n",
+        sp.numero(), sp.emisionTipo(),
+        sp.blocked() ? "Sí" : "No");
+}
+```
+
+### Consultar datos del contribuyente
+
+```java
+RegistryClient registry = arca.registry();
+TaxpayerData taxpayer = registry.getTaxpayer(Cuit.parse("20-33333333-9"));
+
+System.out.println("Razón social: " + taxpayer.name());
+System.out.println("Condición IVA: " + taxpayer.vatCondition());
+System.out.println("Estado: " + taxpayer.status());
+```
+
+## Configuración avanzada
+
+### Timeouts personalizados
+
+```java
+ArcaConfig config = ArcaConfig.builder()
+    .connectTimeout(Duration.ofSeconds(10))
+    .readTimeout(Duration.ofSeconds(30))
+    .sanitizeLogs(true)
+    .build();
+
+ArcaClient arca = ArcaClient.builder()
+    .environment(ArcaEnvironment.HOMOLOGACION)
+    .cuit(20333333339L)
+    .certificate(Paths.get("certificado.p12"), "password".toCharArray())
+    .config(config)
+    .build();
+```
+
+### Reloj fijo para tests
+
+```java
+ArcaClock clock = FixedClock.withFixed(Instant.parse("2026-01-15T10:00:00Z"));
+
+ArcaClient arca = ArcaClient.builder()
+    .environment(ArcaEnvironment.HOMOLOGACION)
+    .cuit(20333333339L)
+    .certificate(Paths.get("certificado.p12"), "password".toCharArray())
+    .clock(clock)
+    .build();
+```
+
+### Manejo de errores tipados
+
+```java
+try {
+    wsfe.requestCae(request);
+} catch (ArcaAuthException e) {
+    switch (e.errorCode()) {
+        case TA_EXPIRED -> System.err.println("Ticket expirado, reautenticando...");
+        case CERTIFICATE_EXPIRED -> System.err.println("Certificado vencido");
+        case AUTH_FAILED -> System.err.println("Fallo de autenticación: " + e.getMessage());
+    }
+} catch (ArcaSoapException e) {
+    switch (e.errorCode()) {
+        case SOAP_TIMEOUT -> System.err.println("Timeout en la llamada SOAP");
+        case SOAP_FAULT -> System.err.println("SOAP Fault: " + e.getMessage());
+    }
+} catch (ArcaValidationException e) {
+    System.err.println("Datos inválidos: " + e.getMessage());
+}
+```
+
+### Variables de entorno
+
+| Variable | Descripción |
+|---|---|
+| `ARCA_CERT_PATH` | Ruta al certificado PKCS#12 (.p12) |
+| `ARCA_CERT_PASSWORD` | Contraseña del keystore |
+| `ARCA_CUIT` | CUIT del contribuyente (sin guiones) |
+| `ARCA_ENVIRONMENT` | `homologacion` o `produccion` (default: homologacion) |
 
 ## Seguridad
 
@@ -139,13 +310,15 @@ LastVoucherResponse last = wsfe.getLastAuthorizedVoucher(
 
 | Recurso | URL |
 |---|---|
-| Web Services SOAP ARCA | https://www.arca.gob.ar/ws/documentacion/ |
+| Web Services SOAP ARCA | https://www.arca.gob.ar/ws/ |
+| Documentación Web Services SOAP | https://www.arca.gob.ar/ws/documentacion/ws-factura-electronica.asp |
 | Factura electrónica ARCA | https://www.arca.gob.ar/fe/ |
-| Ayuda WSFEv1 | https://www.arca.gob.ar/fe/ayuda/webservice.asp |
-| Manual WSFEv1 vigente listado por ARCA | https://www.arca.gob.ar/fe/ayuda/documentos/wsfev1-RG-4291.pdf |
+| Homologación externa ARCA | https://www.arca.gob.ar/ws/documentacion/homologacion-externa.asp |
+| Manual WSFEv1 vigente — RG 4291 / Proyecto FE v4.3 | https://www.arca.gob.ar/fe/ayuda/documentos/wsfev1-RG-4291.pdf |
 | WSDL WSFEv1 homologación | https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL |
 | WSDL WSFEv1 producción | https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL |
-| WSASS certificados homologación | https://www.arca.gob.ar/ws/documentacion/certificados.asp |
+| WSAA — Autenticación y Autorización | https://www.arca.gob.ar/ws/documentacion/wsaa.asp |
+| Certificados / WSASS homologación | https://www.arca.gob.ar/ws/documentacion/certificados.asp |
 
 ## Licencia
 
