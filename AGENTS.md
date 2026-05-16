@@ -21,7 +21,9 @@ each module's `src/main/java`, and tests live in `src/test/java`.
 
 ## Build, test, and development commands
 
-Use Maven from the repository root.
+Use Maven from the repository root. Do not use PowerShell for file operations
+or text manipulation; use the edit tool instead. Batch independent tool calls
+(glob, grep, read, edit) in parallel rather than running them sequentially.
 
 - `mvn clean verify`: build all modules and run tests.
 - `mvn test -pl arca-sdk-core`: run tests for one module.
@@ -65,3 +67,22 @@ payloads with taxpayer data. Keep WSAA secrets out of logs, sanitize token/sign
 values, and use fixtures or mocks. Treat OWASP Top Ten risks as baseline review
 criteria, especially injection, sensitive data exposure, insecure configuration,
 and insufficient logging or monitoring.
+
+## Encoding and character safety
+
+Always use **UTF-8** for reading and writing files. Windows defaults to
+Windows-1252 (CP1252) for Spanish locale, which causes **mojibake** —
+double-encoded characters like `Ã­` (should be `í`), `â†'` (should be `→`),
+or `â€"` (should be `—`).
+
+- **PowerShell**: `Get-Content` and `Set-Content` default to system encoding.
+  Always specify `-Encoding UTF8`. Better yet, avoid PowerShell for file
+  manipulation entirely — use the `edit` tool instead.
+- **Python scripts**: Always specify `encoding='utf-8'` in `open()`.
+- **Node.js scripts**: Use `fs.readFileSync(path, 'utf8')` or
+  `fs.writeFileSync(path, data, 'utf8')`.
+- **Git**: Configure `git config --global core.quotepath false` and ensure
+  `.gitattributes` declares `* text=auto eol=lf`.
+- **Java**: The project uses UTF-8 source encoding. Verify with
+  `<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>` in POM.
+- **BOM**: Do not introduce UTF-8 BOM into any files.
