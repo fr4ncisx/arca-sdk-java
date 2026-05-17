@@ -6,9 +6,9 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
  * An immutable value object that represents an Argentine CUIT (Clave Unica
  * de Identificacion Tributaria).
  * <p>
- * A CUIT looks like XX-XXXXXXXX-X. The first two digits tell you the
+ * A CUIT looks like XX-XXXXXXXX-X. The first two digits indicate the
  * taxpayer type, the next eight are the ID number, and the last digit
- * is a checksum calculated with AFIP's modulo 11 algorithm.
+ * is a checksum calculated with AFIP modulo 11 algorithm.
  * <p>
  * Common examples: 20-33333333-4 for individuals, 27-12345678-0 for
  * legal entities, 30-12345678-1 for companies.
@@ -17,6 +17,8 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
  * the checksum digit is wrong.
  *
  * @param number the 11-digit CUIT number without dashes
+ * @author fr4ncisx
+ * @since 0.1.0-M2
  */
 public record Cuit(long number) {
 
@@ -27,6 +29,9 @@ public record Cuit(long number) {
     /**
      * Validates the CUIT when you create one. Checks that the number has
      * exactly 11 digits and that the checksum digit is correct.
+     *
+     * @throws ArcaValidationException if the number is not 11 digits or
+     *         the checksum is invalid
      */
     public Cuit {
         if (number < MIN_CUIT || number > MAX_CUIT) {
@@ -38,8 +43,8 @@ public record Cuit(long number) {
     }
 
     /**
-     * Parses a CUIT from a string. You can pass it with dashes like
-     * "20-33333333-4" or without them like "20333333334" -- both work.
+     * Parses a CUIT from a string. Accepts formats with dashes like
+     * "20-33333333-4" or without dashes like "20333333334".
      *
      * @param raw the CUIT string, with or without dashes
      * @return a validated Cuit instance
