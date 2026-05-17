@@ -161,10 +161,18 @@ Sin BOM, una sola dependencia con todos los módulos:
 ### Cliente principal
 
 ```java
-ArcaClient arca = ArcaClient.builder()
+ArcaConfig config = ArcaConfig.builder()
     .environment(ArcaEnvironment.HOMOLOGACION)
-    .cuit(20333333339L)
-    .certificate(Paths.get("certificado.p12"), "password".toCharArray())
+    .cuit(Cuit.parse("20-33333333-9"))
+    .build();
+
+CertificateSource source = Pkcs12CertificateSource.fromPath(
+    Paths.get("certificado.p12"),
+    "password".toCharArray());
+
+ArcaClient arca = ArcaClient.builder()
+    .config(config)
+    .certificate(source)
     .build();
 
 WsfeClient wsfe = arca.wsfev1();
@@ -225,17 +233,6 @@ for (SalesPoint sp : salesPoints) {
 }
 ```
 
-### Consultar datos del contribuyente
-
-```java
-RegistryClient registry = arca.registry();
-TaxpayerData taxpayer = registry.getTaxpayer(Cuit.parse("20-33333333-9"));
-
-System.out.println("Razón social: " + taxpayer.name());
-System.out.println("Condición IVA: " + taxpayer.vatCondition());
-System.out.println("Estado: " + taxpayer.status());
-```
-
 ## Configuración avanzada
 
 ### Timeouts personalizados
@@ -247,11 +244,13 @@ ArcaConfig config = ArcaConfig.builder()
     .sanitizeLogs(true)
     .build();
 
+CertificateSource source = Pkcs12CertificateSource.fromPath(
+    Paths.get("certificado.p12"),
+    "password".toCharArray());
+
 ArcaClient arca = ArcaClient.builder()
-    .environment(ArcaEnvironment.HOMOLOGACION)
-    .cuit(20333333339L)
-    .certificate(Paths.get("certificado.p12"), "password".toCharArray())
     .config(config)
+    .certificate(source)
     .build();
 ```
 
@@ -260,11 +259,19 @@ ArcaClient arca = ArcaClient.builder()
 ```java
 ArcaClock clock = FixedClock.withFixed(Instant.parse("2026-01-15T10:00:00Z"));
 
-ArcaClient arca = ArcaClient.builder()
+ArcaConfig config = ArcaConfig.builder()
     .environment(ArcaEnvironment.HOMOLOGACION)
-    .cuit(20333333339L)
-    .certificate(Paths.get("certificado.p12"), "password".toCharArray())
+    .cuit(Cuit.parse("20-33333333-9"))
     .clock(clock)
+    .build();
+
+CertificateSource source = Pkcs12CertificateSource.fromPath(
+    Paths.get("certificado.p12"),
+    "password".toCharArray());
+
+ArcaClient arca = ArcaClient.builder()
+    .config(config)
+    .certificate(source)
     .build();
 ```
 
