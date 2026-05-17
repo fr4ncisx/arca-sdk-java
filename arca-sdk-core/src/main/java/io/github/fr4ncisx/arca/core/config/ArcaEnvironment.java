@@ -12,6 +12,8 @@ import java.net.URI;
  * @see <a href="https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl">WSDL WSAA Produccion</a>
  * @see <a href="https://wswhomo.afip.gov.ar/wsfev1/service.asmx?wsdl">WSDL WSFEv1 Homologacion</a>
  * @see <a href="https://servicios1.afip.gov.ar/wsfev1/service.asmx?wsdl">WSDL WSFEv1 Produccion</a>
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 public enum ArcaEnvironment {
 

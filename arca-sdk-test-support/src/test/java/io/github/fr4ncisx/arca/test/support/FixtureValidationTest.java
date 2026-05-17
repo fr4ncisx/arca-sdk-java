@@ -8,15 +8,23 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * Verifica que los 6 archivos XML de ejemplo en fixtures/ sean XML bien formados.
+ * Validates that all XML fixture files in the fixtures directory are well-formed.
  * <p>
- * Cada fixture se carga desde classpath, se parsea con un parser XML estandar,
- * y no debe lanzar ninguna excepcion de parseo. Este test garantiza que los
- * archivos XML estan estructuralmente correctos antes de usarlos en otros tests
- * (ArcaMockServer, XMLUnit, etc.).
+ * Each fixture is loaded from the classpath and parsed with a standard XML parser.
+ * The test ensures that fixture files are structurally correct before they are
+ * used in other tests (ArcaMockServer, XMLUnit, etc.).
+ *
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 class FixtureValidationTest {
 
+    /**
+     * Validates that the XML file at the given path is well-formed and can be
+     * parsed without throwing an exception.
+     *
+     * @param path the classpath-relative path to the fixture file
+     */
     @ParameterizedTest
     @ValueSource(strings = {
         "/fixtures/wsaa/tra-valid-001.xml",

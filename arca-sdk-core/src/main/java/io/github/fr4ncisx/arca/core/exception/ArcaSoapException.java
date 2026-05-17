@@ -2,8 +2,12 @@ package io.github.fr4ncisx.arca.core.exception;
 
 /**
  * SOAP communication failure.
+ * <p>
  * Thrown when a SOAP call fails due to timeouts, network errors,
  * or SOAPFault responses from the ARCA service.
+ *
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 public non-sealed class ArcaSoapException extends ArcaException {
 

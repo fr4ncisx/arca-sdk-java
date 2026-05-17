@@ -21,6 +21,8 @@ import java.time.Instant;
  * @param sign           the signature credential
  * @param generationTime when the ticket was generated
  * @param expirationTime when the ticket expires
+ * @author fr4ncisx
+ * @since 0.1.0-M2
  */
 public record ArcaAccessTicket(
         String token,
@@ -28,6 +30,11 @@ public record ArcaAccessTicket(
         Instant generationTime,
         Instant expirationTime) implements Comparable<ArcaAccessTicket> {
 
+    /**
+     * Validates that all fields are non-null at construction time.
+     *
+     * @throws ArcaValidationException if any field is null
+     */
     public ArcaAccessTicket {
         if (token == null) {
             throw new ArcaValidationException("token must not be null");
@@ -60,6 +67,10 @@ public record ArcaAccessTicket(
     /**
      * Compares tickets by expiration time ascending (most urgent first).
      * Suitable for {@link java.util.PriorityQueue} ordering.
+     *
+     * @param other the ticket to compare against
+     * @return negative if this expires first, positive if other expires first
+     * @throws ArcaValidationException if other is null
      */
     @Override
     public int compareTo(ArcaAccessTicket other) {

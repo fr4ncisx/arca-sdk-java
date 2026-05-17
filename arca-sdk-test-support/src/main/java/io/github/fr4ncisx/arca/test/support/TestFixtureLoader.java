@@ -5,7 +5,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Helper para cargar fixtures XML desde classpath durante tests de integración.
+ * Helper for loading XML fixtures from classpath during integration tests.
+ * <p>
+ * Provides static methods to read fixture files as UTF-8 strings.
+ * Throws IllegalArgumentException if the fixture is not found.
+ *
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 public final class TestFixtureLoader {
 
@@ -24,11 +30,11 @@ public final class TestFixtureLoader {
         String normalizedPath = fixturePath.startsWith("/") ? fixturePath.substring(1) : fixturePath;
         try (InputStream stream = TestFixtureLoader.class.getClassLoader().getResourceAsStream(normalizedPath)) {
             if (stream == null) {
-                throw new IllegalArgumentException("Fixture no encontrado en classpath: " + fixturePath);
+                throw new IllegalArgumentException("Fixture not found on classpath: " + fixturePath);
             }
             return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException exception) {
-            throw new IllegalStateException("No se pudo leer el fixture: " + fixturePath, exception);
+            throw new IllegalStateException("Could not read fixture: " + fixturePath, exception);
         }
     }
 }

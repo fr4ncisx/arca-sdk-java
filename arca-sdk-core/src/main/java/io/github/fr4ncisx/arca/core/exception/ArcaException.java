@@ -2,13 +2,13 @@ package io.github.fr4ncisx.arca.core.exception;
 
 /**
  * Base exception for all ARCA SDK errors.
+ * <p>
  * Sealed hierarchy restricts subclasses to {@link ArcaAuthException},
  * {@link ArcaSoapException} and {@link ArcaValidationException}.
  * Extends RuntimeException so callers are not forced to catch.
  *
- * @see ArcaAuthException
- * @see ArcaSoapException
- * @see ArcaValidationException
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 public sealed class ArcaException extends RuntimeException
         permits ArcaAuthException, ArcaSoapException, ArcaValidationException {
