@@ -1,7 +1,8 @@
 # ARCA SDK Java
 
 [![Java](https://img.shields.io/badge/Java-21-blue)](https://jdk.java.net/21/)
-[![version](https://img.shields.io/github/v/tag/fr4ncisx/arca-sdk-java?style=flat&label=version&sort=semver)]()
+[![version](https://img.shields.io/github/v/tag/fr4ncisx/arca-sdk-java?style=flat&label=version)]()
+[![status](https://img.shields.io/badge/status-milestone-orange)]()
 [![build](https://img.shields.io/github/actions/workflow/status/fr4ncisx/arca-sdk-java/ci.yml?branch=main)]()
 [![licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)](LICENSE)
 
@@ -116,7 +117,7 @@ Importa el BOM para gestionar versiones automáticamente:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>0.1.1</version>
+            <version>0.1.0-M2</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -151,7 +152,7 @@ Sin BOM, una sola dependencia con todos los módulos:
     <dependency>
         <groupId>io.github.fr4ncisx</groupId>
         <artifactId>arca-sdk-bundle</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.0-M2</version>
     </dependency>
 </dependencies>
 ```
