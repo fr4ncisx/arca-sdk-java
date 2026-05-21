@@ -38,6 +38,68 @@ four-space indentation. Keep public API types outside `internal.*`; generated
 JAXB classes must stay isolated under
 `internal.generated`. Prefer package names under `io.github.fr4ncisx.arca`.
 
+## Javadoc guidelines
+
+All Javadoc comments must be written **strictly in professional English**. No
+other language is permitted.
+
+### Class-level Javadoc
+
+Every public class, interface, enum, and record must have a class-level Javadoc
+that describes its purpose, responsibility, and role within the architecture.
+Include `@author` and `@since` tags. The `@since` value must match the
+`${revision}` property from the root `pom.xml` (e.g., `0.1.0-M2`).
+
+### Method-level Javadoc
+
+Every public and protected method must have a Javadoc that describes:
+
+- What the method does (not how).
+- Parameters with `@param` tags.
+- Return value with `@return` tag.
+- Exceptions with `@throws` tag for all checked and significant unchecked
+  exceptions.
+
+### Formatting rules
+
+- **No HTML tags** are allowed in Javadoc content. The only exception is the
+  `<p>` tag for paragraph breaks.
+- `<a href="...">` is permitted inside `{@see}` tags when referencing external
+  WSDL files or official documentation that cannot be expressed with `{@link}`.
+- Use `<p>` to separate logical sections within a Javadoc (e.g., between the
+  main description and `@param` blocks, or to separate usage notes from
+  behavioral descriptions).
+- Use plain text formatting only. Rely on `{@code}` for inline code references
+  and `{@link}` for cross-references.
+- Use `{@see}` references only when strictly necessary for cross-module
+  navigation or when the referenced type is not already obvious from the code
+  context. Avoid redundant `@see` for closely related types in the same package.
+- Keep descriptions concise, precise, and professional.
+
+### Test documentation
+
+Test classes and test methods must also have Javadoc written in English.
+Describe the scenario under test and the expected behavior. Use `<p>` for
+paragraph separation. No HTML tags.
+
+Example:
+
+```java
+/**
+ * Validates that a CUIT with an invalid check digit is rejected.
+ * <p>
+ * The validator computes the expected check digit using modulo 10
+ * and compares it against the supplied digit.
+ *
+ * @author fr4ncisx
+ * @since 1.0.0
+ */
+@Test
+void rejectsInvalidCuitCheckDigit() {
+    // ...
+}
+```
+
 ## Architecture and quality principles
 
 Use hexagonal architecture consistently. Keep public APIs and use cases
