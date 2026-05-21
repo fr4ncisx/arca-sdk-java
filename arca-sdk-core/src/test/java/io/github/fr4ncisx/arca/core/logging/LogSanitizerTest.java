@@ -161,10 +161,75 @@ class LogSanitizerTest {
 
         var sanitized = LogSanitizer.sanitize(input);
 
-        assertThat(sanitized).doesNotContain("abc123");
-        assertThat(sanitized).doesNotContain("xyz789");
-        assertThat(sanitized).doesNotContain("superSecret");
-        assertThat(sanitized).doesNotContain("raw-private-key");
-        assertThat(sanitized).contains("[REDACTED]");
+        assertThat(sanitized)
+            .doesNotContain("abc123")
+            .doesNotContain("xyz789")
+            .doesNotContain("superSecret")
+            .doesNotContain("raw-private-key")
+            .contains("[REDACTED]");
+    }
+
+    /**
+     * Validates that a trailing line break is preserved when a full sensitive block is redacted.
+     */
+    @Test
+    void preservesTrailingNewlineWhenRedactingSensitiveBlock() {
+        var input = """
+            -----BEGIN CERTIFICATE-----
+            abcdef123456
+            -----END CERTIFICATE-----
+            """;
+
+        assertThat(LogSanitizer.sanitize(input)).endsWith("\n");
+    }
+
+    /**
+     * Validates that an already redacted value keeps its separators unchanged.
+     */
+    @Test
+    void preservesSeparatorsForAlreadyRedactedValues() {
+        var input = "token=[REDACTED], sign: [REDACTED]";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("token=[REDACTED], sign: [REDACTED]");
+    }
+
+    /**
+     * Validates that non-sensitive fields remain unchanged when they appear next to sensitive ones.
+     */
+    @Test
+    void preservesNonSensitiveFieldsAdjacentToSensitiveFields() {
+        var input = "token=abc123 traceId=req-42 env=test";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("token=[REDACTED] traceId=req-42 env=test");
+    }
+
+    /**
+     * Validates that case-insensitive matching only applies to the key, not to the value.
+     */
+    @Test
+    void preservesSensitiveValueLetterCaseByRedactingInsteadOfNormalizingInput() {
+        var input = "ToKeN=AbC123XyZ";
+
+        assertThat(LogSanitizer.sanitize(input)).isEqualTo("ToKeN=[REDACTED]");
+    }
+
+    /**
+     * Validates that JSON and delimited pairs can coexist without interfering with each other.
+     */
+    @Test
+    void sanitizesJsonAndDelimitedPairsInTheSameInput() {
+        var input = """
+            Authorization: Bearer abc.def
+            {"password":"superSecret","env":"test"}
+            token=abc123
+            """;
+
+        assertThat(LogSanitizer.sanitize(input)).isEqualTo("""
+            Authorization: [REDACTED]
+            {"password":"[REDACTED]","env":"test"}
+            token=[REDACTED]
+            """);
     }
 }
