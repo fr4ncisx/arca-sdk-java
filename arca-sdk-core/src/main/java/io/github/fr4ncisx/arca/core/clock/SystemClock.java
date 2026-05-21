@@ -8,8 +8,8 @@ import java.time.Instant;
  * Thread-safe by definition: enum singleton with no mutable state.
  * Each call to now() returns the real system time.
  *
- * @see FixedClock
- * @see ArcaClock
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 @SuppressWarnings("java:S6548")
 public enum SystemClock implements ArcaClock {

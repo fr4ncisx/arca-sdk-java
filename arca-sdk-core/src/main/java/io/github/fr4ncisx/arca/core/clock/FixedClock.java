@@ -12,8 +12,8 @@ import java.time.Instant;
  * Uses a compact constructor to reject null instants at creation time.
  *
  * @param fixed the instant this clock will always return, never null
- * @see SystemClock
- * @see ArcaClock
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 public record FixedClock(Instant fixed) implements ArcaClock {
 
@@ -45,6 +45,7 @@ public record FixedClock(Instant fixed) implements ArcaClock {
      *
      * @param newFixed the new fixed instant, must not be null
      * @return new FixedClock instance with the given instant
+     * @throws ArcaValidationException if newFixed is null
      */
     public FixedClock withFixed(Instant newFixed) {
         return new FixedClock(newFixed);

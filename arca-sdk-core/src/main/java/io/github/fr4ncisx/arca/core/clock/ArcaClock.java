@@ -13,6 +13,9 @@ import java.time.Instant;
  * <p>
  * Consumed by TicketCache, TraBuilder, ArcaAccessTicket,
  * and any component that needs an injectable timestamp.
+ *
+ * @author fr4ncisx
+ * @since 0.1.0-M1
  */
 public sealed interface ArcaClock permits SystemClock, FixedClock {
 
