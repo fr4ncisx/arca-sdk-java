@@ -1,5 +1,8 @@
 package io.github.fr4ncisx.arca.test.support;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -36,7 +39,8 @@ class FixtureValidationTest {
     })
     void shouldBeWellFormedXml(String path) {
         assertThatCode(() -> {
-            try (var in = getClass().getResourceAsStream(path)) {
+            String xml = TestFixtureLoader.load(path);
+            try (var in = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))) {
                 var factory = DocumentBuilderFactory.newInstance();
                 factory.newDocumentBuilder().parse(in);
             }
