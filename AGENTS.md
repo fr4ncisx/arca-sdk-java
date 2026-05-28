@@ -47,8 +47,10 @@ other language is permitted.
 
 Every public class, interface, enum, and record must have a class-level Javadoc
 that describes its purpose, responsibility, and role within the architecture.
-Include `@author` and `@since` tags. The `@since` value must match the
-`${revision}` property from the root `pom.xml` (e.g., `0.1.0-M2`).
+Include `@author` and `@since` tags. The `@since` value must identify the
+milestone or version where the symbol was introduced for the first time.
+Do not rewrite an existing `@since` value during later refactors, package
+moves, or follow-up milestones unless the symbol itself is newly introduced.
 
 ### Method-level Javadoc
 
