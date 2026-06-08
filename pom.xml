@@ -53,7 +53,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <metro.version>4.0.4</metro.version>
+        <metro.version>4.0.5</metro.version>
         <jaxb.version>4.0.8</jaxb.version>
         <slf4j.version>2.0.17</slf4j.version>
         <junit.version>6.0.3</junit.version>
