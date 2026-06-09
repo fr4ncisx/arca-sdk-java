@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.core.config;
+package io.github.fr4ncisx.arca.core.tax;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 

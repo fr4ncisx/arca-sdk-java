@@ -64,15 +64,19 @@ public final class LogSanitizer {
         "([A-Z_][\\w.:-]*)(\\s*=\\s*)([\"'])(.*?)\\3",
         Pattern.CASE_INSENSITIVE);
 
+    private static final Pattern XML_ELEMENT_PATTERN = Pattern.compile(
+        "(<([A-Z_][\\w.:-]*)(?:\\s[^>]*)?>)([^<>]*)(</\\2>)",
+        Pattern.CASE_INSENSITIVE);
+
     private static final Pattern JSON_STRING_PATTERN = Pattern.compile(
         "(\"([^\"]+)\")(\\s*:\\s*)(\")([^\"]*)(\")");
 
     private static final Pattern KEY_VALUE_EQUALS_PATTERN = Pattern.compile(
-        "(^|[\\s,;])([A-Z][A-Z\\d-]*)(\\s*=\\s*)((?![\"'])[^\\s,;]+)",
+        "(^|[\\s,;>])([A-Z][A-Z\\d-]*)(\\s*=\\s*)((?![\"'])[^\\s,;<]+)",
         Pattern.CASE_INSENSITIVE);
 
     private static final Pattern KEY_VALUE_COLON_PATTERN = Pattern.compile(
-        "(^|[\\s,;])([A-Z][A-Z\\d-]*)(\\s*:\\s*)([^\\r\\n,;]+)",
+        "(^|[\\s,;>])([A-Z][A-Z\\d-]*)(\\s*:\\s*)([^\\r\\n,;<]+)",
         Pattern.CASE_INSENSITIVE);
 
     /**
@@ -89,6 +93,7 @@ public final class LogSanitizer {
 
         var sanitized = redactSensitiveBlocks(input);
         sanitized = replaceXmlAttributes(sanitized);
+        sanitized = replaceXmlElements(sanitized);
         sanitized = replaceJsonPairs(sanitized);
         sanitized = replaceDelimitedPairs(sanitized, KEY_VALUE_EQUALS_PATTERN);
         sanitized = replaceDelimitedPairs(sanitized, KEY_VALUE_COLON_PATTERN);
@@ -122,6 +127,23 @@ public final class LogSanitizer {
                 var separator = match.group(XML_GROUP_SEPARATOR);
                 var quote = match.group(XML_GROUP_QUOTE);
                 return key + separator + quote + REDACTED + quote;
+            }
+
+            return match.group(GROUP_MATCH);
+        });
+    }
+
+    /**
+     * Redacts supported sensitive XML element text while preserving element names.
+     *
+     * @param input the diagnostic text to sanitize.
+     * @return the input with sensitive XML element text replaced.
+     */
+    private static String replaceXmlElements(String input) {
+        return replaceMatches(input, XML_ELEMENT_PATTERN, match -> {
+            var key = match.group(2);
+            if (isSensitiveKey(key)) {
+                return match.group(1) + REDACTED + match.group(4);
             }
 
             return match.group(GROUP_MATCH);
@@ -198,7 +220,10 @@ public final class LogSanitizer {
      * @return {@code true} when the key is configured as sensitive; otherwise {@code false}.
      */
     private static boolean isSensitiveKey(String key) {
-        return SENSITIVE_KEYS.contains(key.toLowerCase());
+        var normalized = key.toLowerCase();
+        var localNameIndex = normalized.lastIndexOf(':');
+        var localName = localNameIndex >= 0 ? normalized.substring(localNameIndex + 1) : normalized;
+        return SENSITIVE_KEYS.contains(normalized) || SENSITIVE_KEYS.contains(localName);
     }
 
     /**

@@ -42,4 +42,18 @@
             <artifactId>wiremock-standalone</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>fixtures/**</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
 </project>

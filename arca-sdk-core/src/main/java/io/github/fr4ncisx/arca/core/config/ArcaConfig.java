@@ -1,6 +1,7 @@
 package io.github.fr4ncisx.arca.core.config;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.tax.Cuit;
 
 import java.time.Duration;
 
