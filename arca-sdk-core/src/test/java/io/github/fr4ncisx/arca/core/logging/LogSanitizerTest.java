@@ -87,6 +87,29 @@ class LogSanitizerTest {
     }
 
     /**
+     * Validates that XML elements containing token, sign, and password values are redacted.
+     */
+    @Test
+    void redactsSensitiveXmlElementText() {
+        var input = "<login><token>abc</token><sign>xyz</sign><password>secret</password><env>test</env></login>";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("<login><token>[REDACTED]</token><sign>[REDACTED]</sign>"
+                + "<password>[REDACTED]</password><env>test</env></login>");
+    }
+
+    /**
+     * Validates that namespaced XML elements are evaluated by their local name.
+     */
+    @Test
+    void redactsNamespacedSensitiveXmlElementText() {
+        var input = "<wsaa:token>abc</wsaa:token><wsaa:sign>xyz</wsaa:sign>";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("<wsaa:token>[REDACTED]</wsaa:token><wsaa:sign>[REDACTED]</wsaa:sign>");
+    }
+
+    /**
      * Validates that Authorization header values are redacted.
      */
     @Test
@@ -95,6 +118,17 @@ class LogSanitizerTest {
 
         assertThat(LogSanitizer.sanitize(input))
             .isEqualTo("Authorization: [REDACTED]");
+    }
+
+    /**
+     * Validates that Authorization values inside XML text are redacted without removing tags.
+     */
+    @Test
+    void redactsAuthorizationHeaderInsideXmlText() {
+        var input = "<faultstring>Authorization: Bearer abc.def.ghi</faultstring>";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("<faultstring>Authorization: [REDACTED]</faultstring>");
     }
 
     /**
