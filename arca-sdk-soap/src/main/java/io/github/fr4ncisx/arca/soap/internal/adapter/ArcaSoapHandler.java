@@ -1,6 +1,7 @@
 package io.github.fr4ncisx.arca.soap.internal.adapter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -144,7 +145,7 @@ public final class ArcaSoapHandler implements SOAPHandler<SOAPMessageContext> {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             context.getMessage().writeTo(output);
             return output.toString(StandardCharsets.UTF_8);
-        } catch (SOAPException | java.io.IOException exception) {
+        } catch (SOAPException | IOException exception) {
             return exception.getClass().getSimpleName() + ": " + exception.getMessage();
         }
     }
