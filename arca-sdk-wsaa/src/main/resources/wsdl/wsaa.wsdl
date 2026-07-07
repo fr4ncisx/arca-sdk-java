@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions 
+    targetNamespace="http://wsaa.view.sua.dvadac.desein.afip.gov" 
+    xmlns:impl="http://wsaa.view.sua.dvadac.desein.afip.gov" 
+    xmlns:intf="http://wsaa.view.sua.dvadac.desein.afip.gov" 
+    xmlns:apachesoap="http://xml.apache.org/xml-soap" 
+    xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+
+  <wsdl:types>
+  </wsdl:types>
+
+  <wsdl:message name="loginCmsRequest">
+    <wsdl:part name="in0" type="xsd:string"/>
+  </wsdl:message>
+
+  <wsdl:message name="loginCmsResponse">
+    <wsdl:part name="loginCmsReturn" type="xsd:string"/>
+  </wsdl:message>
+
+  <wsdl:portType name="LoginCMS">
+    <wsdl:operation name="loginCms" parameterOrder="in0">
+      <wsdl:input name="loginCmsRequest" message="impl:loginCmsRequest"/>
+      <wsdl:output name="loginCmsResponse" message="impl:loginCmsResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="LoginCmsSoapBinding" type="impl:LoginCMS">
+    <wsdlsoap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="loginCms">
+      <wsdlsoap:operation soapAction=""/>
+      <wsdl:input name="loginCmsRequest">
+        <wsdlsoap:body use="literal" namespace="http://wsaa.view.sua.dvadac.desein.afip.gov"/>
+      </wsdl:input>
+      <wsdl:output name="loginCmsResponse">
+        <wsdlsoap:body use="literal" namespace="http://wsaa.view.sua.dvadac.desein.afip.gov"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="LoginCMSService">
+    <wsdl:port name="LoginCms" binding="impl:LoginCmsSoapBinding">
+      <wsdlsoap:address location="https://wsaahomo.afip.gov.ar/ws/services/LoginCms"/>
+    </wsdl:port>
+  </wsdl:service>
+
+</wsdl:definitions>
