@@ -21,22 +21,36 @@ public final class LogSanitizer {
     private static final String REDACTED = "[REDACTED]";
     private static final String EMPTY = "";
 
+    /** Regex capturing group representing the entire match. */
     private static final int GROUP_MATCH = 0;
+    /** Regex capturing group index for the optional trailing newline in PEM blocks. */
     private static final int GROUP_TRAILING_NEWLINE = 3;
 
+    /** Regex capturing group index for the XML attribute key. */
     private static final int XML_GROUP_KEY = 1;
+    /** Regex capturing group index for the XML attribute separator (equals sign and spacing). */
     private static final int XML_GROUP_SEPARATOR = 2;
+    /** Regex capturing group index for the XML attribute quote character. */
     private static final int XML_GROUP_QUOTE = 3;
 
+    /** Regex capturing group index for the JSON quoted key including quotes. */
     private static final int JSON_GROUP_QUOTED_KEY = 1;
+    /** Regex capturing group index for the JSON key itself (unquoted value). */
     private static final int JSON_GROUP_KEY = 2;
+    /** Regex capturing group index for the JSON separator (colon and spacing). */
     private static final int JSON_GROUP_SEPARATOR = 3;
+    /** Regex capturing group index for the JSON string value opening quote. */
     private static final int JSON_GROUP_VALUE_QUOTE_START = 4;
+    /** Regex capturing group index for the JSON string value closing quote. */
     private static final int JSON_GROUP_VALUE_QUOTE_END = 6;
 
+    /** Regex capturing group index for prefix character or boundary in delimited key-value formats. */
     private static final int DELIMITED_GROUP_PREFIX = 1;
+    /** Regex capturing group index for key name in delimited key-value formats. */
     private static final int DELIMITED_GROUP_KEY = 2;
+    /** Regex capturing group index for key-value separator (equals or colon) in delimited formats. */
     private static final int DELIMITED_GROUP_SEPARATOR = 3;
+    /** Regex capturing group index for the raw unquoted value in delimited key-value formats. */
     private static final int DELIMITED_GROUP_VALUE = 4;
 
     private static final Set<String> SENSITIVE_KEYS = Set.of(
@@ -87,9 +101,8 @@ public final class LogSanitizer {
      *         sanitized text.
      */
     public static String sanitize(String input) {
-        if (input == null) {
+        if (input == null)
             return null;
-        }
 
         var sanitized = redactSensitiveBlocks(input);
         sanitized = replaceXmlAttributes(sanitized);
@@ -98,6 +111,22 @@ public final class LogSanitizer {
         sanitized = replaceDelimitedPairs(sanitized, KEY_VALUE_EQUALS_PATTERN);
         sanitized = replaceDelimitedPairs(sanitized, KEY_VALUE_COLON_PATTERN);
         return sanitized;
+    }
+
+    /**
+     * Sanitizes a single key-value pair, redacting the value if the key is sensitive.
+     *
+     * @param key the key name.
+     * @param value the value.
+     * @return the sanitized value.
+     * @since 0.1.0-M4
+     */
+    public static String sanitizeKeyValue(String key, String value) {
+        if (key == null || value == null)
+            return value;
+        if (isSensitiveKey(key))
+            return REDACTED;
+        return sanitize(value);
     }
 
     private LogSanitizer() {
