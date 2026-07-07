@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.stream.Stream;
+import org.jspecify.annotations.NullMarked;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author fr4ncisx
  * @since 0.1.0-M2
  */
+@NullMarked
 class ArcaAccessTicketTest {
 
     private static final Instant GEN = Instant.parse("2026-05-15T10:00:00Z");
@@ -48,7 +50,7 @@ class ArcaAccessTicketTest {
     void rejectsNullToken() {
         assertThatThrownBy(() -> new ArcaAccessTicket(null, SIGN, GEN, EXP))
                 .isInstanceOf(ArcaValidationException.class)
-                .hasMessageContaining("token must not be null");
+                .hasMessage("The access token credential cannot be null.");
     }
 
     /**
@@ -58,7 +60,7 @@ class ArcaAccessTicketTest {
     void rejectsNullSign() {
         assertThatThrownBy(() -> new ArcaAccessTicket(TOKEN, null, GEN, EXP))
                 .isInstanceOf(ArcaValidationException.class)
-                .hasMessageContaining("sign must not be null");
+                .hasMessage("The signature credential cannot be null.");
     }
 
     /**
@@ -68,7 +70,7 @@ class ArcaAccessTicketTest {
     void rejectsNullGenerationTime() {
         assertThatThrownBy(() -> new ArcaAccessTicket(TOKEN, SIGN, null, EXP))
                 .isInstanceOf(ArcaValidationException.class)
-                .hasMessageContaining("generationTime must not be null");
+                .hasMessage("The generation time of the access ticket cannot be null.");
     }
 
     /**
@@ -78,7 +80,7 @@ class ArcaAccessTicketTest {
     void rejectsNullExpirationTime() {
         assertThatThrownBy(() -> new ArcaAccessTicket(TOKEN, SIGN, GEN, null))
                 .isInstanceOf(ArcaValidationException.class)
-                .hasMessageContaining("expirationTime must not be null");
+                .hasMessage("The expiration time of the access ticket cannot be null.");
     }
 
     /**
@@ -127,7 +129,7 @@ class ArcaAccessTicketTest {
 
         assertThatThrownBy(() -> ticket.isExpired(null))
                 .isInstanceOf(ArcaValidationException.class)
-                .hasMessageContaining("clock must not be null");
+                .hasMessage("The clock instance to check expiration cannot be null.");
     }
 
     /**
@@ -190,7 +192,7 @@ class ArcaAccessTicketTest {
 
         assertThatThrownBy(() -> ticket.compareTo(null))
                 .isInstanceOf(ArcaValidationException.class)
-                .hasMessageContaining("other ticket must not be null");
+                .hasMessage("The other ArcaAccessTicket instance to compare against cannot be null.");
     }
 
     /**

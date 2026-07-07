@@ -36,18 +36,14 @@ public record ArcaAccessTicket(
      * @throws ArcaValidationException if any field is null
      */
     public ArcaAccessTicket {
-        if (token == null) {
-            throw new ArcaValidationException("token must not be null");
-        }
-        if (sign == null) {
-            throw new ArcaValidationException("sign must not be null");
-        }
-        if (generationTime == null) {
-            throw new ArcaValidationException("generationTime must not be null");
-        }
-        if (expirationTime == null) {
-            throw new ArcaValidationException("expirationTime must not be null");
-        }
+        if (token == null)
+            throw new ArcaValidationException("The access token credential cannot be null.");
+        if (sign == null)
+            throw new ArcaValidationException("The signature credential cannot be null.");
+        if (generationTime == null)
+            throw new ArcaValidationException("The generation time of the access ticket cannot be null.");
+        if (expirationTime == null)
+            throw new ArcaValidationException("The expiration time of the access ticket cannot be null.");
     }
 
     /**
@@ -58,9 +54,8 @@ public record ArcaAccessTicket(
      * @throws ArcaValidationException if clock is null
      */
     public boolean isExpired(ArcaClock clock) {
-        if (clock == null) {
-            throw new ArcaValidationException("clock must not be null");
-        }
+        if (clock == null)
+            throw new ArcaValidationException("The clock instance to check expiration cannot be null.");
         return expirationTime.isBefore(clock.now());
     }
 
@@ -74,12 +69,21 @@ public record ArcaAccessTicket(
      */
     @Override
     public int compareTo(ArcaAccessTicket other) {
-        if (other == null) {
-            throw new ArcaValidationException("other ticket must not be null");
-        }
+        if (other == null)
+            throw new ArcaValidationException("The other ArcaAccessTicket instance to compare against cannot be null.");
         return this.expirationTime.compareTo(other.expirationTime);
     }
 
+    /**
+     * Returns a redacted string representation of this ticket.
+     * <p>
+     * The {@code token} and {@code sign} fields are masked to prevent accidental
+     * exposure in logs. Short values (six characters or fewer) are replaced
+     * entirely with {@code ***}; longer values retain the first and last three
+     * characters with {@code ***} in between.
+     *
+     * @return a human-readable, redacted representation of this ticket.
+     */
     @Override
     public String toString() {
         return "ArcaAccessTicket[token=%s, sign=%s, generationTime=%s, expirationTime=%s]"
@@ -87,13 +91,11 @@ public record ArcaAccessTicket(
     }
 
     private static String mask(String value) {
-        if (value == null || value.isBlank()) {
+        if (value == null || value.isBlank())
             return "[REDACTED]";
-        }
 
-        if (value.length() <= 6) {
+        if (value.length() <= 6)
             return "***";
-        }
 
         return value.substring(0, 3)
                 + "***"
