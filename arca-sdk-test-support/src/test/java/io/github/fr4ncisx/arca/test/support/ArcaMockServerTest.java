@@ -85,7 +85,7 @@ class ArcaMockServerTest {
             HttpResponse<String> success = post(server.baseUrl(), WSAA_PATH, null);
 
             assertThat(success.statusCode()).isEqualTo(200);
-            assertThat(success.body()).contains("<loginTicketReturn version=\"1.0\">");
+            assertThat(success.body()).contains("<loginCmsReturn>");
 
             server.reset();
             server.stubLoginCmsError();
