@@ -1,9 +1,12 @@
 package io.github.fr4ncisx.arca.core.exception;
 
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for the {@link ArcaException} sealed hierarchy.
@@ -153,5 +156,51 @@ class ArcaExceptionTest {
             assertThat(msg.length()).isLessThan(50);
             assertThat(msg).doesNotContain(fakeToken.substring(0, 20));
         }
+    }
+
+    @Test
+    void defaultErrorCodesForSubclasses() {
+        assertThat(new ArcaAuthException("err").errorCode()).isEqualTo(ArcaErrorCode.AUTHFAILED);
+        assertThat(new ArcaSoapException("err").errorCode()).isEqualTo(ArcaErrorCode.SOAPFAULT);
+        assertThat(new ArcaValidationException("err").errorCode()).isEqualTo(ArcaErrorCode.VALIDATIONERROR);
+    }
+
+    @Test
+    void explicitErrorCodeForSoapException() {
+        var ex = new ArcaSoapException(ArcaErrorCode.SOAPTIMEOUT, "connection timeout");
+        assertThat(ex.errorCode()).isEqualTo(ArcaErrorCode.SOAPTIMEOUT);
+        assertThat(ex.getMessage()).isEqualTo("connection timeout");
+    }
+
+    @Test
+    void metadataValidationAndSanitization() {
+        var exNullMeta = new ArcaValidationException("err", (Map<String, String>) null);
+        assertThat(exNullMeta.metadata()).isNotNull().isEmpty();
+
+        Map<String, String> badMeta1 = new HashMap<>();
+        badMeta1.put(null, "val");
+        assertThatThrownBy(() -> new ArcaValidationException("err", badMeta1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("metadata key cannot be null, empty, or blank");
+
+        Map<String, String> badMeta2 = new HashMap<>();
+        badMeta2.put(" ", "val");
+        assertThatThrownBy(() -> new ArcaValidationException("err", badMeta2))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("metadata key cannot be null, empty, or blank");
+
+        Map<String, String> badMeta3 = new HashMap<>();
+        badMeta3.put("key", null);
+        assertThatThrownBy(() -> new ArcaValidationException("err", badMeta3))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("metadata value for key 'key' cannot be null");
+
+        Map<String, String> sensitiveMeta = Map.of(
+            "normalKey", "normalValue",
+            "password", "secretPassword123"
+        );
+        var exSanitized = new ArcaValidationException("err", sensitiveMeta);
+        assertThat(exSanitized.metadata().get("normalKey")).isEqualTo("normalValue");
+        assertThat(exSanitized.metadata().get("password")).isEqualTo("[REDACTED]");
     }
 }

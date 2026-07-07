@@ -1,5 +1,8 @@
 package io.github.fr4ncisx.arca.core.exception;
 
+import java.util.Map;
+import org.jspecify.annotations.Nullable;
+
 /**
  * Input validation error.
  * <p>
@@ -17,7 +20,7 @@ public non-sealed class ArcaValidationException extends ArcaException {
      * @param message the detail message.
      */
     public ArcaValidationException(String message) {
-        super(message);
+        super(ArcaErrorCode.VALIDATIONERROR, message);
     }
 
     /**
@@ -27,6 +30,29 @@ public non-sealed class ArcaValidationException extends ArcaException {
      * @param cause the underlying cause.
      */
     public ArcaValidationException(String message, Throwable cause) {
-        super(message, cause);
+        super(ArcaErrorCode.VALIDATIONERROR, message, cause);
+    }
+
+    /**
+     * Creates a new exception with the given detail message and metadata.
+     *
+     * @param message the detail message.
+     * @param metadata the contextual metadata.
+     * @since 0.1.0-M4
+     */
+    public ArcaValidationException(String message, @Nullable Map<String, String> metadata) {
+        super(ArcaErrorCode.VALIDATIONERROR, message, metadata);
+    }
+
+    /**
+     * Creates a new exception with the given detail message, metadata, and cause.
+     *
+     * @param message the detail message.
+     * @param metadata the contextual metadata.
+     * @param cause the underlying cause.
+     * @since 0.1.0-M4
+     */
+    public ArcaValidationException(String message, @Nullable Map<String, String> metadata, Throwable cause) {
+        super(ArcaErrorCode.VALIDATIONERROR, message, metadata, cause);
     }
 }
