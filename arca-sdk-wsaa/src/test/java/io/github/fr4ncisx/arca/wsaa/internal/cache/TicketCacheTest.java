@@ -1,11 +1,20 @@
 package io.github.fr4ncisx.arca.wsaa.internal.cache;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.github.fr4ncisx.arca.core.clock.FixedClock;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,6 +135,55 @@ class TicketCacheTest {
 
         assertThat(cache.get(KEY)).isEmpty();
         assertThat(cache.get("other-service")).isEmpty();
+    }
+
+    /**
+     * Verifies that the cache can be accessed concurrently without throwing exceptions.
+     *
+     * @throws InterruptedException if the execution is interrupted
+     */
+    @Test
+    void supportsConcurrentAccess() throws InterruptedException {
+        TicketCache cache = cacheAt(NOW);
+        ArcaAccessTicket ticket = ticket(EXPIRATION);
+
+        int threadCount = 10;
+        int operationsPerThread = 100;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        List<Future<?>> futures = new ArrayList<>();
+        for (int i = 0; i < threadCount; i++) {
+            futures.add(executor.submit(() -> {
+                try {
+                    latch.await();
+                    for (int j = 0; j < operationsPerThread; j++) {
+                        String key = "key-" + (j % 5);
+                        cache.put(key, ticket);
+                        cache.get(key);
+                        if (j % 10 == 0) {
+                            cache.evict(key);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+        }
+
+        latch.countDown();
+        executor.shutdown();
+        boolean finished = executor.awaitTermination(5, TimeUnit.SECONDS);
+        assertThat(finished).isTrue();
+
+        for (Future<?> future : futures) {
+            assertThat(future).isNotCancelled();
+            try {
+                future.get();
+            } catch (ExecutionException e) {
+                Assertions.fail("Concurrency test failed: " + e.getCause());
+            }
+        }
     }
 
     /**

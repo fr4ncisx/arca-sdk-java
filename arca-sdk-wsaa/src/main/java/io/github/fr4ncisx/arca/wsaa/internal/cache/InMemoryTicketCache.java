@@ -1,8 +1,8 @@
 package io.github.fr4ncisx.arca.wsaa.internal.cache;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.fr4ncisx.arca.core.clock.ArcaClock;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
@@ -24,7 +24,7 @@ public final class InMemoryTicketCache implements TicketCache {
     private static final String NULL_TICKET = "ticket must not be null";
 
     private final ArcaClock clock;
-    private final Map<String, ArcaAccessTicket> tickets = new HashMap<>();
+    private final Map<String, ArcaAccessTicket> tickets = new ConcurrentHashMap<>();
 
     /**
      * Creates an in-memory cache using the supplied clock for expiration checks.
