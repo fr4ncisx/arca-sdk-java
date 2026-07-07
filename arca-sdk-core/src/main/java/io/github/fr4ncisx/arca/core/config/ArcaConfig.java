@@ -26,6 +26,12 @@ public record ArcaConfig(Cuit cuit,
                          Duration connectTimeout,
                          Duration readTimeout) {
 
+    /**
+     * Validates all fields at construction time.
+     *
+     * @throws ArcaValidationException if {@code cuit} or {@code environment} is null,
+     *         or if {@code connectTimeout} or {@code readTimeout} is null or negative.
+     */
     public ArcaConfig {
         if (cuit == null)
             throw new ArcaValidationException("cuit must not be null");
