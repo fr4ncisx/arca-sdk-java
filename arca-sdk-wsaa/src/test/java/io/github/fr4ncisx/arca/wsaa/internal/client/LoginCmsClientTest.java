@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @since 0.1.0-M4
  */
 @NullMarked
+@SuppressWarnings("null")
 class LoginCmsClientTest {
 
     private ArcaMockServer mockServer;

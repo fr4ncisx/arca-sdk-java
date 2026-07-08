@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author fr4ncisx
  * @since 0.1.0-M3
  */
+@SuppressWarnings("null")
 class TraGeneratorTest {
 
     /**

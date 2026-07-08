@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.soap.internal.adapter.ArcaSoapClient;
 import io.github.fr4ncisx.arca.soap.internal.config.SoapConfig;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
+import org.jspecify.annotations.Nullable;
 import jakarta.xml.ws.BindingProvider;
 import jakarta.xml.ws.Service;
 import jakarta.xml.ws.soap.SOAPFaultException;
@@ -58,7 +59,7 @@ public final class LoginCmsClient {
         if (wsaaEndpointUrl == null || wsaaEndpointUrl.isBlank())
             throw new ArcaValidationException("The WSAA endpoint URL cannot be null, empty, or blank.");
 
-        URL wsdlUrl = LoginCmsClient.class.getResource("/wsdl/wsaa.wsdl");
+        @Nullable URL wsdlUrl = LoginCmsClient.class.getResource("/wsdl/wsaa.wsdl");
         if (wsdlUrl == null)
             throw new ArcaSoapException("The WSAA WSDL resource cannot be found in the classpath.");
 
