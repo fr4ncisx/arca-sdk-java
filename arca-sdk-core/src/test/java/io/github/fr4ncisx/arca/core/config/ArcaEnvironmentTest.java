@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author fr4ncisx
  * @since 0.1.0-M1
  */
+@SuppressWarnings("null")
 class ArcaEnvironmentTest {
 
     /**

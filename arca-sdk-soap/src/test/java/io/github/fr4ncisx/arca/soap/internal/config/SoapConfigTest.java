@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author fr4ncisx
  * @since 0.1.0-M3
  */
+@SuppressWarnings("null")
 class SoapConfigTest {
 
     private static final Cuit CUIT = new Cuit(20_333_333_334L);
