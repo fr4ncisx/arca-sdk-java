@@ -49,7 +49,7 @@
     </modules>
 
     <properties>
-        <revision>0.1.0-M4</revision>
+        <revision>0.3.0-M1</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -103,6 +103,11 @@
                 <version>${revision}</version>
             </dependency>
 
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>4.0.2</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-rt</artifactId>
@@ -166,6 +171,20 @@
             <artifactId>jspecify</artifactId>
             <version>${jspecify.version}</version>
         </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -176,6 +195,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.15.0</version>
                     <configuration>
+                        <useIncrementalCompilation>false</useIncrementalCompilation>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.mapstruct</groupId>
