@@ -65,6 +65,56 @@ Las reglas de seguridad se alinean con OWASP Top 10: no registrar secretos,
 validar entradas, controlar errores, limitar exposición de XML sensible y
 mantener dependencias auditables.
 
+## Diseño y Alcance de la Versión Final (Objetivo)
+
+La versión final del SDK unificará todos los submódulos bajo una API fluida, altamente automatizada y auto-configurable para entornos empresariales.
+
+### 1. Fachada Raíz Unificada (`ArcaClient`)
+Toda la interacción con el SDK se canalizará a través de una única clase fachada (`ArcaClient`), construida mediante un Builder fluido que valida la presencia de la configuración básica y el origen de los certificados (sin realizar conexiones de red prematuras):
+```java
+ArcaConfig config = new ArcaConfig(
+    Cuit.parse("20-33333333-9"),
+    ArcaEnvironment.HOMOLOGACION,
+    Duration.ofSeconds(10),
+    Duration.ofSeconds(30)
+);
+
+CertificateSource source = Pkcs12CertificateSource.fromPath(
+    Paths.get("certificado.p12"),
+    "password".toCharArray()
+);
+
+ArcaClient arca = ArcaClient.builder()
+    .config(config)
+    .certificate(source)
+    .build();
+```
+
+A partir de esta fachada, se podrá acceder a los diferentes servicios web de ARCA integrados:
+* `WsfeClient wsfe = arca.wsfev1();` — Para operaciones de facturación electrónica.
+* `RegistryClient registry = arca.registry();` — Para consultas tributarias de contribuyentes.
+
+### 2. Autenticación y Renovación Transparente de Tokens (WSAA)
+El consumidor no gestionará firmas ni almacenamiento de credenciales. Al invocar cualquier servicio de negocio, el cliente raíz:
+* Generará el XML de ticket de requerimiento de acceso (TRA).
+* Firmará criptográficamente el payload utilizando CMS (PKCS#7) con la clave privada provista.
+* Obtendrá el ticket de acceso (TA) desde WSAA.
+* Administrará la caché local (en memoria y serializada de forma segura en disco) y renovará el token de forma automática y asíncrona antes de su vencimiento para evitar demoras en las transacciones de facturación.
+
+### 3. Consulta de Padrones de Contribuyentes (`ws_sr_padron_a4`)
+El módulo `arca-sdk-registry` expondrá una API para consultar el padrón de ARCA utilizando el CUIT del receptor, devolviendo de forma estructurada su condición tributaria (IVA, monotributo, exento), razón social y domicilio fiscal, facilitando la validación automática previa a la emisión de facturas A o B.
+
+### 4. Procesamiento por Lotes y Concurrencia
+Orquestación avanzada para el envío masivo de comprobantes fiscales, resolviendo automáticamente las restricciones de la API SOAP de ARCA:
+* Control de concurrencia y secuenciación estricta de números de comprobantes.
+* Agrupamiento automático en lotes según los límites del web service.
+* Estrategia de reintentos seguros (idempotentes) ante timeouts o caídas temporales del servidor de ARCA.
+
+### 5. Integración Nativa con Spring Boot (`arca-sdk-spring-boot-starter`)
+Un starter autoconfigurable que detectará las propiedades tipadas en `application.yml` y registrará automáticamente en el contexto de Spring:
+* Beans inyectables de tipo `ArcaClient`, `WsfeClient` y `RegistryClient`.
+* Soporte nativo para perfiles (homologación/producción) y configuración de múltiples contribuyentes de forma declarativa.
+
 ## Compilar y probar
 
 ```bash
@@ -117,7 +167,7 @@ Importa el BOM para gestionar versiones automáticamente:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>0.1.0-M4</version>
+            <version>0.3.0-M1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -152,57 +202,71 @@ Sin BOM, una sola dependencia con todos los módulos:
     <dependency>
         <groupId>io.github.fr4ncisx</groupId>
         <artifactId>arca-sdk-bundle</artifactId>
-        <version>0.1.0-M4</version>
+        <version>0.3.0-M1</version>
     </dependency>
 </dependencies>
 ```
 
 ## Uso
 
-### Cliente principal
+> [!NOTE]
+> En esta versión del SDK, la fachada raíz `ArcaClient` y su builder están planificados para la siguiente fase. Para interactuar con los servicios, el cliente `WsfeClient` se inicializa y ensambla de forma manual inyectando los componentes de WSAA e infraestructura.
+
+### Inicialización del Cliente
 
 ```java
-ArcaConfig config = ArcaConfig.builder()
-    .environment(ArcaEnvironment.HOMOLOGACION)
-    .cuit(Cuit.parse("20-33333333-9"))
-    .build();
+ArcaConfig config = new ArcaConfig(
+    Cuit.parse("20-33333333-9"),
+    ArcaEnvironment.HOMOLOGACION,
+    Duration.ofSeconds(10),
+    Duration.ofSeconds(30)
+);
 
 CertificateSource source = Pkcs12CertificateSource.fromPath(
     Paths.get("certificado.p12"),
-    "password".toCharArray());
+    "password".toCharArray()
+);
 
-ArcaClient arca = ArcaClient.builder()
-    .config(config)
-    .certificate(source)
-    .build();
+AuthProvider authProvider = new DefaultAuthProvider(
+    new PersistentTicketCache(Paths.get("tickets-cache")),
+    new TraGenerator(SystemClock.INSTANCE),
+    new CmsSigner(source),
+    new LoginCmsClient(config)
+);
 
-WsfeClient wsfe = arca.wsfev1();
+WsfeClient wsfe = WsfeClientAssembler.assemble(config, authProvider);
 ```
 
 ### Consultar último comprobante autorizado
 
 ```java
-LastVoucherResponse last = wsfe.getLastAuthorizedVoucher(
-    new LastVoucherRequest(1, VoucherType.FACTURA_A));
+LastVoucherResponse last = wsfe.getLastVoucher(
+    new LastVoucherRequest(1, VoucherType.INVOICE_A)
+);
 
-System.out.printf("Último comprobante: %d - %d%n",
-    last.voucherFrom(), last.voucherTo());
+System.out.printf("Último comprobante autorizado: %d%n", last.voucherNumber());
 ```
 
 ### Solicitar CAE
 
 ```java
+List<CaeVatLine> vatLines = List.of(
+    new CaeVatLine(VatType.VAT_21, 1000.00, 210.00)
+);
+
 CaeRequest request = new CaeRequest(
-    VoucherType.FACTURA_A,
-    1,                              // salesPoint
-    ConceptType.PRODUCTOS_Y_SERVICIOS,
-    BigDecimal.valueOf(1210.00),    // importeTotal
-    BigDecimal.valueOf(1000.00),    // importeGravado
-    BigDecimal.valueOf(210.00),     // importeIva
-    LocalDate.now(),                // fechaEmision
-    LocalDate.now().plusDays(30),   // fechaVencimiento
-    Currency.PES,                   // moneda
-    BigDecimal.ONE                  // cotización
+    VoucherType.INVOICE_A,
+    1,
+    123456L,
+    ConceptType.PRODUCTS,
+    Cuit.parse("20-44444444-9"),
+    1000.00,
+    0.0,
+    0.0,
+    210.00,
+    1210.00,
+    LocalDate.now(),
+    vatLines
 );
 
 CaeResponse response = wsfe.requestCae(request);
@@ -216,84 +280,37 @@ if (response.success()) {
 }
 ```
 
-### Health check
-
-```java
-boolean available = wsfe.ping();
-System.out.println("ARCA disponible: " + available);
-```
-
-### Listar puntos de venta
-
-```java
-List<SalesPoint> salesPoints = wsfe.getSalesPoints();
-for (SalesPoint sp : salesPoints) {
-    System.out.printf("Pto %d | Emisión: %s | Bloqueado: %s%n",
-        sp.numero(), sp.emisionTipo(),
-        sp.blocked() ? "Sí" : "No");
-}
-```
-
 ## Configuración avanzada
 
-### Timeouts personalizados
+### Endpoints personalizados (Mocks / WireMock)
+
+Si necesitas redirigir las llamadas de SOAP a un servidor local o mock en tus entornos de pruebas, puedes pasar la URL del endpoint al ensamblador:
 
 ```java
-ArcaConfig config = ArcaConfig.builder()
-    .connectTimeout(Duration.ofSeconds(10))
-    .readTimeout(Duration.ofSeconds(30))
-    .sanitizeLogs(true)
-    .build();
-
-CertificateSource source = Pkcs12CertificateSource.fromPath(
-    Paths.get("certificado.p12"),
-    "password".toCharArray());
-
-ArcaClient arca = ArcaClient.builder()
-    .config(config)
-    .certificate(source)
-    .build();
-```
-
-### Reloj fijo para tests
-
-```java
-ArcaClock clock = FixedClock.withFixed(Instant.parse("2026-01-15T10:00:00Z"));
-
-ArcaConfig config = ArcaConfig.builder()
-    .environment(ArcaEnvironment.HOMOLOGACION)
-    .cuit(Cuit.parse("20-33333333-9"))
-    .clock(clock)
-    .build();
-
-CertificateSource source = Pkcs12CertificateSource.fromPath(
-    Paths.get("certificado.p12"),
-    "password".toCharArray());
-
-ArcaClient arca = ArcaClient.builder()
-    .config(config)
-    .certificate(source)
-    .build();
+String customWsfeUrl = "http://localhost:8080/wsfev1";
+WsfeClient wsfe = WsfeClientAssembler.assemble(config, authProvider, customWsfeUrl);
 ```
 
 ### Manejo de errores tipados
+
+El SDK mapea las excepciones de transporte SOAP, fallos de autenticación de WSAA y validaciones a excepciones de dominio del SDK con códigos estructurados de la enumeración `ArcaErrorCode`:
 
 ```java
 try {
     wsfe.requestCae(request);
 } catch (ArcaAuthException e) {
     switch (e.errorCode()) {
-        case TA_EXPIRED -> System.err.println("Ticket expirado, reautenticando...");
-        case CERTIFICATE_EXPIRED -> System.err.println("Certificado vencido");
-        case AUTH_FAILED -> System.err.println("Fallo de autenticación: " + e.getMessage());
+        case TAEXPIRED -> System.err.println("Ticket expirado");
+        case CERTIFICATEEXPIRED -> System.err.println("Certificado vencido o inválido");
+        case AUTHFAILED -> System.err.println("Fallo de autenticación: " + e.getMessage());
     }
 } catch (ArcaSoapException e) {
     switch (e.errorCode()) {
-        case SOAP_TIMEOUT -> System.err.println("Timeout en la llamada SOAP");
-        case SOAP_FAULT -> System.err.println("SOAP Fault: " + e.getMessage());
+        case SOAPTIMEOUT -> System.err.println("Timeout en la llamada SOAP");
+        case SOAPFAULT -> System.err.println("SOAP Fault retornado por ARCA: " + e.getMessage());
     }
 } catch (ArcaValidationException e) {
-    System.err.println("Datos inválidos: " + e.getMessage());
+    System.err.println("Datos inválidos locales: " + e.getMessage());
 }
 ```
 
