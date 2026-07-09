@@ -1,7 +1,15 @@
 package io.github.fr4ncisx.arca.wsfev1.internal.mapper;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FERecuperaLastCbteResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.ArrayOfErr;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.Err;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAECabResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEDetResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.ArrayOfFECAEDetResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.ArrayOfObs;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.Obs;
 import io.github.fr4ncisx.arca.wsfev1.model.CaeResponse;
 import io.github.fr4ncisx.arca.wsfev1.model.LastVoucherRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.LastVoucherResponse;

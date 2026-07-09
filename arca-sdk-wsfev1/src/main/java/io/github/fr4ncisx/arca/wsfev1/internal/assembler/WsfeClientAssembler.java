@@ -7,9 +7,17 @@ import io.github.fr4ncisx.arca.soap.internal.config.SoapConfig;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsfev1.internal.client.DefaultWsfeClient;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.GetLastVoucherUseCase;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.RequestCaeUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompUltimoAutorizado;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FERecuperaLastCbteResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAESolicitar;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultar;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultaResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEParamGetPtosVenta;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEPtoVentaResponse;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.ServiceSoap;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.Service;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.*;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import jakarta.xml.ws.BindingProvider;
 
@@ -69,12 +77,45 @@ public final class WsfeClientAssembler {
         ArcaSoapPort<FECAESolicitar, FECAEResponse> requestCaeSoapPort =
                 new ArcaSoapClient<>(bp, req -> port.fecaeSolicitar(req.getAuth(), req.getFeCAEReq()), soapConfig);
 
+        ArcaSoapPort<FECompConsultar, FECompConsultaResponse> getVoucherSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feCompConsultar(req.getAuth(), req.getFeCompConsReq()), soapConfig);
+
+        ArcaSoapPort<FEParamGetPtosVenta, FEPtoVentaResponse> getSalesPointsSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetPtosVenta(req.getAuth()), soapConfig);
+
         GetLastVoucherUseCase getLastVoucherUseCase =
                 new GetLastVoucherUseCase(config, authProvider, lastVoucherSoapPort);
 
         RequestCaeUseCase requestCaeUseCase =
                 new RequestCaeUseCase(config, authProvider, requestCaeSoapPort);
 
-        return new DefaultWsfeClient(getLastVoucherUseCase, requestCaeUseCase);
+        GetSalesPointsUseCase getSalesPointsUseCase =
+                new GetSalesPointsUseCase(config, authProvider, getSalesPointsSoapPort);
+
+        GetVoucherUseCase getVoucherUseCase =
+                new GetVoucherUseCase(config, authProvider, getVoucherSoapPort);
+
+        java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newCachedThreadPool(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            t.setName("arca-wsfev1-batch-thread");
+            return t;
+        });
+
+        BatchProcessUseCase batchProcessUseCase =
+                new BatchProcessUseCase(requestCaeUseCase, executorService);
+
+        io.github.fr4ncisx.arca.wsfev1.internal.client.FedummyClient fedummyClient =
+                new io.github.fr4ncisx.arca.wsfev1.internal.client.FedummyClient(port);
+
+        return new DefaultWsfeClient(
+                config,
+                getLastVoucherUseCase,
+                requestCaeUseCase,
+                getSalesPointsUseCase,
+                getVoucherUseCase,
+                batchProcessUseCase,
+                fedummyClient
+        );
     }
 }

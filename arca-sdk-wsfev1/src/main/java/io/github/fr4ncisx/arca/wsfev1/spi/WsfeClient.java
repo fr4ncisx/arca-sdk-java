@@ -1,9 +1,8 @@
 package io.github.fr4ncisx.arca.wsfev1.spi;
 
-import io.github.fr4ncisx.arca.wsfev1.model.CaeRequest;
-import io.github.fr4ncisx.arca.wsfev1.model.CaeResponse;
-import io.github.fr4ncisx.arca.wsfev1.model.LastVoucherRequest;
-import io.github.fr4ncisx.arca.wsfev1.model.LastVoucherResponse;
+import io.github.fr4ncisx.arca.wsfev1.model.*;
+
+import java.util.List;
 
 /**
  * Public client interface for the ARCA WSFEv1 SOAP service.
@@ -32,4 +31,34 @@ public interface WsfeClient {
      * @return the result containing CAE details or business errors
      */
     CaeResponse requestCae(CaeRequest request);
+
+    /**
+     * Executes a fast connectivity check (ping) against ARCA's dummy endpoint.
+     *
+     * @return true if the ARCA server responds successfully, false if timed out or unreachable
+     */
+    boolean ping();
+
+    /**
+     * Retrieves the list of authorized sales points registered for the company.
+     *
+     * @return the list of sales points
+     */
+    List<SalesPoint> getSalesPoints();
+
+    /**
+     * Queries the complete details and authorization status of a previously authorized voucher.
+     *
+     * @param request the query parameters containing sales point, type, and number
+     * @return the consultation response containing details or errors
+     */
+    VoucherConsultResponse getVoucher(VoucherConsultRequest request);
+
+    /**
+     * Orchestrates batch invoice authorization requests applying concurrent or fail-fast strategies.
+     *
+     * @param request the batch request configuration
+     * @return the processed results response
+     */
+    BatchResponse processBatch(BatchRequest request);
 }

@@ -3,10 +3,21 @@ package io.github.fr4ncisx.arca.wsfev1.internal.mapper;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompUltimoAutorizado;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAESolicitar;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAECabRequest;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEDetRequest;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.ArrayOfAlicIva;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.AlicIva;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.ArrayOfFECAEDetRequest;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAERequest;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultar;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultaReq;
 import io.github.fr4ncisx.arca.wsfev1.model.CaeRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.LastVoucherRequest;
+import io.github.fr4ncisx.arca.wsfev1.model.VoucherConsultRequest;
 
 import java.time.format.DateTimeFormatter;
 
@@ -124,5 +135,30 @@ public final class WsfeRequestMapper {
         solicitar.setAuth(auth);
         solicitar.setFeCAEReq(caeReq);
         return solicitar;
+    }
+
+    /**
+     * Translates voucher query request.
+     *
+     * @param auth    the SOAP Auth request
+     * @param request the public query request parameters
+     * @return the generated FECompConsultar
+     */
+    public static FECompConsultar toSoapRequest(FEAuthRequest auth, VoucherConsultRequest request) {
+        if (auth == null) {
+            throw new ArcaValidationException("auth must not be null");
+        }
+        if (request == null) {
+            throw new ArcaValidationException("request must not be null");
+        }
+        FECompConsultaReq inner = new FECompConsultaReq();
+        inner.setCbteTipo(request.voucherType().code());
+        inner.setCbteNro(request.voucherNumber());
+        inner.setPtoVta(request.salesPoint());
+
+        FECompConsultar soapRequest = new FECompConsultar();
+        soapRequest.setAuth(auth);
+        soapRequest.setFeCompConsReq(inner);
+        return soapRequest;
     }
 }
