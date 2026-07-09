@@ -143,6 +143,26 @@ mvn verify -Darca.integration=true
 Reserva este comando para pruebas de integración con credenciales reales de
 ARCA. No debe ejecutarse sin certificado, CUIT y ambiente configurados.
 
+## Análisis de Calidad con SonarQube
+
+El proyecto incluye soporte integrado para análisis estático de código mediante **SonarQube** y un entorno local en Docker.
+
+### 1. Iniciar SonarQube localmente (Docker)
+Levanta la instancia oficial LTS de SonarQube en el puerto `9000`:
+
+```bash
+docker compose up -d
+```
+
+### 2. Ejecutar análisis estático
+Una vez que SonarQube esté disponible en `http://localhost:9000` y hayas generado tu token de acceso en el panel de administración, ejecuta:
+
+```bash
+mvn clean compile sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=tu_token_de_acceso
+```
+
+*(Las exclusiones del código JAXB autogenerado por el WSDL ya se encuentran preconfiguradas en el POM padre para evitar ruidos de análisis).*
+
 ## Instalación
 
 Este SDK **no está publicado en Maven Central**. Instálalo primero desde el código fuente:
@@ -167,7 +187,7 @@ Importa el BOM para gestionar versiones automáticamente:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>0.3.0-M1</version>
+            <version>0.4.0-M1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -202,7 +222,7 @@ Sin BOM, una sola dependencia con todos los módulos:
     <dependency>
         <groupId>io.github.fr4ncisx</groupId>
         <artifactId>arca-sdk-bundle</artifactId>
-        <version>0.3.0-M1</version>
+        <version>0.4.0-M1</version>
     </dependency>
 </dependencies>
 ```
