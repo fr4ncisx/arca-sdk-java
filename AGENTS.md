@@ -13,7 +13,8 @@ each module's `src/main/java`, and tests live in `src/test/java`.
 - `arca-sdk-soap`: SOAP transport, JAX-WS/Metro adapters, and SOAP config.
 - `arca-sdk-wsaa`: WSAA authentication, TRA, CMS signing, and ticket cache.
 - `arca-sdk-wsfev1`: WSFEv1 models, generated stubs, mappers, and use cases.
-- `arca-sdk-registry`: future `ws_sr_padron_a4` integration.
+- `arca-sdk-registry`: `ws_sr_padron_a4` integration.
+- `arca-sdk-client`: unified root facade and client assembly.
 - `arca-sdk-test-support`: WireMock utilities and XML fixtures.
 - `arca-sdk-bom` and `arca-sdk-bundle`: dependency management and bundle.
 - `dev/`: local dashboard/backlog assets. This directory is currently ignored
@@ -37,6 +38,8 @@ Use Java 21 features deliberately, including records and sealed hierarchies. Use
 four-space indentation. Keep public API types outside `internal.*`; generated
 JAXB classes must stay isolated under
 `internal.generated`. Prefer package names under `io.github.fr4ncisx.arca`.
+
+- **Unused Imports**: Do not add imports that are not being used in the code or tests. Keep imports clean and organized, and remove any redundant or obsolete imports before finalizing a change.
 
 ### Null safety and JSpecify
 

@@ -36,6 +36,7 @@ El SDK elimina la necesidad de interactuar directamente con WSDLs, generar stubs
 | `arca-sdk-wsaa` | TRA, firma CMS/PKCS#7, `LoginCms`, tickets y renovación automática |
 | `arca-sdk-wsfev1` | API de facturación electrónica WSFEv1, mappers, modelos y casos de uso |
 | `arca-sdk-registry` | Consultas tributarias y registrales |
+| `arca-sdk-client` | Fachada unificada y punto de entrada raíz del SDK |
 | `arca-sdk-test-support` | Fixtures XML, utilidades de test y soporte para mocks |
 | `arca-sdk-bom` | Bill of Materials para centralizar versiones |
 | `arca-sdk-bundle` | Dependencia de conveniencia para consumidores externos |
@@ -210,6 +211,12 @@ Y agrega solo los módulos que necesites:
         <groupId>io.github.fr4ncisx</groupId>
         <artifactId>arca-sdk-registry</artifactId>
     </dependency>
+
+    <!-- Fachada del cliente unificado -->
+    <dependency>
+        <groupId>io.github.fr4ncisx</groupId>
+        <artifactId>arca-sdk-client</artifactId>
+    </dependency>
 </dependencies>
 ```
 
@@ -228,9 +235,6 @@ Sin BOM, una sola dependencia con todos los módulos:
 ```
 
 ## Uso
-
-> [!NOTE]
-> En esta versión del SDK, la fachada raíz `ArcaClient` y su builder están planificados para la siguiente fase. Para interactuar con los servicios, el cliente `WsfeClient` se inicializa y ensambla de forma manual inyectando los componentes de WSAA e infraestructura.
 
 ### Inicialización del Cliente
 
