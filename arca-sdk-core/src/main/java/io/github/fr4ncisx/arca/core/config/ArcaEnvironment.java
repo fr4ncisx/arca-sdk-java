@@ -26,7 +26,8 @@ public enum ArcaEnvironment {
      */
     HOMOLOGACION(
             URI.create("https://wsaahomo.afip.gov.ar/ws/services/LoginCms"),
-            URI.create("https://wswhomo.afip.gov.ar/wsfev1/service.asmx")),
+            URI.create("https://wswhomo.afip.gov.ar/wsfev1/service.asmx"),
+            URI.create("https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA4")),
 
     /**
      * ARCA production environment.
@@ -37,14 +38,17 @@ public enum ArcaEnvironment {
      */
     PRODUCCION(
             URI.create("https://wsaa.afip.gov.ar/ws/services/LoginCms"),
-            URI.create("https://servicios1.afip.gov.ar/wsfev1/service.asmx"));
+            URI.create("https://servicios1.afip.gov.ar/wsfev1/service.asmx"),
+            URI.create("https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA4"));
 
     private final URI wsaaUrl;
     private final URI wsfev1Url;
+    private final URI registryUrl;
 
-    ArcaEnvironment(URI wsaaUrl, URI wsfev1Url) {
+    ArcaEnvironment(URI wsaaUrl, URI wsfev1Url, URI registryUrl) {
         this.wsaaUrl = wsaaUrl;
         this.wsfev1Url = wsfev1Url;
+        this.registryUrl = registryUrl;
     }
 
     /**
@@ -63,5 +67,14 @@ public enum ArcaEnvironment {
      */
     public URI getWsfev1Url() {
         return wsfev1Url;
+    }
+
+    /**
+     * Returns the wssrpadron_a4 taxpayer registry service URL.
+     *
+     * @return URI of the wssrpadron_a4 endpoint for this environment.
+     */
+    public URI getRegistryUrl() {
+        return registryUrl;
     }
 }

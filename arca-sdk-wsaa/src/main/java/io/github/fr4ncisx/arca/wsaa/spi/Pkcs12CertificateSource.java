@@ -82,6 +82,15 @@ public final class Pkcs12CertificateSource implements CertificateSource {
     }
 
     /**
+     * Returns the password used to load the PKCS#12 key store.
+     *
+     * @return the key store password
+     */
+    public char[] getPassword() {
+        return password;
+    }
+
+    /**
      * Loads and validates the PKCS#12 key store.
      * <p>
      * This method opens the configured file on every invocation, loads a fresh
