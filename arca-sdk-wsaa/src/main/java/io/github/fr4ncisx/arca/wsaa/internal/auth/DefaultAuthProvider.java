@@ -1,6 +1,5 @@
 package io.github.fr4ncisx.arca.wsaa.internal.auth;
 
-import io.github.fr4ncisx.arca.core.clock.ArcaClock;
 import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;

@@ -3,7 +3,6 @@ package io.github.fr4ncisx.arca.wsaa.internal.auth;
 import io.github.fr4ncisx.arca.core.clock.FixedClock;
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
-import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
@@ -38,7 +37,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
