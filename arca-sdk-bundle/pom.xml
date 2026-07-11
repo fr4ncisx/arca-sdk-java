@@ -34,6 +34,14 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arca-sdk-wsfev1</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-registry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-client</artifactId>
+        </dependency>
 
         <!-- Dependencias de runtime -->
         <dependency>

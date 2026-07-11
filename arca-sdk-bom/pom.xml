@@ -53,6 +53,11 @@
                 <artifactId>arca-sdk-registry</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arca-sdk-client</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>

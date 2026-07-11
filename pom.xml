@@ -46,6 +46,7 @@
         <module>arca-sdk-wsfev1</module>
         <module>arca-sdk-test-support</module>
         <module>arca-sdk-registry</module>
+        <module>arca-sdk-client</module>
     </modules>
 
     <properties>
@@ -110,6 +111,16 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>arca-sdk-test-support</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arca-sdk-registry</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arca-sdk-client</artifactId>
                 <version>${revision}</version>
             </dependency>
 
