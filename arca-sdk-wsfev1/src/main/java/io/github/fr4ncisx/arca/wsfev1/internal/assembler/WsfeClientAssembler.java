@@ -7,17 +7,13 @@ import io.github.fr4ncisx.arca.soap.internal.config.SoapConfig;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsfev1.internal.client.DefaultWsfeClient;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompUltimoAutorizado;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FERecuperaLastCbteResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAESolicitar;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultar;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultaResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEParamGetPtosVenta;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEPtoVentaResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.ServiceSoap;
-import io.github.fr4ncisx.arca.wsfev1.internal.generated.Service;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.batch.BatchProcessUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.cae.RequestCaeUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.lastvoucher.GetLastVoucherUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.salespoint.GetSalesPointsUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.voucher.GetVoucherUseCase;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import jakarta.xml.ws.BindingProvider;
 
@@ -83,6 +79,27 @@ public final class WsfeClientAssembler {
         ArcaSoapPort<FEParamGetPtosVenta, FEPtoVentaResponse> getSalesPointsSoapPort =
                 new ArcaSoapClient<>(bp, req -> port.feParamGetPtosVenta(req.getAuth()), soapConfig);
 
+        ArcaSoapPort<FEParamGetTiposCbte, CbteTipoResponse> getVoucherTypesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposCbte(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetTiposDoc, DocTipoResponse> getDocumentTypesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposDoc(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetTiposIva, IvaTipoResponse> getVatTypesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposIva(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetTiposMonedas, MonedaResponse> getCurrenciesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposMonedas(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetCotizacion, FECotizacionResponse> getExchangeRateSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetCotizacion(req.getAuth(), req.getMonId(), req.getFchCotiz()), soapConfig);
+
+        ArcaSoapPort<FECompTotXRequest, FERegXReqResponse> getMaxRecordsSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feCompTotXRequest(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetTiposConcepto, ConceptoTipoResponse> getConceptTypesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposConcepto(req.getAuth()), soapConfig);
+
         GetLastVoucherUseCase getLastVoucherUseCase =
                 new GetLastVoucherUseCase(config, authProvider, lastVoucherSoapPort);
 
@@ -94,6 +111,27 @@ public final class WsfeClientAssembler {
 
         GetVoucherUseCase getVoucherUseCase =
                 new GetVoucherUseCase(config, authProvider, getVoucherSoapPort);
+
+        GetVoucherTypesUseCase getVoucherTypesUseCase =
+                new GetVoucherTypesUseCase(config, authProvider, getVoucherTypesSoapPort);
+
+        GetDocumentTypesUseCase getDocumentTypesUseCase =
+                new GetDocumentTypesUseCase(config, authProvider, getDocumentTypesSoapPort);
+
+        GetVatTypesUseCase getVatTypesUseCase =
+                new GetVatTypesUseCase(config, authProvider, getVatTypesSoapPort);
+
+        GetCurrenciesUseCase getCurrenciesUseCase =
+                new GetCurrenciesUseCase(config, authProvider, getCurrenciesSoapPort);
+
+        GetExchangeRateUseCase getExchangeRateUseCase =
+                new GetExchangeRateUseCase(config, authProvider, getExchangeRateSoapPort);
+
+        GetMaxRecordsUseCase getMaxRecordsUseCase =
+                new GetMaxRecordsUseCase(config, authProvider, getMaxRecordsSoapPort);
+
+        GetConceptTypesUseCase getConceptTypesUseCase =
+                new GetConceptTypesUseCase(config, authProvider, getConceptTypesSoapPort);
 
         java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newCachedThreadPool(r -> {
             Thread t = new Thread(r);
@@ -115,6 +153,13 @@ public final class WsfeClientAssembler {
                 getSalesPointsUseCase,
                 getVoucherUseCase,
                 batchProcessUseCase,
+                getVoucherTypesUseCase,
+                getDocumentTypesUseCase,
+                getVatTypesUseCase,
+                getCurrenciesUseCase,
+                getExchangeRateUseCase,
+                getMaxRecordsUseCase,
+                getConceptTypesUseCase,
                 fedummyClient
         );
     }

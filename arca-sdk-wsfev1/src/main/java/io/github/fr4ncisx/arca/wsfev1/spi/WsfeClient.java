@@ -1,6 +1,11 @@
 package io.github.fr4ncisx.arca.wsfev1.spi;
 
-import io.github.fr4ncisx.arca.wsfev1.model.*;
+import io.github.fr4ncisx.arca.wsfev1.model.cae.*;
+import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.*;
+import io.github.fr4ncisx.arca.wsfev1.model.voucher.*;
+import io.github.fr4ncisx.arca.wsfev1.model.salespoint.*;
+import io.github.fr4ncisx.arca.wsfev1.model.batch.*;
+import io.github.fr4ncisx.arca.wsfev1.model.catalog.*;
 
 import java.util.List;
 
@@ -61,4 +66,54 @@ public interface WsfeClient {
      * @return the processed results response
      */
     BatchResponse processBatch(BatchRequest request);
+
+    /**
+     * Retrieves the official catalog of voucher types from ARCA.
+     *
+     * @return the list of voucher types details
+     */
+    List<VoucherTypeDetail> getVoucherTypes();
+
+    /**
+     * Retrieves the official catalog of buyer document types from ARCA.
+     *
+     * @return the list of document types info
+     */
+    List<DocumentTypeInfo> getDocumentTypes();
+
+    /**
+     * Retrieves the official catalog of VAT tax rate categories from ARCA.
+     *
+     * @return the list of VAT type info
+     */
+    List<VatTypeInfo> getVatTypes();
+
+    /**
+     * Retrieves the official catalog of currencies from ARCA.
+     *
+     * @return the list of currencies info
+     */
+    List<CurrencyInfo> getCurrencies();
+
+    /**
+     * Retrieves the current exchange rate for a given currency compared to Argentine Pesos (ARS).
+     *
+     * @param currencyId the official currency identifier (e.g. "DOL")
+     * @return the exchange rate information
+     */
+    ExchangeRate getExchangeRate(String currencyId);
+
+    /**
+     * Retrieves the maximum number of voucher records allowed in a single batch request by ARCA.
+     *
+     * @return the maximum number of records
+     */
+    int getMaxRecordsPerRequest();
+
+    /**
+     * Retrieves the official catalog of concept types from ARCA.
+     *
+     * @return the list of concept types info
+     */
+    List<ConceptTypeInfo> getConceptTypes();
 }

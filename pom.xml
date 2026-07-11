@@ -74,6 +74,10 @@
             **/internal/generated/**,
             **/target/generated-sources/**
         </sonar.exclusions>
+
+        <!-- Compiler output directory properties, overridden in cli-build profile -->
+        <output.dir>${project.build.directory}/classes</output.dir>
+        <test.output.dir>${project.build.directory}/test-classes</test.output.dir>
     </properties>
 
     <dependencyManagement>
@@ -200,6 +204,8 @@
     </dependencies>
 
     <build>
+        <outputDirectory>${output.dir}</outputDirectory>
+        <testOutputDirectory>${test.output.dir}</testOutputDirectory>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -220,6 +226,7 @@
                     </executions>
                     <configuration>
                         <useIncrementalCompilation>false</useIncrementalCompilation>
+                        <staleMillis>-1</staleMillis>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.mapstruct</groupId>
@@ -342,4 +349,30 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>ide-build-eclipse</id>
+            <activation>
+                <property>
+                    <name>m2e.version</name>
+                </property>
+            </activation>
+            <properties>
+                <output.dir>${project.build.directory}/ide-classes</output.dir>
+                <test.output.dir>${project.build.directory}/ide-test-classes</test.output.dir>
+            </properties>
+        </profile>
+        <profile>
+            <id>ide-build-idea</id>
+            <activation>
+                <property>
+                    <name>idea.version</name>
+                </property>
+            </activation>
+            <properties>
+                <output.dir>${project.build.directory}/ide-classes</output.dir>
+                <test.output.dir>${project.build.directory}/ide-test-classes</test.output.dir>
+            </properties>
+        </profile>
+    </profiles>
 </project>

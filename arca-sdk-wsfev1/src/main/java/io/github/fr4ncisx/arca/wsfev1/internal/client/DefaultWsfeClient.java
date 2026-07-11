@@ -2,8 +2,18 @@ package io.github.fr4ncisx.arca.wsfev1.internal.client;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.*;
-import io.github.fr4ncisx.arca.wsfev1.model.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.batch.BatchProcessUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.cae.RequestCaeUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog.*;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.lastvoucher.GetLastVoucherUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.salespoint.GetSalesPointsUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.voucher.GetVoucherUseCase;
+import io.github.fr4ncisx.arca.wsfev1.model.cae.*;
+import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.*;
+import io.github.fr4ncisx.arca.wsfev1.model.voucher.*;
+import io.github.fr4ncisx.arca.wsfev1.model.salespoint.*;
+import io.github.fr4ncisx.arca.wsfev1.model.batch.*;
+import io.github.fr4ncisx.arca.wsfev1.model.catalog.*;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 
 import java.util.List;
@@ -24,6 +34,13 @@ public final class DefaultWsfeClient implements WsfeClient {
     private final GetSalesPointsUseCase getSalesPointsUseCase;
     private final GetVoucherUseCase getVoucherUseCase;
     private final BatchProcessUseCase batchProcessUseCase;
+    private final GetVoucherTypesUseCase getVoucherTypesUseCase;
+    private final GetDocumentTypesUseCase getDocumentTypesUseCase;
+    private final GetVatTypesUseCase getVatTypesUseCase;
+    private final GetCurrenciesUseCase getCurrenciesUseCase;
+    private final GetExchangeRateUseCase getExchangeRateUseCase;
+    private final GetMaxRecordsUseCase getMaxRecordsUseCase;
+    private final GetConceptTypesUseCase getConceptTypesUseCase;
     private final FedummyClient fedummyClient;
 
     /**
@@ -35,6 +52,13 @@ public final class DefaultWsfeClient implements WsfeClient {
      * @param getSalesPointsUseCase the use case to list sales points
      * @param getVoucherUseCase     the use case to retrieve authorized voucher details
      * @param batchProcessUseCase   the use case to process batches
+     * @param getVoucherTypesUseCase the use case to list voucher types
+     * @param getDocumentTypesUseCase the use case to list document types
+     * @param getVatTypesUseCase    the use case to list VAT types
+     * @param getCurrenciesUseCase  the use case to list currencies
+     * @param getExchangeRateUseCase the use case to get currency exchange rates
+     * @param getMaxRecordsUseCase  the use case to get max records per request
+     * @param getConceptTypesUseCase the use case to list concept types
      * @param fedummyClient         the ping connection client
      */
     public DefaultWsfeClient(
@@ -44,6 +68,13 @@ public final class DefaultWsfeClient implements WsfeClient {
             GetSalesPointsUseCase getSalesPointsUseCase,
             GetVoucherUseCase getVoucherUseCase,
             BatchProcessUseCase batchProcessUseCase,
+            GetVoucherTypesUseCase getVoucherTypesUseCase,
+            GetDocumentTypesUseCase getDocumentTypesUseCase,
+            GetVatTypesUseCase getVatTypesUseCase,
+            GetCurrenciesUseCase getCurrenciesUseCase,
+            GetExchangeRateUseCase getExchangeRateUseCase,
+            GetMaxRecordsUseCase getMaxRecordsUseCase,
+            GetConceptTypesUseCase getConceptTypesUseCase,
             FedummyClient fedummyClient) {
         if (config == null) {
             throw new ArcaValidationException("config must not be null");
@@ -63,6 +94,27 @@ public final class DefaultWsfeClient implements WsfeClient {
         if (batchProcessUseCase == null) {
             throw new ArcaValidationException("batchProcessUseCase must not be null");
         }
+        if (getVoucherTypesUseCase == null) {
+            throw new ArcaValidationException("getVoucherTypesUseCase must not be null");
+        }
+        if (getDocumentTypesUseCase == null) {
+            throw new ArcaValidationException("getDocumentTypesUseCase must not be null");
+        }
+        if (getVatTypesUseCase == null) {
+            throw new ArcaValidationException("getVatTypesUseCase must not be null");
+        }
+        if (getCurrenciesUseCase == null) {
+            throw new ArcaValidationException("getCurrenciesUseCase must not be null");
+        }
+        if (getExchangeRateUseCase == null) {
+            throw new ArcaValidationException("getExchangeRateUseCase must not be null");
+        }
+        if (getMaxRecordsUseCase == null) {
+            throw new ArcaValidationException("getMaxRecordsUseCase must not be null");
+        }
+        if (getConceptTypesUseCase == null) {
+            throw new ArcaValidationException("getConceptTypesUseCase must not be null");
+        }
         if (fedummyClient == null) {
             throw new ArcaValidationException("fedummyClient must not be null");
         }
@@ -72,6 +124,13 @@ public final class DefaultWsfeClient implements WsfeClient {
         this.getSalesPointsUseCase = getSalesPointsUseCase;
         this.getVoucherUseCase = getVoucherUseCase;
         this.batchProcessUseCase = batchProcessUseCase;
+        this.getVoucherTypesUseCase = getVoucherTypesUseCase;
+        this.getDocumentTypesUseCase = getDocumentTypesUseCase;
+        this.getVatTypesUseCase = getVatTypesUseCase;
+        this.getCurrenciesUseCase = getCurrenciesUseCase;
+        this.getExchangeRateUseCase = getExchangeRateUseCase;
+        this.getMaxRecordsUseCase = getMaxRecordsUseCase;
+        this.getConceptTypesUseCase = getConceptTypesUseCase;
         this.fedummyClient = fedummyClient;
     }
 
@@ -103,5 +162,40 @@ public final class DefaultWsfeClient implements WsfeClient {
     @Override
     public BatchResponse processBatch(BatchRequest request) {
         return batchProcessUseCase.execute(request);
+    }
+
+    @Override
+    public List<VoucherTypeDetail> getVoucherTypes() {
+        return getVoucherTypesUseCase.execute();
+    }
+
+    @Override
+    public List<DocumentTypeInfo> getDocumentTypes() {
+        return getDocumentTypesUseCase.execute();
+    }
+
+    @Override
+    public List<VatTypeInfo> getVatTypes() {
+        return getVatTypesUseCase.execute();
+    }
+
+    @Override
+    public List<CurrencyInfo> getCurrencies() {
+        return getCurrenciesUseCase.execute();
+    }
+
+    @Override
+    public ExchangeRate getExchangeRate(String currencyId) {
+        return getExchangeRateUseCase.execute(currencyId);
+    }
+
+    @Override
+    public int getMaxRecordsPerRequest() {
+        return getMaxRecordsUseCase.execute();
+    }
+
+    @Override
+    public List<ConceptTypeInfo> getConceptTypes() {
+        return getConceptTypesUseCase.execute();
     }
 }
