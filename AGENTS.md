@@ -38,6 +38,12 @@ four-space indentation. Keep public API types outside `internal.*`; generated
 JAXB classes must stay isolated under
 `internal.generated`. Prefer package names under `io.github.fr4ncisx.arca`.
 
+### Null safety and JSpecify
+
+- **JSpecify Integration**: Use JSpecify annotations (`@NullMarked`, `@Nullable`) to enforce compile-time nullness analysis.
+- **Package-Level Defaults**: Every production package must declare a `package-info.java` containing `@NullMarked` to make all parameters and return types non-null by default.
+- **Nullable Types**: Explicitly annotate fields, arguments, or return values that can be null using `@Nullable`.
+
 ## Javadoc guidelines
 
 All Javadoc comments must be written **strictly in professional English**. No
@@ -123,6 +129,10 @@ Recent commits use Conventional Commits: `feat(modules): ...`,
 `fix(core): ...`, `refactor(core): ...`, and `chore(deps): ...`. Keep commits
 focused. Pull requests must include a summary, tests run, linked issues when
 available, and notes for security-sensitive changes.
+
+## Versioning and release guidelines
+
+- **Version Synchronization**: Every new milestone or release version must explicitly update the version identifier across all project `pom.xml` files (parent and modules) and references in the `README.md` to guarantee documentation alignment.
 
 ## Security and configuration tips
 
