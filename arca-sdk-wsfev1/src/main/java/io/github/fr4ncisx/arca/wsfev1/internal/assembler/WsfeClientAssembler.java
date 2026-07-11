@@ -10,6 +10,7 @@ import io.github.fr4ncisx.arca.wsfev1.internal.client.DefaultWsfeClient;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.batch.BatchProcessUseCase;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.cae.RequestCaeUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.caea.*;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog.*;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.lastvoucher.GetLastVoucherUseCase;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.salespoint.GetSalesPointsUseCase;
@@ -100,6 +101,21 @@ public final class WsfeClientAssembler {
         ArcaSoapPort<FEParamGetTiposConcepto, ConceptoTipoResponse> getConceptTypesSoapPort =
                 new ArcaSoapClient<>(bp, req -> port.feParamGetTiposConcepto(req.getAuth()), soapConfig);
 
+        ArcaSoapPort<FECAEASolicitar, FECAEAGetResponse> requestCaeaSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.fecaeaSolicitar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig);
+
+        ArcaSoapPort<FECAEARegInformativo, FECAEAResponse> reportCaeaSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.fecaeaRegInformativo(req.getAuth(), req.getFeCAEARegInfReq()), soapConfig);
+
+        ArcaSoapPort<FECAEAConsultar, FECAEAGetResponse> queryCaeaSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.fecaeaConsultar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig);
+
+        ArcaSoapPort<FECAEASinMovimientoInformar, FECAEASinMovResponse> reportCaeaNoMovementSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.fecaeaSinMovimientoInformar(req.getAuth(), req.getPtoVta(), req.getCAEA()), soapConfig);
+
+        ArcaSoapPort<FECAEASinMovimientoConsultar, FECAEASinMovConsResponse> queryCaeaNoMovementSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.fecaeaSinMovimientoConsultar(req.getAuth(), req.getCAEA(), req.getPtoVta()), soapConfig);
+
         GetLastVoucherUseCase getLastVoucherUseCase =
                 new GetLastVoucherUseCase(config, authProvider, lastVoucherSoapPort);
 
@@ -133,6 +149,21 @@ public final class WsfeClientAssembler {
         GetConceptTypesUseCase getConceptTypesUseCase =
                 new GetConceptTypesUseCase(config, authProvider, getConceptTypesSoapPort);
 
+        RequestCaeaUseCase requestCaeaUseCase =
+                new RequestCaeaUseCase(config, authProvider, requestCaeaSoapPort);
+
+        ReportCaeaUseCase reportCaeaUseCase =
+                new ReportCaeaUseCase(config, authProvider, reportCaeaSoapPort);
+
+        QueryCaeaUseCase queryCaeaUseCase =
+                new QueryCaeaUseCase(config, authProvider, queryCaeaSoapPort);
+
+        ReportCaeaNoMovementUseCase reportCaeaNoMovementUseCase =
+                new ReportCaeaNoMovementUseCase(config, authProvider, reportCaeaNoMovementSoapPort);
+
+        QueryCaeaNoMovementUseCase queryCaeaNoMovementUseCase =
+                new QueryCaeaNoMovementUseCase(config, authProvider, queryCaeaNoMovementSoapPort);
+
         java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newCachedThreadPool(r -> {
             Thread t = new Thread(r);
             t.setDaemon(true);
@@ -160,6 +191,11 @@ public final class WsfeClientAssembler {
                 getExchangeRateUseCase,
                 getMaxRecordsUseCase,
                 getConceptTypesUseCase,
+                requestCaeaUseCase,
+                reportCaeaUseCase,
+                queryCaeaUseCase,
+                reportCaeaNoMovementUseCase,
+                queryCaeaNoMovementUseCase,
                 fedummyClient
         );
     }

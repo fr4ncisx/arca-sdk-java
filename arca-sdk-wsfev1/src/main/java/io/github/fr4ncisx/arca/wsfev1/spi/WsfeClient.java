@@ -5,6 +5,7 @@ import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.*;
 import io.github.fr4ncisx.arca.wsfev1.model.voucher.*;
 import io.github.fr4ncisx.arca.wsfev1.model.salespoint.*;
 import io.github.fr4ncisx.arca.wsfev1.model.batch.*;
+import io.github.fr4ncisx.arca.wsfev1.model.caea.*;
 import io.github.fr4ncisx.arca.wsfev1.model.catalog.*;
 
 import java.util.List;
@@ -116,4 +117,43 @@ public interface WsfeClient {
      * @return the list of concept types info
      */
     List<ConceptTypeInfo> getConceptTypes();
+
+    /**
+     * Requests a new Anticipated Electronic Authorization code (CAEA) from ARCA.
+     *
+     * @param request the CAEA request details
+     * @return the CAEA response containing details or errors
+     */
+    CaeaResponse requestCaea(CaeaRequest request);
+
+    /**
+     * Reports electronic vouchers issued under a previously authorized CAEA.
+     *
+     * @param request the batch details to report
+     * @return the reporting response containing outcomes for each voucher
+     */
+    CaeaReportResponse reportCaea(CaeaReportRequest request);
+
+    /**
+     * Queries details of a previously assigned CAEA code.
+     *
+     * @param query the query details
+     * @return the CAEA details response
+     */
+    CaeaResponse queryCaea(CaeaQuery query);
+
+    /**
+     * Informs ARCA that a sales point has no movements under a CAEA code.
+     *
+     * @param request the request details
+     */
+    void reportCaeaNoMovement(CaeaNoMovementRequest request);
+
+    /**
+     * Consults if a sales point has registered a no-movement declaration for a CAEA.
+     *
+     * @param query the query details
+     * @return true if a no-movement declaration exists, false otherwise
+     */
+    boolean queryCaeaNoMovement(CaeaNoMovementQuery query);
 }

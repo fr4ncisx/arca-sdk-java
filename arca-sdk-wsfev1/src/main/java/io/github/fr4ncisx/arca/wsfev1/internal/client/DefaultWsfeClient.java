@@ -4,11 +4,13 @@ import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.batch.BatchProcessUseCase;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.cae.RequestCaeUseCase;
+import io.github.fr4ncisx.arca.wsfev1.internal.usecase.caea.*;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog.*;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.lastvoucher.GetLastVoucherUseCase;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.salespoint.GetSalesPointsUseCase;
 import io.github.fr4ncisx.arca.wsfev1.internal.usecase.voucher.GetVoucherUseCase;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.*;
+import io.github.fr4ncisx.arca.wsfev1.model.caea.*;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.*;
 import io.github.fr4ncisx.arca.wsfev1.model.voucher.*;
 import io.github.fr4ncisx.arca.wsfev1.model.salespoint.*;
@@ -41,6 +43,11 @@ public final class DefaultWsfeClient implements WsfeClient {
     private final GetExchangeRateUseCase getExchangeRateUseCase;
     private final GetMaxRecordsUseCase getMaxRecordsUseCase;
     private final GetConceptTypesUseCase getConceptTypesUseCase;
+    private final RequestCaeaUseCase requestCaeaUseCase;
+    private final ReportCaeaUseCase reportCaeaUseCase;
+    private final QueryCaeaUseCase queryCaeaUseCase;
+    private final ReportCaeaNoMovementUseCase reportCaeaNoMovementUseCase;
+    private final QueryCaeaNoMovementUseCase queryCaeaNoMovementUseCase;
     private final FedummyClient fedummyClient;
 
     /**
@@ -59,6 +66,11 @@ public final class DefaultWsfeClient implements WsfeClient {
      * @param getExchangeRateUseCase the use case to get currency exchange rates
      * @param getMaxRecordsUseCase  the use case to get max records per request
      * @param getConceptTypesUseCase the use case to list concept types
+     * @param requestCaeaUseCase    the use case to request CAEA codes
+     * @param reportCaeaUseCase     the use case to report vouchers under CAEA
+     * @param queryCaeaUseCase      the use case to query CAEA details
+     * @param reportCaeaNoMovementUseCase the use case to report CAEA no-movement
+     * @param queryCaeaNoMovementUseCase the use case to query CAEA no-movement status
      * @param fedummyClient         the ping connection client
      */
     public DefaultWsfeClient(
@@ -75,6 +87,11 @@ public final class DefaultWsfeClient implements WsfeClient {
             GetExchangeRateUseCase getExchangeRateUseCase,
             GetMaxRecordsUseCase getMaxRecordsUseCase,
             GetConceptTypesUseCase getConceptTypesUseCase,
+            RequestCaeaUseCase requestCaeaUseCase,
+            ReportCaeaUseCase reportCaeaUseCase,
+            QueryCaeaUseCase queryCaeaUseCase,
+            ReportCaeaNoMovementUseCase reportCaeaNoMovementUseCase,
+            QueryCaeaNoMovementUseCase queryCaeaNoMovementUseCase,
             FedummyClient fedummyClient) {
         if (config == null) {
             throw new ArcaValidationException("config must not be null");
@@ -115,6 +132,21 @@ public final class DefaultWsfeClient implements WsfeClient {
         if (getConceptTypesUseCase == null) {
             throw new ArcaValidationException("getConceptTypesUseCase must not be null");
         }
+        if (requestCaeaUseCase == null) {
+            throw new ArcaValidationException("requestCaeaUseCase must not be null");
+        }
+        if (reportCaeaUseCase == null) {
+            throw new ArcaValidationException("reportCaeaUseCase must not be null");
+        }
+        if (queryCaeaUseCase == null) {
+            throw new ArcaValidationException("queryCaeaUseCase must not be null");
+        }
+        if (reportCaeaNoMovementUseCase == null) {
+            throw new ArcaValidationException("reportCaeaNoMovementUseCase must not be null");
+        }
+        if (queryCaeaNoMovementUseCase == null) {
+            throw new ArcaValidationException("queryCaeaNoMovementUseCase must not be null");
+        }
         if (fedummyClient == null) {
             throw new ArcaValidationException("fedummyClient must not be null");
         }
@@ -131,6 +163,11 @@ public final class DefaultWsfeClient implements WsfeClient {
         this.getExchangeRateUseCase = getExchangeRateUseCase;
         this.getMaxRecordsUseCase = getMaxRecordsUseCase;
         this.getConceptTypesUseCase = getConceptTypesUseCase;
+        this.requestCaeaUseCase = requestCaeaUseCase;
+        this.reportCaeaUseCase = reportCaeaUseCase;
+        this.queryCaeaUseCase = queryCaeaUseCase;
+        this.reportCaeaNoMovementUseCase = reportCaeaNoMovementUseCase;
+        this.queryCaeaNoMovementUseCase = queryCaeaNoMovementUseCase;
         this.fedummyClient = fedummyClient;
     }
 
@@ -197,5 +234,30 @@ public final class DefaultWsfeClient implements WsfeClient {
     @Override
     public List<ConceptTypeInfo> getConceptTypes() {
         return getConceptTypesUseCase.execute();
+    }
+
+    @Override
+    public CaeaResponse requestCaea(CaeaRequest request) {
+        return requestCaeaUseCase.execute(request);
+    }
+
+    @Override
+    public CaeaReportResponse reportCaea(CaeaReportRequest request) {
+        return reportCaeaUseCase.execute(request);
+    }
+
+    @Override
+    public CaeaResponse queryCaea(CaeaQuery query) {
+        return queryCaeaUseCase.execute(query);
+    }
+
+    @Override
+    public void reportCaeaNoMovement(CaeaNoMovementRequest request) {
+        reportCaeaNoMovementUseCase.execute(request);
+    }
+
+    @Override
+    public boolean queryCaeaNoMovement(CaeaNoMovementQuery query) {
+        return queryCaeaNoMovementUseCase.execute(query);
     }
 }
