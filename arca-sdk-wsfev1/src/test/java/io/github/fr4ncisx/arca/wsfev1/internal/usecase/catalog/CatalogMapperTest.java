@@ -183,4 +183,101 @@ class CatalogMapperTest {
         assertThatThrownBy(() -> CatalogMapper.toMaxRecords(response))
                 .isInstanceOf(ArcaValidationException.class);
     }
+
+    @Test
+    void toOptionalFieldTypesSucceeds() {
+        var response = new OpcionalTipoResponse();
+        var resultGet = new ArrayOfOpcionalTipo();
+        var type = new OpcionalTipo();
+        type.setId("01");
+        type.setDesc("Ingresos Brutos");
+        type.setFchDesde("20200101");
+        type.setFchHasta("20301231");
+        resultGet.getOpcionalTipo().add(type);
+        response.setResultGet(resultGet);
+
+        List<OptionalFieldTypeInfo> list = CatalogMapper.toOptionalFieldTypes(response);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo("01");
+        assertThat(list.get(0).description()).isEqualTo("Ingresos Brutos");
+        assertThat(list.get(0).since()).contains(LocalDate.of(2020, 1, 1));
+        assertThat(list.get(0).until()).contains(LocalDate.of(2030, 12, 31));
+    }
+
+    @Test
+    void toCountriesSucceeds() {
+        var response = new FEPaisResponse();
+        var resultGet = new ArrayOfPaisTipo();
+        var type = new PaisTipo();
+        type.setId((short) 200);
+        type.setDesc("Argentina");
+        resultGet.getPaisTipo().add(type);
+        response.setResultGet(resultGet);
+
+        List<CountryInfo> list = CatalogMapper.toCountries(response);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo((short) 200);
+        assertThat(list.get(0).description()).isEqualTo("Argentina");
+    }
+
+    @Test
+    void toTaxTypesSucceeds() {
+        var response = new FETributoResponse();
+        var resultGet = new ArrayOfTributoTipo();
+        var type = new TributoTipo();
+        type.setId((short) 1);
+        type.setDesc("Impuestos Nacionales");
+        type.setFchDesde("20200101");
+        type.setFchHasta("20301231");
+        resultGet.getTributoTipo().add(type);
+        response.setResultGet(resultGet);
+
+        List<TaxTypeInfo> list = CatalogMapper.toTaxTypes(response);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo((short) 1);
+        assertThat(list.get(0).description()).isEqualTo("Impuestos Nacionales");
+        assertThat(list.get(0).since()).contains(LocalDate.of(2020, 1, 1));
+        assertThat(list.get(0).until()).contains(LocalDate.of(2030, 12, 31));
+    }
+
+    @Test
+    void toActivitiesSucceeds() {
+        var response = new FEActividadesResponse();
+        var resultGet = new ArrayOfActividadesTipo();
+        var type = new ActividadesTipo();
+        type.setId(620100L);
+        type.setOrden((short) 1);
+        type.setDesc("Servicios de software");
+        resultGet.getActividadesTipo().add(type);
+        response.setResultGet(resultGet);
+
+        List<ActivityInfo> list = CatalogMapper.toActivities(response);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo(620100L);
+        assertThat(list.get(0).order()).isEqualTo((short) 1);
+        assertThat(list.get(0).description()).isEqualTo("Servicios de software");
+    }
+
+    @Test
+    void toReceiverVatConditionsSucceeds() {
+        var response = new CondicionIvaReceptorResponse();
+        var resultGet = new ArrayOfCondicionIvaReceptor();
+        var type = new CondicionIvaReceptor();
+        type.setId(1);
+        type.setDesc("Responsable Inscripto");
+        type.setCmpClase("A");
+        resultGet.getCondicionIvaReceptor().add(type);
+        response.setResultGet(resultGet);
+
+        List<VatConditionInfo> list = CatalogMapper.toReceiverVatConditions(response);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo(1);
+        assertThat(list.get(0).description()).isEqualTo("Responsable Inscripto");
+        assertThat(list.get(0).voucherClass()).isEqualTo("A");
+    }
 }

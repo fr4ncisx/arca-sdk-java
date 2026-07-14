@@ -215,4 +215,129 @@ class CatalogUseCasesTest {
         assertThat(list.get(0).code()).isEqualTo(1);
         assertThat(list.get(0).description()).isEqualTo("Productos");
     }
+
+    @Test
+    void getOptionalFieldTypesUseCaseSucceeds() {
+        var response = new OpcionalTipoResponse();
+        var resultGet = new ArrayOfOpcionalTipo();
+        var item = new OpcionalTipo();
+        item.setId("01");
+        item.setDesc("Ingresos Brutos");
+        resultGet.getOpcionalTipo().add(item);
+        response.setResultGet(resultGet);
+
+        var capturedRequest = new AtomicReference<FEParamGetTiposOpcional>();
+        ArcaSoapPort<FEParamGetTiposOpcional, OpcionalTipoResponse> port = req -> {
+            capturedRequest.set(req);
+            return response;
+        };
+
+        var useCase = new GetOptionalFieldTypesUseCase(config, authProvider, port);
+        List<OptionalFieldTypeInfo> list = useCase.execute();
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo("01");
+        assertThat(list.get(0).description()).isEqualTo("Ingresos Brutos");
+    }
+
+    @Test
+    void getCountriesUseCaseSucceeds() {
+        var response = new FEPaisResponse();
+        var resultGet = new ArrayOfPaisTipo();
+        var item = new PaisTipo();
+        item.setId((short) 200);
+        item.setDesc("Argentina");
+        resultGet.getPaisTipo().add(item);
+        response.setResultGet(resultGet);
+
+        var capturedRequest = new AtomicReference<FEParamGetTiposPaises>();
+        ArcaSoapPort<FEParamGetTiposPaises, FEPaisResponse> port = req -> {
+            capturedRequest.set(req);
+            return response;
+        };
+
+        var useCase = new GetCountriesUseCase(config, authProvider, port);
+        List<CountryInfo> list = useCase.execute();
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo((short) 200);
+        assertThat(list.get(0).description()).isEqualTo("Argentina");
+    }
+
+    @Test
+    void getTaxTypesUseCaseSucceeds() {
+        var response = new FETributoResponse();
+        var resultGet = new ArrayOfTributoTipo();
+        var item = new TributoTipo();
+        item.setId((short) 1);
+        item.setDesc("Tasa Municipal");
+        resultGet.getTributoTipo().add(item);
+        response.setResultGet(resultGet);
+
+        var capturedRequest = new AtomicReference<FEParamGetTiposTributos>();
+        ArcaSoapPort<FEParamGetTiposTributos, FETributoResponse> port = req -> {
+            capturedRequest.set(req);
+            return response;
+        };
+
+        var useCase = new GetTaxTypesUseCase(config, authProvider, port);
+        List<TaxTypeInfo> list = useCase.execute();
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo((short) 1);
+        assertThat(list.get(0).description()).isEqualTo("Tasa Municipal");
+    }
+
+    @Test
+    void getActivitiesUseCaseSucceeds() {
+        var response = new FEActividadesResponse();
+        var resultGet = new ArrayOfActividadesTipo();
+        var item = new ActividadesTipo();
+        item.setId(620100L);
+        item.setOrden((short) 2);
+        item.setDesc("Programacion");
+        resultGet.getActividadesTipo().add(item);
+        response.setResultGet(resultGet);
+
+        var capturedRequest = new AtomicReference<FEParamGetActividades>();
+        ArcaSoapPort<FEParamGetActividades, FEActividadesResponse> port = req -> {
+            capturedRequest.set(req);
+            return response;
+        };
+
+        var useCase = new GetActivitiesUseCase(config, authProvider, port);
+        List<ActivityInfo> list = useCase.execute();
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo(620100L);
+        assertThat(list.get(0).order()).isEqualTo((short) 2);
+        assertThat(list.get(0).description()).isEqualTo("Programacion");
+    }
+
+    @Test
+    void getReceiverVatConditionsUseCaseSucceeds() {
+        var response = new CondicionIvaReceptorResponse();
+        var resultGet = new ArrayOfCondicionIvaReceptor();
+        var item = new CondicionIvaReceptor();
+        item.setId(1);
+        item.setDesc("Inscripto");
+        item.setCmpClase("A");
+        resultGet.getCondicionIvaReceptor().add(item);
+        response.setResultGet(resultGet);
+
+        var capturedRequest = new AtomicReference<FEParamGetCondicionIvaReceptor>();
+        ArcaSoapPort<FEParamGetCondicionIvaReceptor, CondicionIvaReceptorResponse> port = req -> {
+            capturedRequest.set(req);
+            return response;
+        };
+
+        var useCase = new GetReceiverVatConditionsUseCase(config, authProvider, port);
+        List<VatConditionInfo> list = useCase.execute("A");
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).id()).isEqualTo(1);
+        assertThat(list.get(0).description()).isEqualTo("Inscripto");
+        assertThat(list.get(0).voucherClass()).isEqualTo("A");
+        assertThat(capturedRequest.get().getClaseCmp()).isEqualTo("A");
+    }
 }
