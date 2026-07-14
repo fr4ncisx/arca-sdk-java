@@ -29,6 +29,11 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arca-sdk-soap</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-test-support</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
