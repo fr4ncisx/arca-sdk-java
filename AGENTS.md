@@ -40,6 +40,7 @@ JAXB classes must stay isolated under
 `internal.generated`. Prefer package names under `io.github.fr4ncisx.arca`.
 
 - **Unused Imports**: Do not add imports that are not being used in the code or tests. Keep imports clean and organized, and remove any redundant or obsolete imports before finalizing a change.
+- **No Fully Qualified Inline Names**: Do not write fully qualified class names (e.g. `java.util.List` or `java.time.Duration`) inline within method bodies, test methods, or class declarations when they can be imported. Always declare proper imports at the top of the file to maintain clean, readable, and idiomatic Java code.
 - **Immutability by Default**: Use `record` classes for all domain models, configuration holders, DTOs, and value objects to enforce strict immutability.
 - **Modern Control Flow & Pattern Matching**: Leverage pattern matching for `switch` and `instanceof`, and sealed hierarchies (`sealed interface/class`) for complex return states or errors instead of throwing checkable exceptions or casting objects.
 - **Fail-Fast Validation**: Constructors and boundary methods must validate input parameters aggressively on entry (using `Objects.requireNonNull`, CUIT validators, or state checks) and throw `ArcaValidationException` immediately.
