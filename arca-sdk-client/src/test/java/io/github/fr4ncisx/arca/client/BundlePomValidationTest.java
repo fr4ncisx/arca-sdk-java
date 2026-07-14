@@ -46,6 +46,7 @@ class BundlePomValidationTest {
                 "arca-sdk-soap",
                 "arca-sdk-wsaa",
                 "arca-sdk-wsfev1",
+                "arca-sdk-wsfexv1",
                 "arca-sdk-registry",
                 "arca-sdk-client"
         );

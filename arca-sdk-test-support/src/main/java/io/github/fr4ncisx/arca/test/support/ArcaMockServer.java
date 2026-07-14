@@ -24,10 +24,13 @@ public final class ArcaMockServer implements AutoCloseable {
 
     private static final String WSAA_LOGIN_CMS_PATH = "/ws/services/LoginCms";
     private static final String WSFEV1_SERVICE_PATH = "/wsfev1/service.asmx";
+    private static final String WSFEXV1_SERVICE_PATH = "/wsfexv1/service.asmx";
     private static final String SOAP_ACTION_HEADER = "SOAPAction";
     private static final String FECAESOLICITAR_ACTION = "http://ar.gov.afip.dif.FEV1/FECAESolicitar";
     private static final String FECOMPULTIMOAUTORIZADO_ACTION =
         "http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado";
+    private static final String WSFEX_LAST_VOUCHER_ACTION = "http://ar.gov.afip.dif.fexv1/FEXGetLast_CMP";
+    private static final String WSFEX_AUTHORIZE_ACTION = "http://ar.gov.afip.dif.fexv1/FEXAuthorize";
     private static final String XML_CONTENT_TYPE = "text/xml; charset=UTF-8";
 
     private static final String LOGIN_CMS_SUCCESS_FIXTURE = "/fixtures/wsaa/login-cms-success.xml";
@@ -35,6 +38,8 @@ public final class ArcaMockServer implements AutoCloseable {
     private static final String LAST_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsfev1/last-voucher-success.xml";
     private static final String CAE_SUCCESS_FIXTURE = "/fixtures/wsfev1/cae-request-success.xml";
     private static final String CAE_REJECTED_FIXTURE = "/fixtures/wsfev1/cae-request-rejection-001.xml";
+    private static final String WSFEX_LAST_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsfexv1/last-voucher-success.xml";
+    private static final String WSFEX_CAE_SUCCESS_FIXTURE = "/fixtures/wsfexv1/cae-success.xml";
 
     private final WireMockServer server;
     private final FixtureLoader fixtureLoader;
@@ -147,6 +152,24 @@ public final class ArcaMockServer implements AutoCloseable {
         stubSoapAction(FECAESOLICITAR_ACTION, CAE_REJECTED_FIXTURE, 200);
     }
 
+    /**
+     * Registers a successful WSFEXv1 FEXGetLast_CMP response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWsfexLastVoucherSuccess() {
+        stubSoapAction(WSFEXV1_SERVICE_PATH, WSFEX_LAST_VOUCHER_ACTION, WSFEX_LAST_VOUCHER_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers an approved WSFEXv1 FEXAuthorize response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWsfexCaeSuccess() {
+        stubSoapAction(WSFEXV1_SERVICE_PATH, WSFEX_AUTHORIZE_ACTION, WSFEX_CAE_SUCCESS_FIXTURE, 200);
+    }
+
     private void stubPath(String path, String fixturePath, int status) {
         ensureStarted();
         String xml = fixtureLoader.load(fixturePath);
@@ -158,9 +181,13 @@ public final class ArcaMockServer implements AutoCloseable {
     }
 
     private void stubSoapAction(String soapAction, String fixturePath, int status) {
+        stubSoapAction(WSFEV1_SERVICE_PATH, soapAction, fixturePath, status);
+    }
+
+    private void stubSoapAction(String servicePath, String soapAction, String fixturePath, int status) {
         ensureStarted();
         String xml = fixtureLoader.load(fixturePath);
-        server.stubFor(post(urlPathEqualTo(WSFEV1_SERVICE_PATH))
+        server.stubFor(post(urlPathEqualTo(servicePath))
             .withHeader(SOAP_ACTION_HEADER, containing(soapAction))
             .willReturn(aResponse()
                 .withStatus(status)

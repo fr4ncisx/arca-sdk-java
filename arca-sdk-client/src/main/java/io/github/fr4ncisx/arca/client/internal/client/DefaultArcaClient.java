@@ -13,6 +13,8 @@ import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsaa.spi.Pkcs12CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.internal.assembler.WsfeClientAssembler;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
+import io.github.fr4ncisx.arca.wsfexv1.internal.assembler.WsfexClientAssembler;
+import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.registry.internal.assembler.RegistryClientAssembler;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 
@@ -49,7 +51,8 @@ public final class DefaultArcaClient {
 
         WsfeClient wsfeClient = WsfeClientAssembler.assemble(config, authProvider);
         RegistryClient registryClient = RegistryClientAssembler.assemble(config, authProvider);
+        WsfexClient wsfexClient = WsfexClientAssembler.assemble(config, authProvider);
 
-        return new ArcaClient(wsfeClient, registryClient);
+        return new ArcaClient(wsfeClient, registryClient, wsfexClient);
     }
 }

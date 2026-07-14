@@ -6,6 +6,7 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
+import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,21 +56,30 @@ class ArcaClientTest {
     }
 
     @Test
-    void pingReturnsTrueOnlyWhenBothAreOk() {
+    void pingReturnsTrueOnlyWhenAllAreOk() {
         WsfeClient wsfe = mock(WsfeClient.class);
         RegistryClient reg = mock(RegistryClient.class);
-        ArcaClient client = new ArcaClient(wsfe, reg);
+        WsfexClient wsfex = mock(WsfexClient.class);
+        ArcaClient client = new ArcaClient(wsfe, reg, wsfex);
 
         when(wsfe.ping()).thenReturn(true);
         when(reg.ping()).thenReturn(true);
+        when(wsfex.ping()).thenReturn(true);
         assertThat(client.ping()).isTrue();
 
         when(wsfe.ping()).thenReturn(false);
         when(reg.ping()).thenReturn(true);
+        when(wsfex.ping()).thenReturn(true);
         assertThat(client.ping()).isFalse();
 
         when(wsfe.ping()).thenReturn(true);
         when(reg.ping()).thenReturn(false);
+        when(wsfex.ping()).thenReturn(true);
+        assertThat(client.ping()).isFalse();
+
+        when(wsfe.ping()).thenReturn(true);
+        when(reg.ping()).thenReturn(true);
+        when(wsfex.ping()).thenReturn(false);
         assertThat(client.ping()).isFalse();
     }
 }

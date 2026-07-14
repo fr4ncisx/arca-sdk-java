@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <soap:Body>
+      <FEXAuthorizeResponse xmlns="http://ar.gov.afip.dif.fexv1/">
+         <FEXAuthorizeResult>
+            <FEXResultAuth>
+               <Id>12345</Id>
+               <Cuit>20333333334</Cuit>
+               <Cbte_tipo>19</Cbte_tipo>
+               <Punto_vta>2</Punto_vta>
+               <Cbte_nro>15</Cbte_nro>
+               <Cae>CAE-EXPORT-999</Cae>
+               <Fch_venc_Cae>20260831</Fch_venc_Cae>
+            </FEXResultAuth>
+         </FEXAuthorizeResult>
+      </FEXAuthorizeResponse>
+   </soap:Body>
+</soap:Envelope>

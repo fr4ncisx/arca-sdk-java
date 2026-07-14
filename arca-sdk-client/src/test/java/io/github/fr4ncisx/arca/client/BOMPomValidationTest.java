@@ -47,6 +47,7 @@ class BOMPomValidationTest {
                 "arca-sdk-soap",
                 "arca-sdk-wsaa",
                 "arca-sdk-wsfev1",
+                "arca-sdk-wsfexv1",
                 "arca-sdk-test-support",
                 "arca-sdk-registry",
                 "arca-sdk-client"
