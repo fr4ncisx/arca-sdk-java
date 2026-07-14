@@ -44,13 +44,14 @@
         <module>arca-sdk-soap</module>
         <module>arca-sdk-wsaa</module>
         <module>arca-sdk-wsfev1</module>
+        <module>arca-sdk-wsfexv1</module>
         <module>arca-sdk-test-support</module>
         <module>arca-sdk-registry</module>
         <module>arca-sdk-client</module>
     </modules>
 
     <properties>
-        <revision>0.6.0</revision>
+        <revision>0.7.0</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -106,6 +107,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>arca-sdk-wsfev1</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>arca-sdk-wsfexv1</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

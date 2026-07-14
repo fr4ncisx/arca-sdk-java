@@ -2,7 +2,7 @@
 
 [![Java](https://img.shields.io/badge/Java-21-blue)](https://jdk.java.net/21/)
 [![version](https://img.shields.io/github/v/tag/fr4ncisx/arca-sdk-java?style=flat&label=version)]()
-[![status](https://img.shields.io/badge/status-milestone-orange)]()
+[![status](https://img.shields.io/badge/status-development-orange)]()
 [![build](https://img.shields.io/github/actions/workflow/status/fr4ncisx/arca-sdk-java/ci.yml?branch=main)]()
 [![licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)](LICENSE)
 
