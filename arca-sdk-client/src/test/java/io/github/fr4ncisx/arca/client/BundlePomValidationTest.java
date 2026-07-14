@@ -37,7 +37,6 @@ class BundlePomValidationTest {
 
         XPath xPath = XPathFactory.newInstance().newXPath();
 
-        // Query all dependency artifacts
         String xpathExpr = "/project/dependencies/dependency";
         NodeList nodes = (NodeList) xPath.compile(xpathExpr).evaluate(doc, XPathConstants.NODESET);
         assertThat(nodes.getLength()).isGreaterThan(0);
@@ -65,7 +64,6 @@ class BundlePomValidationTest {
             String groupId = xPath.compile("groupId").evaluate(node).trim();
             String artifactId = xPath.compile("artifactId").evaluate(node).trim();
 
-            // Strictly exclude test-support
             assertThat(artifactId).isNotEqualTo("arca-sdk-test-support");
 
             if (expectedSDKModules.contains(artifactId)) {

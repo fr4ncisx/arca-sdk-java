@@ -58,16 +58,13 @@ class PublicApiContractTest {
             Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         }
 
-        // Start mock integration server
         server = new ArcaMockServer();
         server.start();
 
-        // Backup original URLs
         originalWsaaUrl = ArcaEnvironment.HOMOLOGACION.getWsaaUrl();
         originalWsfev1Url = ArcaEnvironment.HOMOLOGACION.getWsfev1Url();
         originalRegistryUrl = ArcaEnvironment.HOMOLOGACION.getRegistryUrl();
 
-        // Override endpoints to localhost mock server
         URI mockBase = server.baseUrl();
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsaaUrl", mockBase.resolve("/ws/services/LoginCms"));
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfev1Url", mockBase.resolve("/wsfev1/service.asmx"));
@@ -79,7 +76,6 @@ class PublicApiContractTest {
         if (server != null) {
             server.stop();
         }
-        // Restore original endpoints
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsaaUrl", originalWsaaUrl);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfev1Url", originalWsfev1Url);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "registryUrl", originalRegistryUrl);
@@ -87,14 +83,11 @@ class PublicApiContractTest {
 
     @Test
     void executeLastVoucherFlowUsingPublicApiOnly() throws Exception {
-        // Setup mock server responses
         server.stubLoginCmsSuccess();
 
-        // Configure WireMock to talk to our server instance and register SOAP envelope response
         com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
         stubLastVoucherSoapSuccess();
 
-        // Create configuration
         ArcaConfig config = new ArcaConfig(
                 Cuit.parse("20-33333333-4"),
                 ArcaEnvironment.HOMOLOGACION,
@@ -102,21 +95,17 @@ class PublicApiContractTest {
                 Duration.ofSeconds(5)
         );
 
-        // Build self-signed KeyStore
         KeyStore keyStore = createKeyStore("CN=Test, SERIALNUMBER=20333333334");
         CertificateSource certificate = () -> keyStore;
 
-        // Build main client
         ArcaClient client = ArcaClient.builder()
                 .config(config)
                 .certificate(certificate)
                 .build();
 
-        // Perform call
         LastVoucherRequest request = new LastVoucherRequest(1, VoucherType.INVOICE_B);
         LastVoucherResponse response = client.wsfev1().getLastVoucher(request);
 
-        // Assert contract
         assertThat(response).isNotNull();
         assertThat(response.lastNumber()).isEqualTo(15);
         log.info("PublicApiContractTest succeeded: last voucher is {}", response.lastNumber());

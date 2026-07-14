@@ -40,6 +40,11 @@ JAXB classes must stay isolated under
 `internal.generated`. Prefer package names under `io.github.fr4ncisx.arca`.
 
 - **Unused Imports**: Do not add imports that are not being used in the code or tests. Keep imports clean and organized, and remove any redundant or obsolete imports before finalizing a change.
+- **Immutability by Default**: Use `record` classes for all domain models, configuration holders, DTOs, and value objects to enforce strict immutability.
+- **Modern Control Flow & Pattern Matching**: Leverage pattern matching for `switch` and `instanceof`, and sealed hierarchies (`sealed interface/class`) for complex return states or errors instead of throwing checkable exceptions or casting objects.
+- **Fail-Fast Validation**: Constructors and boundary methods must validate input parameters aggressively on entry (using `Objects.requireNonNull`, CUIT validators, or state checks) and throw `ArcaValidationException` immediately.
+- **Prohibited Inline Comments**: Do not write inline comments (`// ...` or `/* ... */`) within method or constructor bodies to explain what the code does or to keep commented-out code. The code itself must be self-documenting. Clean up any commented-out code blocks or unnecessary inline comments in production and test code.
+- **Strict Javadocs**: Only document classes, interfaces, records, enums, public/protected methods, and fields using official Javadoc format. Write Javadocs only when strictly necessary to describe the "what" and "why" of public APIs, never the implementation "how".
 
 ### Null safety and JSpecify
 
@@ -119,6 +124,16 @@ code. Apply SOLID and clean code: small classes, clear names, explicit
 dependencies, and no hidden global state. Prefer immutable records for value
 objects and interfaces for ports.
 
+- **Strict Hexagonal Boundaries**: The domain layer (input/output records, exceptions, use cases) must remain pure and free from framework, transport, or serialization dependencies (such as `jakarta.xml.ws.*` or JAXB generated stubs under `internal.generated.*`). All SOAP mapping must reside exclusively within the infrastructure/mapper layer (`*Mapper.java`).
+- **Single Responsibility Use Cases (SRP)**: Each remote call or operation must be encapsulated in its own separate Use Case class (e.g., `GetLastVoucherUseCase`, `RequestCaeUseCase`). Do not group unrelated operations into monolithic service classes.
+- **Interface Segregation & Encapsulation**: Concrete implementations (e.g., `DefaultWsfeClient`) and assemblers (`WsfeClientAssembler`) must be package-private or hidden in `internal.*` packages. The public facade (`WsfeClient`, `ArcaClient`) must expose only minimal, abstract interfaces and immutable records.
+- **Dependency Inversion (DIP)**: Use Case classes must depend on ports/abstractions (e.g., `AuthProvider`, `ArcaSoapPort`), never on concrete SOAP port implementations or client classes.
+
+### Robust Exception Handling & Collections Null Safety
+- **No Generic Catching**: Do not catch generic `Exception` or `Throwable` unless rethrowing or context wrapping at thread/async boundaries. Catch precise subclasses instead.
+- **Soap & Serialization Wrapping**: Wrap lower-level SOAP transport faults (`WebServiceException`, `XMLStreamException`, JAXB errors) into clean, high-level SDK domain exceptions (`ArcaSoapException`, `ArcaException`) at the infrastructure layer, and ensure sensitive parameters are sanitized.
+- **Zero Null Collections**: Methods returning collections must never return `null` under any circumstances. Always return immutable empty collections (e.g., `List.of()`, `Collections.unmodifiableList(...)`).
+
 ## Testing guidelines
 
 Tests use JUnit, AssertJ, XMLUnit, and WireMock. Name test classes with
@@ -126,16 +141,21 @@ Tests use JUnit, AssertJ, XMLUnit, and WireMock. Name test classes with
 validation rules, and use XML fixtures for SOAP payload comparisons. Normal
 tests must not require network access.
 
-## Commit and pull request guidelines
+- **Mocking Boundaries**: Mock only interfaces (`ArcaSoapPort`, `AuthProvider`). Never mock domain models, records, utilities, or static mapping methods.
+- **Network Decoupling**: Unit tests must not perform real network traffic or bind to physical local ports. Real integration testing must utilize mock servers (WireMock/ArcaMockServer) with semantic XML comparison tools (`XMLUnit`) rather than literal string assertions.
+
+## Commit, release, and git workflow guidelines
 
 Recent commits use Conventional Commits: `feat(modules): ...`,
 `fix(core): ...`, `refactor(core): ...`, and `chore(deps): ...`. Keep commits
 focused. Pull requests must include a summary, tests run, linked issues when
 available, and notes for security-sensitive changes.
 
-## Versioning and release guidelines
-
+- **Modular Commits**: Group changes into atomic, logical commits. Avoid creating large, single commits containing unrelated changes.
+- **Conventional Commits**: Apply Conventional Commits conventions (e.g., `feat(wsfev1): ...`, `fix(core): ...`, `test(client): ...`, `chore(clean): ...`) to make the history clean and readable.
+- **Explicit User Approvals**: Never perform git commits, pushes, or tags automatically. Present the exact file diffs and command proposals to the User, and wait for their explicit approval before executing any write or push operations to the repository.
 - **Version Synchronization**: Every new milestone or release version must explicitly update the version identifier across all project `pom.xml` files (parent and modules) and references in the `README.md` to guarantee documentation alignment.
+- **Annotated Releases**: All releases must use annotated Git tags (e.g., `git tag -a vX.Y.Z -m "Release description"`) summarizing the version changelog, and tags must be pushed to the remote repository explicitly after user confirmation.
 
 ## Security and configuration tips
 

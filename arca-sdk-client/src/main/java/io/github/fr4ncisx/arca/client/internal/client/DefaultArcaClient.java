@@ -25,7 +25,6 @@ import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 public final class DefaultArcaClient {
 
     private DefaultArcaClient() {
-        // Prevent instantiation
     }
 
     /**

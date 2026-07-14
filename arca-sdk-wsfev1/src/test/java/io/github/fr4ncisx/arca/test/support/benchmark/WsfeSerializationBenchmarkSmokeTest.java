@@ -38,25 +38,21 @@ class WsfeSerializationBenchmarkSmokeTest {
 
     @Test
     void executeSerializationBenchmark() throws Exception {
-        // Prepare JAXB Context
         JAXBContext context = JAXBContext.newInstance(FECAEResponse.class);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         Marshaller marshaller = context.createMarshaller();
 
-        // 1. Initial deserialization check
         FECAEResponse response = loadResponse(unmarshaller);
         assertThat(response).isNotNull();
         assertThat(response.getFeDetResp()).isNotNull();
         assertThat(response.getFeDetResp().getFECAEDetResponse()).isNotEmpty();
         assertThat(response.getFeDetResp().getFECAEDetResponse().get(0).getCAE()).isEqualTo("12345678901234");
 
-        // Warm up JAXB
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {
             loadResponse(unmarshaller);
             serializeResponse(marshaller, response);
         }
 
-        // Measure Deserialization Latency
         Instant startUnmarshall = Instant.now();
         for (int i = 0; i < MEASUREMENT_ITERATIONS; i++) {
             loadResponse(unmarshaller);
@@ -64,7 +60,6 @@ class WsfeSerializationBenchmarkSmokeTest {
         Instant endUnmarshall = Instant.now();
         Duration unmarshallDuration = Duration.between(startUnmarshall, endUnmarshall);
 
-        // Measure Serialization Latency
         Instant startMarshall = Instant.now();
         for (int i = 0; i < MEASUREMENT_ITERATIONS; i++) {
             serializeResponse(marshaller, response);
@@ -80,7 +75,6 @@ class WsfeSerializationBenchmarkSmokeTest {
         log.info("JAXB Serialization benchmark ({} iterations): total={}, avg={:.4f} ms per run",
                 MEASUREMENT_ITERATIONS, marshallDuration, avgMarshallMs);
 
-        // Assert reasonable latency to prevent pathological regressions
         assertThat(avgUnmarshallMs).isLessThan(5.0);
         assertThat(avgMarshallMs).isLessThan(5.0);
     }
@@ -97,7 +91,6 @@ class WsfeSerializationBenchmarkSmokeTest {
 
     private byte[] serializeResponse(Marshaller marshaller, FECAEResponse response) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        // Since FECAEResponse doesn't have @XmlRootElement, we wrap it in a JAXBElement
         JAXBElement<FECAEResponse> element = new JAXBElement<>(
                 new javax.xml.namespace.QName("http://ar.gov.afip.dif.FEV1/", "FECAESolicitarResult"),
                 FECAEResponse.class,

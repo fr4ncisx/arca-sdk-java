@@ -22,7 +22,6 @@ import jakarta.xml.ws.WebServiceException;
 public final class RegistryClientAssembler {
 
     private RegistryClientAssembler() {
-        // Prevent instantiation
     }
 
     /**

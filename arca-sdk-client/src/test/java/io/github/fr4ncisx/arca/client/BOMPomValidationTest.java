@@ -37,7 +37,6 @@ class BOMPomValidationTest {
 
         XPath xPath = XPathFactory.newInstance().newXPath();
 
-        // Query all dependency artifacts within dependencyManagement
         String xpathExpr = "/project/dependencyManagement/dependencies/dependency";
         NodeList nodes = (NodeList) xPath.compile(xpathExpr).evaluate(doc, XPathConstants.NODESET);
         assertThat(nodes.getLength()).isGreaterThan(0);
