@@ -101,6 +101,21 @@ public final class WsfeClientAssembler {
         ArcaSoapPort<FEParamGetTiposConcepto, ConceptoTipoResponse> getConceptTypesSoapPort =
                 new ArcaSoapClient<>(bp, req -> port.feParamGetTiposConcepto(req.getAuth()), soapConfig);
 
+        ArcaSoapPort<FEParamGetTiposOpcional, OpcionalTipoResponse> getOptionalFieldTypesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposOpcional(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetTiposPaises, FEPaisResponse> getCountriesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposPaises(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetTiposTributos, FETributoResponse> getTaxTypesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposTributos(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetActividades, FEActividadesResponse> getActivitiesSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetActividades(req.getAuth()), soapConfig);
+
+        ArcaSoapPort<FEParamGetCondicionIvaReceptor, CondicionIvaReceptorResponse> getReceiverVatConditionsSoapPort =
+                new ArcaSoapClient<>(bp, req -> port.feParamGetCondicionIvaReceptor(req.getAuth(), req.getClaseCmp()), soapConfig);
+
         ArcaSoapPort<FECAEASolicitar, FECAEAGetResponse> requestCaeaSoapPort =
                 new ArcaSoapClient<>(bp, req -> port.fecaeaSolicitar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig);
 
@@ -149,6 +164,21 @@ public final class WsfeClientAssembler {
         GetConceptTypesUseCase getConceptTypesUseCase =
                 new GetConceptTypesUseCase(config, authProvider, getConceptTypesSoapPort);
 
+        GetOptionalFieldTypesUseCase getOptionalFieldTypesUseCase =
+                new GetOptionalFieldTypesUseCase(config, authProvider, getOptionalFieldTypesSoapPort);
+
+        GetCountriesUseCase getCountriesUseCase =
+                new GetCountriesUseCase(config, authProvider, getCountriesSoapPort);
+
+        GetTaxTypesUseCase getTaxTypesUseCase =
+                new GetTaxTypesUseCase(config, authProvider, getTaxTypesSoapPort);
+
+        GetActivitiesUseCase getActivitiesUseCase =
+                new GetActivitiesUseCase(config, authProvider, getActivitiesSoapPort);
+
+        GetReceiverVatConditionsUseCase getReceiverVatConditionsUseCase =
+                new GetReceiverVatConditionsUseCase(config, authProvider, getReceiverVatConditionsSoapPort);
+
         RequestCaeaUseCase requestCaeaUseCase =
                 new RequestCaeaUseCase(config, authProvider, requestCaeaSoapPort);
 
@@ -191,6 +221,11 @@ public final class WsfeClientAssembler {
                 getExchangeRateUseCase,
                 getMaxRecordsUseCase,
                 getConceptTypesUseCase,
+                getOptionalFieldTypesUseCase,
+                getCountriesUseCase,
+                getTaxTypesUseCase,
+                getActivitiesUseCase,
+                getReceiverVatConditionsUseCase,
                 requestCaeaUseCase,
                 reportCaeaUseCase,
                 queryCaeaUseCase,

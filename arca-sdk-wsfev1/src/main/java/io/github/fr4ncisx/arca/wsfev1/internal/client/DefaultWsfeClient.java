@@ -43,6 +43,11 @@ public final class DefaultWsfeClient implements WsfeClient {
     private final GetExchangeRateUseCase getExchangeRateUseCase;
     private final GetMaxRecordsUseCase getMaxRecordsUseCase;
     private final GetConceptTypesUseCase getConceptTypesUseCase;
+    private final GetOptionalFieldTypesUseCase getOptionalFieldTypesUseCase;
+    private final GetCountriesUseCase getCountriesUseCase;
+    private final GetTaxTypesUseCase getTaxTypesUseCase;
+    private final GetActivitiesUseCase getActivitiesUseCase;
+    private final GetReceiverVatConditionsUseCase getReceiverVatConditionsUseCase;
     private final RequestCaeaUseCase requestCaeaUseCase;
     private final ReportCaeaUseCase reportCaeaUseCase;
     private final QueryCaeaUseCase queryCaeaUseCase;
@@ -87,6 +92,11 @@ public final class DefaultWsfeClient implements WsfeClient {
             GetExchangeRateUseCase getExchangeRateUseCase,
             GetMaxRecordsUseCase getMaxRecordsUseCase,
             GetConceptTypesUseCase getConceptTypesUseCase,
+            GetOptionalFieldTypesUseCase getOptionalFieldTypesUseCase,
+            GetCountriesUseCase getCountriesUseCase,
+            GetTaxTypesUseCase getTaxTypesUseCase,
+            GetActivitiesUseCase getActivitiesUseCase,
+            GetReceiverVatConditionsUseCase getReceiverVatConditionsUseCase,
             RequestCaeaUseCase requestCaeaUseCase,
             ReportCaeaUseCase reportCaeaUseCase,
             QueryCaeaUseCase queryCaeaUseCase,
@@ -132,6 +142,21 @@ public final class DefaultWsfeClient implements WsfeClient {
         if (getConceptTypesUseCase == null) {
             throw new ArcaValidationException("getConceptTypesUseCase must not be null");
         }
+        if (getOptionalFieldTypesUseCase == null) {
+            throw new ArcaValidationException("getOptionalFieldTypesUseCase must not be null");
+        }
+        if (getCountriesUseCase == null) {
+            throw new ArcaValidationException("getCountriesUseCase must not be null");
+        }
+        if (getTaxTypesUseCase == null) {
+            throw new ArcaValidationException("getTaxTypesUseCase must not be null");
+        }
+        if (getActivitiesUseCase == null) {
+            throw new ArcaValidationException("getActivitiesUseCase must not be null");
+        }
+        if (getReceiverVatConditionsUseCase == null) {
+            throw new ArcaValidationException("getReceiverVatConditionsUseCase must not be null");
+        }
         if (requestCaeaUseCase == null) {
             throw new ArcaValidationException("requestCaeaUseCase must not be null");
         }
@@ -163,6 +188,11 @@ public final class DefaultWsfeClient implements WsfeClient {
         this.getExchangeRateUseCase = getExchangeRateUseCase;
         this.getMaxRecordsUseCase = getMaxRecordsUseCase;
         this.getConceptTypesUseCase = getConceptTypesUseCase;
+        this.getOptionalFieldTypesUseCase = getOptionalFieldTypesUseCase;
+        this.getCountriesUseCase = getCountriesUseCase;
+        this.getTaxTypesUseCase = getTaxTypesUseCase;
+        this.getActivitiesUseCase = getActivitiesUseCase;
+        this.getReceiverVatConditionsUseCase = getReceiverVatConditionsUseCase;
         this.requestCaeaUseCase = requestCaeaUseCase;
         this.reportCaeaUseCase = reportCaeaUseCase;
         this.queryCaeaUseCase = queryCaeaUseCase;
@@ -234,6 +264,31 @@ public final class DefaultWsfeClient implements WsfeClient {
     @Override
     public List<ConceptTypeInfo> getConceptTypes() {
         return getConceptTypesUseCase.execute();
+    }
+
+    @Override
+    public List<OptionalFieldTypeInfo> getOptionalFieldTypes() {
+        return getOptionalFieldTypesUseCase.execute();
+    }
+
+    @Override
+    public List<CountryInfo> getCountries() {
+        return getCountriesUseCase.execute();
+    }
+
+    @Override
+    public List<TaxTypeInfo> getTaxTypes() {
+        return getTaxTypesUseCase.execute();
+    }
+
+    @Override
+    public List<ActivityInfo> getActivities() {
+        return getActivitiesUseCase.execute();
+    }
+
+    @Override
+    public List<VatConditionInfo> getReceiverVatConditions(@org.jspecify.annotations.Nullable String voucherClass) {
+        return getReceiverVatConditionsUseCase.execute(voucherClass);
     }
 
     @Override

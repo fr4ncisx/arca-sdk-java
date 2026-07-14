@@ -152,6 +152,102 @@ final class CatalogMapper {
         return Collections.unmodifiableList(list);
     }
 
+    static List<OptionalFieldTypeInfo> toOptionalFieldTypes(OpcionalTipoResponse response) {
+        if (response == null) {
+            throw new ArcaSoapException("Received empty response from ARCA SOAP service");
+        }
+        checkErrors(response.getErrors());
+
+        List<OptionalFieldTypeInfo> list = new ArrayList<>();
+        if (response.getResultGet() != null && response.getResultGet().getOpcionalTipo() != null) {
+            for (OpcionalTipo item : response.getResultGet().getOpcionalTipo()) {
+                list.add(new OptionalFieldTypeInfo(
+                        item.getId(),
+                        item.getDesc(),
+                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
+                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                ));
+            }
+        }
+        return Collections.unmodifiableList(list);
+    }
+
+    static List<CountryInfo> toCountries(FEPaisResponse response) {
+        if (response == null) {
+            throw new ArcaSoapException("Received empty response from ARCA SOAP service");
+        }
+        checkErrors(response.getErrors());
+
+        List<CountryInfo> list = new ArrayList<>();
+        if (response.getResultGet() != null && response.getResultGet().getPaisTipo() != null) {
+            for (PaisTipo item : response.getResultGet().getPaisTipo()) {
+                list.add(new CountryInfo(
+                        item.getId(),
+                        item.getDesc()
+                ));
+            }
+        }
+        return Collections.unmodifiableList(list);
+    }
+
+    static List<TaxTypeInfo> toTaxTypes(FETributoResponse response) {
+        if (response == null) {
+            throw new ArcaSoapException("Received empty response from ARCA SOAP service");
+        }
+        checkErrors(response.getErrors());
+
+        List<TaxTypeInfo> list = new ArrayList<>();
+        if (response.getResultGet() != null && response.getResultGet().getTributoTipo() != null) {
+            for (TributoTipo item : response.getResultGet().getTributoTipo()) {
+                list.add(new TaxTypeInfo(
+                        item.getId(),
+                        item.getDesc(),
+                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
+                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                ));
+            }
+        }
+        return Collections.unmodifiableList(list);
+    }
+
+    static List<ActivityInfo> toActivities(FEActividadesResponse response) {
+        if (response == null) {
+            throw new ArcaSoapException("Received empty response from ARCA SOAP service");
+        }
+        checkErrors(response.getErrors());
+
+        List<ActivityInfo> list = new ArrayList<>();
+        if (response.getResultGet() != null && response.getResultGet().getActividadesTipo() != null) {
+            for (ActividadesTipo item : response.getResultGet().getActividadesTipo()) {
+                list.add(new ActivityInfo(
+                        item.getId(),
+                        item.getOrden(),
+                        item.getDesc()
+                ));
+            }
+        }
+        return Collections.unmodifiableList(list);
+    }
+
+    static List<VatConditionInfo> toReceiverVatConditions(CondicionIvaReceptorResponse response) {
+        if (response == null) {
+            throw new ArcaSoapException("Received empty response from ARCA SOAP service");
+        }
+        checkErrors(response.getErrors());
+
+        List<VatConditionInfo> list = new ArrayList<>();
+        if (response.getResultGet() != null && response.getResultGet().getCondicionIvaReceptor() != null) {
+            for (CondicionIvaReceptor item : response.getResultGet().getCondicionIvaReceptor()) {
+                list.add(new VatConditionInfo(
+                        item.getId(),
+                        item.getDesc(),
+                        item.getCmpClase()
+                ));
+            }
+        }
+        return Collections.unmodifiableList(list);
+    }
+
     static int toMaxRecords(FERegXReqResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
