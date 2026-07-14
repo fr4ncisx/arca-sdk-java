@@ -1,0 +1,13 @@
+<jaxws:bindings
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:jaxws="https://jakarta.ee/xml/ns/jaxws"
+    xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+    wsdlLocation="wsfexv1.wsdl">
+
+    <jaxws:bindings node="wsdl:definitions/wsdl:types/xsd:schema[@targetNamespace='http://ar.gov.afip.dif.fexv1/']">
+        <jaxb:bindings node="xsd:complexType[@name='FEXGetCMPResponse']">
+            <jaxb:class name="FEXGetCMPResponseDataType"/>
+        </jaxb:bindings>
+    </jaxws:bindings>
+</jaxws:bindings>
