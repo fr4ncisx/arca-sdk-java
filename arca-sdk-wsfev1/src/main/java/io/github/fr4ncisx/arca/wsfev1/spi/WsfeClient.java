@@ -119,6 +119,42 @@ public interface WsfeClient {
     List<ConceptTypeInfo> getConceptTypes();
 
     /**
+     * Retrieves the official catalog of optional fields from ARCA.
+     *
+     * @return the list of optional field types info
+     */
+    List<OptionalFieldTypeInfo> getOptionalFieldTypes();
+
+    /**
+     * Retrieves the official catalog of countries from ARCA.
+     *
+     * @return the list of countries info
+     */
+    List<CountryInfo> getCountries();
+
+    /**
+     * Retrieves the official catalog of other tax types from ARCA.
+     *
+     * @return the list of tax types info
+     */
+    List<TaxTypeInfo> getTaxTypes();
+
+    /**
+     * Retrieves the official catalog of commercial activities from ARCA.
+     *
+     * @return the list of activities info
+     */
+    List<ActivityInfo> getActivities();
+
+    /**
+     * Retrieves the official catalog of receiver VAT conditions from ARCA.
+     *
+     * @param voucherClass optional voucher class to filter the results (e.g. "A", "B"), can be null or blank
+     * @return the list of receiver VAT conditions info
+     */
+    List<VatConditionInfo> getReceiverVatConditions(@org.jspecify.annotations.Nullable String voucherClass);
+
+    /**
      * Requests a new Anticipated Electronic Authorization code (CAEA) from ARCA.
      *
      * @param request the CAEA request details
