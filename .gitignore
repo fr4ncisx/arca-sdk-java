@@ -45,3 +45,6 @@ target/
 Thumbs.db
 *.swp
 *~
+
+# OWASP Dependency Check Database
+/.dependency-check-data/

@@ -53,7 +53,7 @@
     </modules>
 
     <properties>
-        <revision>0.9.0</revision>
+        <revision>1.0.0</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -72,6 +72,7 @@
         <xmlunit.version>2.11.0</xmlunit.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <jspecify.version>1.0.0</jspecify.version>
+        <japicmp.version>0.23.0</japicmp.version>
 
         <!-- SonarQube configuration -->
         <sonar.exclusions>
@@ -200,6 +201,11 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.siom79.japicmp</groupId>
+                <artifactId>japicmp</artifactId>
+                <version>${japicmp.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -372,6 +378,16 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/test/support/homologation/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>5.7.0.6970</version>
@@ -402,6 +418,120 @@
                 <output.dir>${project.build.directory}/ide-classes</output.dir>
                 <test.output.dir>${project.build.directory}/ide-test-classes</test.output.dir>
             </properties>
+        </profile>
+        <profile>
+            <id>homologation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludes combine.self="override"/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>ci</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.12</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/internal/generated/**</exclude>
+                                <exclude>**/*MapperImpl*</exclude>
+                                <exclude>**/RealHomologationIntegrationTest*</exclude>
+                                <exclude>**/*MockitoMock*</exclude>
+                                <exclude>org/mockito/**</exclude>
+                                <exclude>net/bytebuddy/**</exclude>
+                                <exclude>**/MockitoMock*</exclude>
+                                <exclude>*MockitoMock*</exclude>
+                                <exclude>*ByteBuddy*</exclude>
+                                <exclude>**/*ByteBuddy*</exclude>
+                                <exclude>com/sun/**</exclude>
+                                <exclude>sun/**</exclude>
+                                <exclude>jdk/**</exclude>
+                                <exclude>javax/**</exclude>
+                                <exclude>jakarta/**</exclude>
+                                <exclude>org/glassfish/**</exclude>
+                                <exclude>org/jcp/**</exclude>
+                                <exclude>org/w3c/**</exclude>
+                                <exclude>org/xml/**</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>check-coverage</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <rule>
+                                            <element>BUNDLE</element>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.60</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>security-scan</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>11.1.0</version>
+                        <configuration>
+                            <failBuildOnCVSS>7.0</failBuildOnCVSS>
+                            <connectionTimeout>5000</connectionTimeout>
+                            <readTimeout>5000</readTimeout>
+                            <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+                            <dataDirectory>${maven.multiModuleProjectDirectory}/.dependency-check-data</dataDirectory>
+                            <suppressionFiles>
+                                <suppressionFile>${maven.multiModuleProjectDirectory}/dependency-check-suppressions.xml</suppressionFile>
+                            </suppressionFiles>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
