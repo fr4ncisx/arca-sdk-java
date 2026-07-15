@@ -38,7 +38,8 @@ public enum ArcaEnvironment {
             URI.create("https://wswhomo.afip.gov.ar/wsfev1/service.asmx"),
             URI.create("https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA4"),
             URI.create("https://wswhomo.afip.gov.ar/wsfexv1/service.asmx"),
-            URI.create("https://fwshomo.afip.gov.ar/wsmtxca/services/MTXCAService")),
+            URI.create("https://fwshomo.afip.gov.ar/wsmtxca/services/MTXCAService"),
+            URI.create("https://wswhomo.afip.gov.ar/WSCDC/service.asmx")),
 
     /**
      * ARCA production environment.
@@ -58,20 +59,23 @@ public enum ArcaEnvironment {
             URI.create("https://servicios1.afip.gov.ar/wsfev1/service.asmx"),
             URI.create("https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA4"),
             URI.create("https://servicios1.afip.gov.ar/wsfexv1/service.asmx"),
-            URI.create("https://serviciosjava.afip.gob.ar/wsmtxca/services/MTXCAService"));
+            URI.create("https://serviciosjava.afip.gob.ar/wsmtxca/services/MTXCAService"),
+            URI.create("https://servicios1.afip.gov.ar/WSCDC/service.asmx"));
 
     private final URI wsaaUrl;
     private final URI wsfev1Url;
     private final URI registryUrl;
     private final URI wsfexv1Url;
     private final URI wsmtxcaUrl;
+    private final URI wscdcUrl;
 
-    ArcaEnvironment(URI wsaaUrl, URI wsfev1Url, URI registryUrl, URI wsfexv1Url, URI wsmtxcaUrl) {
+    ArcaEnvironment(URI wsaaUrl, URI wsfev1Url, URI registryUrl, URI wsfexv1Url, URI wsmtxcaUrl, URI wscdcUrl) {
         this.wsaaUrl = wsaaUrl;
         this.wsfev1Url = wsfev1Url;
         this.registryUrl = registryUrl;
         this.wsfexv1Url = wsfexv1Url;
         this.wsmtxcaUrl = wsmtxcaUrl;
+        this.wscdcUrl = wscdcUrl;
     }
 
     /**
@@ -118,5 +122,15 @@ public enum ArcaEnvironment {
      */
     public URI getWsmtxcaUrl() {
         return wsmtxcaUrl;
+    }
+
+    /**
+     * Returns the WSCDC voucher constatation service URL.
+     *
+     * @return URI of the WSCDC endpoint for this environment.
+     * @since 0.9.0
+     */
+    public URI getWscdcUrl() {
+        return wscdcUrl;
     }
 }
