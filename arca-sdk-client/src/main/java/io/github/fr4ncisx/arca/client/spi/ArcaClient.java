@@ -3,6 +3,7 @@ package io.github.fr4ncisx.arca.client.spi;
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
+import io.github.fr4ncisx.arca.wsaa.spi.TraSigner;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.wsmtxca.spi.WsmtxcaClient;
@@ -131,6 +132,7 @@ public final class ArcaClient {
 
         private ArcaConfig config;
         private CertificateSource certificate;
+        private TraSigner signer;
 
         private Builder() {
         }
@@ -158,14 +160,29 @@ public final class ArcaClient {
         }
 
         /**
+         * Configures the client with the specified signature provider.
+         *
+         * @param signer the custom signature provider (e.g. HSM, KMS)
+         * @return this builder
+         * @since 1.1.0
+         */
+        public Builder signer(TraSigner signer) {
+            this.signer = signer;
+            return this;
+        }
+
+        /**
          * Builds a fully assembled ArcaClient.
          *
          * @return the assembled ArcaClient
-         * @throws ArcaValidationException if configuration or certificate source is missing
+         * @throws ArcaValidationException if configuration or both certificate and signer are missing
          */
         public ArcaClient build() {
             if (config == null) {
                 throw new ArcaValidationException("config must not be null");
+            }
+            if (signer != null) {
+                return DefaultArcaClient.create(config, signer);
             }
             if (certificate == null) {
                 throw new ArcaValidationException("certificate must not be null");

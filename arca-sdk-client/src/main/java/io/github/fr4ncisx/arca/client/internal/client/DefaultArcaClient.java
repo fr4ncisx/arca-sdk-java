@@ -11,6 +11,7 @@ import io.github.fr4ncisx.arca.wsaa.internal.cms.CmsSigner;
 import io.github.fr4ncisx.arca.wsaa.internal.tra.TraGenerator;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsaa.spi.Pkcs12CertificateSource;
+import io.github.fr4ncisx.arca.wsaa.spi.TraSigner;
 import io.github.fr4ncisx.arca.wsfev1.internal.assembler.WsfeClientAssembler;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import io.github.fr4ncisx.arca.wsfexv1.internal.assembler.WsfexClientAssembler;
@@ -45,13 +46,24 @@ public final class DefaultArcaClient {
         if (certificate instanceof Pkcs12CertificateSource p12) {
             password = p12.getPassword();
         }
-
-        TraGenerator traGenerator = new TraGenerator(SystemClock.INSTANCE);
         CmsSigner cmsSigner = new CmsSigner(certificate, password);
+        return create(config, cmsSigner);
+    }
+
+    /**
+     * Wires all internal components and constructs the unified ArcaClient using a custom TraSigner.
+     *
+     * @param config the SDK configuration
+     * @param signer the custom signature provider
+     * @return the wired ArcaClient
+     * @since 1.1.0
+     */
+    public static ArcaClient create(ArcaConfig config, TraSigner signer) {
+        TraGenerator traGenerator = new TraGenerator(SystemClock.INSTANCE);
         LoginCmsClient loginCmsClient = new LoginCmsClient(config, config.environment().getWsaaUrl().toString());
         InMemoryTicketCache ticketCache = new InMemoryTicketCache(SystemClock.INSTANCE);
 
-        AuthProvider authProvider = new DefaultAuthProvider(ticketCache, traGenerator, cmsSigner, loginCmsClient);
+        AuthProvider authProvider = new DefaultAuthProvider(ticketCache, traGenerator, signer, loginCmsClient);
 
         WsfeClient wsfeClient = WsfeClientAssembler.assemble(config, authProvider);
         RegistryClient registryClient = RegistryClientAssembler.assemble(config, authProvider);
