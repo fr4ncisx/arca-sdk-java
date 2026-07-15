@@ -30,7 +30,9 @@ import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,6 +55,7 @@ class PublicApiContractTest {
     private static URI originalRegistryUrl;
     private static URI originalWsfexv1Url;
     private static URI originalWsmtxcaUrl;
+    private static URI originalWscdcUrl;
 
     @BeforeAll
     static void setUpAll() throws Exception {
@@ -68,6 +71,7 @@ class PublicApiContractTest {
         originalRegistryUrl = ArcaEnvironment.HOMOLOGACION.getRegistryUrl();
         originalWsfexv1Url = ArcaEnvironment.HOMOLOGACION.getWsfexv1Url();
         originalWsmtxcaUrl = ArcaEnvironment.HOMOLOGACION.getWsmtxcaUrl();
+        originalWscdcUrl = ArcaEnvironment.HOMOLOGACION.getWscdcUrl();
 
         URI mockBase = server.baseUrl();
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsaaUrl", mockBase.resolve("/ws/services/LoginCms"));
@@ -75,6 +79,7 @@ class PublicApiContractTest {
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "registryUrl", mockBase.resolve("/sr-padron/webservices/personaServiceA4"));
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfexv1Url", mockBase.resolve("/wsfexv1/service.asmx"));
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsmtxcaUrl", mockBase.resolve("/wsmtxca/services/MTXCAService"));
+        setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wscdcUrl", mockBase.resolve("/WSCDC/service.asmx"));
     }
 
     @AfterAll
@@ -87,6 +92,7 @@ class PublicApiContractTest {
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "registryUrl", originalRegistryUrl);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfexv1Url", originalWsfexv1Url);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsmtxcaUrl", originalWsmtxcaUrl);
+        setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wscdcUrl", originalWscdcUrl);
     }
 
     @Test
@@ -177,6 +183,55 @@ class PublicApiContractTest {
         assertThat(response).isNotNull();
         assertThat(response.lastVoucherNumber()).isEqualTo(123L);
         log.info("PublicApiContractTest WSMTXCA succeeded: last WSMTXCA voucher is {}", response.lastVoucherNumber());
+    }
+
+    /**
+     * Validates that WSCDC checkVoucher flow executes successfully end-to-end.
+     *
+     * @throws Exception if any error occurs
+     */
+    @Test
+    void executeWscdcConstatFlowUsingPublicApiOnly() throws Exception {
+        server.stubLoginCmsSuccess();
+
+        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
+        server.stubWscdcConstatSuccess();
+
+        ArcaConfig config = new ArcaConfig(
+                Cuit.parse("20-33333333-4"),
+                ArcaEnvironment.HOMOLOGACION,
+                Duration.ofSeconds(5),
+                Duration.ofSeconds(5)
+        );
+
+        KeyStore keyStore = createKeyStore("CN=Test, SERIALNUMBER=20333333334");
+        CertificateSource certificate = () -> keyStore;
+
+        ArcaClient client = ArcaClient.builder()
+                .config(config)
+                .certificate(certificate)
+                .build();
+
+        var request = new io.github.fr4ncisx.arca.wscdc.model.WscdcConstatRequest(
+                "CAE",
+                Cuit.parse("20-30000000-3"),
+                1,
+                1,
+                100L,
+                LocalDate.of(2026, 7, 15),
+                new java.math.BigDecimal("121.0"),
+                "12345678901234",
+                "80",
+                "20300000007",
+                List.of()
+        );
+        var response = client.wscdc().checkVoucher(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.isApproved()).isTrue();
+        assertThat(response.result()).isEqualTo("A");
+        assertThat(response.processDate()).isEqualTo(LocalDate.of(2026, 7, 15));
+        log.info("PublicApiContractTest WSCDC succeeded: voucher is approved = {}", response.isApproved());
     }
 
 

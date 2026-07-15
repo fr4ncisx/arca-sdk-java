@@ -17,6 +17,8 @@ import io.github.fr4ncisx.arca.wsfexv1.internal.assembler.WsfexClientAssembler;
 import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.wsmtxca.internal.assembler.WsmtxcaClientAssembler;
 import io.github.fr4ncisx.arca.wsmtxca.spi.WsmtxcaClient;
+import io.github.fr4ncisx.arca.wscdc.internal.assembler.WscdcClientAssembler;
+import io.github.fr4ncisx.arca.wscdc.spi.WscdcClient;
 import io.github.fr4ncisx.arca.registry.internal.assembler.RegistryClientAssembler;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 
@@ -55,7 +57,8 @@ public final class DefaultArcaClient {
         RegistryClient registryClient = RegistryClientAssembler.assemble(config, authProvider);
         WsfexClient wsfexClient = WsfexClientAssembler.assemble(config, authProvider);
         WsmtxcaClient wsmtxcaClient = WsmtxcaClientAssembler.assemble(config, authProvider);
+        WscdcClient wscdcClient = WscdcClientAssembler.assemble(config, authProvider);
 
-        return new ArcaClient(wsfeClient, registryClient, wsfexClient, wsmtxcaClient);
+        return new ArcaClient(wsfeClient, registryClient, wsfexClient, wsmtxcaClient, wscdcClient);
     }
 }

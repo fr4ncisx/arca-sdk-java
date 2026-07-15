@@ -1,0 +1,32 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsc="http://servicios1.afip.gob.ar/wscdc/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <wsc:ComprobanteConstatarResponse>
+         <wsc:ComprobanteConstatarResult>
+            <wsc:CmpResp>
+               <wsc:CbteModo>CAE</wsc:CbteModo>
+               <wsc:CuitEmisor>20300000003</wsc:CuitEmisor>
+               <wsc:PtoVta>1</wsc:PtoVta>
+               <wsc:CbteTipo>1</wsc:CbteTipo>
+               <wsc:CbteNro>100</wsc:CbteNro>
+               <wsc:CbteFch>20260715</wsc:CbteFch>
+               <wsc:ImpTotal>121.0</wsc:ImpTotal>
+               <wsc:CodAutorizacion>12345678901234</wsc:CodAutorizacion>
+            </wsc:CmpResp>
+            <wsc:Resultado>R</wsc:Resultado>
+            <wsc:Observaciones>
+               <wsc:Obs>
+                  <wsc:Code>10015</wsc:Code>
+                  <wsc:Msg>El comprobante no existe en la base de datos de AFIP.</wsc:Msg>
+               </wsc:Obs>
+            </wsc:Observaciones>
+            <wsc:Errors>
+               <wsc:Err>
+                  <wsc:Code>600</wsc:Code>
+                  <wsc:Msg>Validacion de CUIT fallida.</wsc:Msg>
+               </wsc:Err>
+            </wsc:Errors>
+         </wsc:ComprobanteConstatarResult>
+      </wsc:ComprobanteConstatarResponse>
+   </soapenv:Body>
+</soapenv:Envelope>

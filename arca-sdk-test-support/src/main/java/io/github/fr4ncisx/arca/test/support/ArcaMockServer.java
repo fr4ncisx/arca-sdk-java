@@ -35,6 +35,9 @@ public final class ArcaMockServer implements AutoCloseable {
     private static final String WSMTXCA_LAST_VOUCHER_ACTION = "http://impl.service.wsmtxca.afip.gov.ar/service/consultarUltimoComprobanteAutorizado";
     private static final String WSMTXCA_AUTHORIZE_ACTION = "http://impl.service.wsmtxca.afip.gov.ar/service/autorizarComprobante";
     private static final String WSMTXCA_GET_VOUCHER_ACTION = "http://impl.service.wsmtxca.afip.gov.ar/service/consultarComprobante";
+    private static final String WSCDC_SERVICE_PATH = "/WSCDC/service.asmx";
+    private static final String WSCDC_DUMMY_ACTION = "http://servicios1.afip.gob.ar/wscdc/ComprobanteDummy";
+    private static final String WSCDC_CONSTAT_ACTION = "http://servicios1.afip.gob.ar/wscdc/ComprobanteConstatar";
     private static final String XML_CONTENT_TYPE = "text/xml; charset=UTF-8";
 
     private static final String LOGIN_CMS_SUCCESS_FIXTURE = "/fixtures/wsaa/login-cms-success.xml";
@@ -47,6 +50,9 @@ public final class ArcaMockServer implements AutoCloseable {
     private static final String WSMTXCA_LAST_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsmtxca/last-voucher-success.xml";
     private static final String WSMTXCA_CAE_SUCCESS_FIXTURE = "/fixtures/wsmtxca/cae-success.xml";
     private static final String WSMTXCA_GET_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsmtxca/get-voucher-success.xml";
+    private static final String WSCDC_DUMMY_SUCCESS_FIXTURE = "/fixtures/wscdc/dummy-success.xml";
+    private static final String WSCDC_CONSTAT_SUCCESS_FIXTURE = "/fixtures/wscdc/constat-success.xml";
+    private static final String WSCDC_CONSTAT_REJECTED_FIXTURE = "/fixtures/wscdc/constat-rejected.xml";
 
     private final WireMockServer server;
     private final FixtureLoader fixtureLoader;
@@ -202,6 +208,33 @@ public final class ArcaMockServer implements AutoCloseable {
      */
     public void stubWsmtxcaGetVoucherSuccess() {
         stubSoapAction(WSMTXCA_SERVICE_PATH, WSMTXCA_GET_VOUCHER_ACTION, WSMTXCA_GET_VOUCHER_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers a successful WSCDC ComprobanteDummy response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWscdcDummySuccess() {
+        stubSoapAction(WSCDC_SERVICE_PATH, WSCDC_DUMMY_ACTION, WSCDC_DUMMY_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers a successful/approved WSCDC ComprobanteConstatar response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWscdcConstatSuccess() {
+        stubSoapAction(WSCDC_SERVICE_PATH, WSCDC_CONSTAT_ACTION, WSCDC_CONSTAT_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers a rejected WSCDC ComprobanteConstatar response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWscdcConstatRejected() {
+        stubSoapAction(WSCDC_SERVICE_PATH, WSCDC_CONSTAT_ACTION, WSCDC_CONSTAT_REJECTED_FIXTURE, 200);
     }
 
     private void stubPath(String path, String fixturePath, int status) {

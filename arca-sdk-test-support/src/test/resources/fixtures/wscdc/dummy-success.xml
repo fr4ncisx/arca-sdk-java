@@ -1,0 +1,12 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsc="http://servicios1.afip.gob.ar/wscdc/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <wsc:ComprobanteDummyResponse>
+         <wsc:ComprobanteDummyResult>
+            <wsc:AppServer>OK</wsc:AppServer>
+            <wsc:DbServer>OK</wsc:DbServer>
+            <wsc:AuthServer>OK</wsc:AuthServer>
+         </wsc:ComprobanteDummyResult>
+      </wsc:ComprobanteDummyResponse>
+   </soapenv:Body>
+</soapenv:Envelope>

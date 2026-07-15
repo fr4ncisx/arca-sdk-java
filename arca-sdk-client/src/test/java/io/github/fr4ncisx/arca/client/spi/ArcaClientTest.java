@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.wsmtxca.spi.WsmtxcaClient;
+import io.github.fr4ncisx.arca.wscdc.spi.WscdcClient;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,36 +63,49 @@ class ArcaClientTest {
         RegistryClient reg = mock(RegistryClient.class);
         WsfexClient wsfex = mock(WsfexClient.class);
         WsmtxcaClient wsmtxca = mock(WsmtxcaClient.class);
-        ArcaClient client = new ArcaClient(wsfe, reg, wsfex, wsmtxca);
+        WscdcClient wscdc = mock(WscdcClient.class);
+        ArcaClient client = new ArcaClient(wsfe, reg, wsfex, wsmtxca, wscdc);
 
         when(wsfe.ping()).thenReturn(true);
         when(reg.ping()).thenReturn(true);
         when(wsfex.ping()).thenReturn(true);
         when(wsmtxca.ping()).thenReturn(true);
+        when(wscdc.ping()).thenReturn(true);
         assertThat(client.ping()).isTrue();
 
         when(wsfe.ping()).thenReturn(false);
         when(reg.ping()).thenReturn(true);
         when(wsfex.ping()).thenReturn(true);
         when(wsmtxca.ping()).thenReturn(true);
+        when(wscdc.ping()).thenReturn(true);
         assertThat(client.ping()).isFalse();
 
         when(wsfe.ping()).thenReturn(true);
         when(reg.ping()).thenReturn(false);
         when(wsfex.ping()).thenReturn(true);
         when(wsmtxca.ping()).thenReturn(true);
+        when(wscdc.ping()).thenReturn(true);
         assertThat(client.ping()).isFalse();
 
         when(wsfe.ping()).thenReturn(true);
         when(reg.ping()).thenReturn(true);
         when(wsfex.ping()).thenReturn(false);
         when(wsmtxca.ping()).thenReturn(true);
+        when(wscdc.ping()).thenReturn(true);
         assertThat(client.ping()).isFalse();
 
         when(wsfe.ping()).thenReturn(true);
         when(reg.ping()).thenReturn(true);
         when(wsfex.ping()).thenReturn(true);
         when(wsmtxca.ping()).thenReturn(false);
+        when(wscdc.ping()).thenReturn(true);
+        assertThat(client.ping()).isFalse();
+
+        when(wsfe.ping()).thenReturn(true);
+        when(reg.ping()).thenReturn(true);
+        when(wsfex.ping()).thenReturn(true);
+        when(wsmtxca.ping()).thenReturn(true);
+        when(wscdc.ping()).thenReturn(false);
         assertThat(client.ping()).isFalse();
     }
 }

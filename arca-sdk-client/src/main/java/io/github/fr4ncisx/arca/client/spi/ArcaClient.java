@@ -6,6 +6,7 @@ import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.wsmtxca.spi.WsmtxcaClient;
+import io.github.fr4ncisx.arca.wscdc.spi.WscdcClient;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 import io.github.fr4ncisx.arca.client.internal.client.DefaultArcaClient;
 
@@ -24,6 +25,7 @@ public final class ArcaClient {
     private final RegistryClient registryClient;
     private final WsfexClient wsfexClient;
     private final WsmtxcaClient wsmtxcaClient;
+    private final WscdcClient wscdcClient;
 
     /**
      * Package-private constructor to build a client instance.
@@ -32,8 +34,9 @@ public final class ArcaClient {
      * @param registryClient the wired registry lookup client
      * @param wsfexClient    the wired export billing client
      * @param wsmtxcaClient   the wired itemized billing client
+     * @param wscdcClient     the wired constatation client
      */
-    public ArcaClient(WsfeClient wsfeClient, RegistryClient registryClient, WsfexClient wsfexClient, WsmtxcaClient wsmtxcaClient) {
+    public ArcaClient(WsfeClient wsfeClient, RegistryClient registryClient, WsfexClient wsfexClient, WsmtxcaClient wsmtxcaClient, WscdcClient wscdcClient) {
         if (wsfeClient == null) {
             throw new ArcaValidationException("wsfeClient must not be null");
         }
@@ -46,10 +49,14 @@ public final class ArcaClient {
         if (wsmtxcaClient == null) {
             throw new ArcaValidationException("wsmtxcaClient must not be null");
         }
+        if (wscdcClient == null) {
+            throw new ArcaValidationException("wscdcClient must not be null");
+        }
         this.wsfeClient = wsfeClient;
         this.registryClient = registryClient;
         this.wsfexClient = wsfexClient;
         this.wsmtxcaClient = wsmtxcaClient;
+        this.wscdcClient = wscdcClient;
     }
 
     /**
@@ -90,12 +97,22 @@ public final class ArcaClient {
     }
 
     /**
+     * Accesses the WSCDC voucher constatation service client.
+     *
+     * @return the WscdcClient instance
+     * @since 0.9.0
+     */
+    public WscdcClient wscdc() {
+        return wscdcClient;
+    }
+
+    /**
      * Performs a unified availability ping checking all child services.
      *
      * @return {@code true} if all sub-services are online, {@code false} otherwise
      */
     public boolean ping() {
-        return wsfeClient.ping() && registryClient.ping() && wsfexClient.ping() && wsmtxcaClient.ping();
+        return wsfeClient.ping() && registryClient.ping() && wsfexClient.ping() && wsmtxcaClient.ping() && wscdcClient.ping();
     }
 
     /**
