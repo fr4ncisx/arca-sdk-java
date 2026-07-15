@@ -14,6 +14,7 @@ import io.github.fr4ncisx.arca.wsaa.internal.cms.CmsSigner;
 import io.github.fr4ncisx.arca.wsaa.internal.tra.TraGenerator;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
+import io.github.fr4ncisx.arca.wsaa.spi.TraSigner;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -59,7 +60,7 @@ class DefaultAuthProviderTest {
 
     private TicketCache ticketCache;
     private TraGenerator traGenerator;
-    private CmsSigner cmsSigner;
+    private TraSigner cmsSigner;
     private LoginCmsClient loginCmsClient;
     private ArcaConfig config;
 

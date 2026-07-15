@@ -3,6 +3,7 @@ package io.github.fr4ncisx.arca.wsaa.internal.cms;
 import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
+import io.github.fr4ncisx.arca.wsaa.spi.TraSigner;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -35,7 +36,7 @@ import org.bouncycastle.util.Store;
  * @author fr4ncisx
  * @since 0.1.0-M4
  */
-public final class CmsSigner {
+public final class CmsSigner implements TraSigner {
 
     static {
         if (Security.getProvider("BC") == null)
@@ -71,6 +72,7 @@ public final class CmsSigner {
      * @throws ArcaAuthException if the signing process fails due to missing keys, invalid
      *                           certificates, or cryptographic errors.
      */
+    @Override
     public String sign(String xml) {
         if (xml == null)
             throw new ArcaAuthException("The XML payload to sign cannot be null.");

@@ -5,9 +5,9 @@ import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.internal.cache.TicketCache;
 import io.github.fr4ncisx.arca.wsaa.internal.client.LoginCmsClient;
-import io.github.fr4ncisx.arca.wsaa.internal.cms.CmsSigner;
 import io.github.fr4ncisx.arca.wsaa.internal.tra.TraGenerator;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
+import io.github.fr4ncisx.arca.wsaa.spi.TraSigner;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
@@ -36,7 +36,7 @@ public final class DefaultAuthProvider implements AuthProvider {
 
     private final TicketCache ticketCache;
     private final TraGenerator traGenerator;
-    private final CmsSigner cmsSigner;
+    private final TraSigner traSigner;
     private final LoginCmsClient loginCmsClient;
     private final ConcurrentHashMap<String, PendingLogin> activeLogins = new ConcurrentHashMap<>();
 
@@ -45,14 +45,14 @@ public final class DefaultAuthProvider implements AuthProvider {
      *
      * @param ticketCache    the cache used to store and retrieve valid tickets
      * @param traGenerator   the generator for TRA XML requests
-     * @param cmsSigner      the signer for generating CMS payloads
+     * @param traSigner      the signer for generating CMS payloads
      * @param loginCmsClient the SOAP client to communicate with WSAA
      * @throws ArcaValidationException if any collaborator is null
      */
     public DefaultAuthProvider(
             TicketCache ticketCache,
             TraGenerator traGenerator,
-            CmsSigner cmsSigner,
+            TraSigner traSigner,
             LoginCmsClient loginCmsClient) {
         if (ticketCache == null) {
             throw new ArcaValidationException("ticketCache must not be null");
@@ -60,15 +60,15 @@ public final class DefaultAuthProvider implements AuthProvider {
         if (traGenerator == null) {
             throw new ArcaValidationException("traGenerator must not be null");
         }
-        if (cmsSigner == null) {
-            throw new ArcaValidationException("cmsSigner must not be null");
+        if (traSigner == null) {
+            throw new ArcaValidationException("traSigner must not be null");
         }
         if (loginCmsClient == null) {
             throw new ArcaValidationException("loginCmsClient must not be null");
         }
         this.ticketCache = ticketCache;
         this.traGenerator = traGenerator;
-        this.cmsSigner = cmsSigner;
+        this.traSigner = traSigner;
         this.loginCmsClient = loginCmsClient;
     }
 
@@ -80,26 +80,22 @@ public final class DefaultAuthProvider implements AuthProvider {
 
         String sanitizedService = service.trim();
 
-        // 1. Initial check against cache (no lock acquired)
         Optional<ArcaAccessTicket> cached = ticketCache.get(sanitizedService);
         if (cached.isPresent()) {
             return cached.get();
         }
 
-        // 2. Coordinate concurrent login requests using a atomic map check
         PendingLogin newLogin = new PendingLogin();
         PendingLogin activeLogin = activeLogins.putIfAbsent(sanitizedService, newLogin);
 
         if (activeLogin == null) {
-            // This thread is the initiator
             try {
-                // Double check cache inside the synchronized-like boundary
                 Optional<ArcaAccessTicket> doubleChecked = ticketCache.get(sanitizedService);
                 if (doubleChecked.isPresent()) {
                     newLogin.ticket = doubleChecked.get();
                 } else {
                     String tra = traGenerator.generate(sanitizedService, DEFAULT_TTL);
-                    String cms = cmsSigner.sign(tra);
+                    String cms = traSigner.sign(tra);
                     newLogin.ticket = loginCmsClient.loginCms(cms);
                     ticketCache.put(sanitizedService, newLogin.ticket);
                 }
@@ -111,7 +107,6 @@ public final class DefaultAuthProvider implements AuthProvider {
             }
             activeLogin = newLogin;
         } else {
-            // This thread is a waiter, wait for the initiator to complete
             try {
                 activeLogin.latch.await();
             } catch (InterruptedException e) {
@@ -120,7 +115,6 @@ public final class DefaultAuthProvider implements AuthProvider {
             }
         }
 
-        // 3. Handle result propagation
         Throwable error = activeLogin.error;
         if (error != null) {
             if (error instanceof ArcaAuthException e) {
