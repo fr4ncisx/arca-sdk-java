@@ -35,10 +35,12 @@ El SDK elimina la necesidad de interactuar directamente con WSDLs, generar stubs
 | `arca-sdk-soap` | Transporte SOAP común, handlers JAX-WS, timeouts y adaptación de errores |
 | `arca-sdk-wsaa` | TRA, firma CMS/PKCS#7, `LoginCms`, tickets y renovación automática |
 | `arca-sdk-wsfev1` | API de facturación electrónica WSFEv1, mappers, modelos y casos de uso |
-| `arca-sdk-registry` | Consultas tributarias y registrales |
+| `arca-sdk-wsfexv1` | API de facturación electrónica de exportación WSFEXv1, mappers, modelos y casos de uso |
+| `arca-sdk-wsmtxca` | API de facturación electrónica matricial con detalle de artículos WSMTXCA, mappers, modelos y casos de uso |
+| `arca-sdk-registry` | Consultas tributarias y registrales (ws_sr_padron_a4) |
 | `arca-sdk-client` | Fachada unificada y punto de entrada raíz del SDK |
-| `arca-sdk-test-support` | Fixtures XML, utilidades de test y soporte para mocks |
-| `arca-sdk-bom` | Bill of Materials para centralizar versiones |
+| `arca-sdk-test-support` | Fixtures XML, utilidades de test y soporte para mocks (WireMock) |
+| `arca-sdk-bom` | Bill of Materials (BOM) para centralizar versiones |
 | `arca-sdk-bundle` | Dependencia de conveniencia para consumidores externos |
 
 ## Arquitectura objetivo
