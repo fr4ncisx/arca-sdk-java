@@ -163,7 +163,7 @@ Importa el BOM para gestionar versiones automáticamente:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -204,7 +204,7 @@ Sin BOM, una sola dependencia con todos los módulos:
     <dependency>
         <groupId>io.github.fr4ncisx</groupId>
         <artifactId>arca-sdk-bundle</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
     </dependency>
 </dependencies>
 ```
