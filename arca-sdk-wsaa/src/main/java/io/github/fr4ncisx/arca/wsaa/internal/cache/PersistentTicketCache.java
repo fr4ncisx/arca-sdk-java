@@ -6,10 +6,12 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Properties;
@@ -62,13 +64,12 @@ public final class PersistentTicketCache implements TicketCache {
     public Optional<ArcaAccessTicket> get(String key) {
         validateKey(key);
         Path filePath = resolvePath(key);
-        if (!Files.exists(filePath)) {
-            return Optional.empty();
-        }
-
         Properties props = new Properties();
-        try (InputStream in = Files.newInputStream(filePath)) {
-            props.load(in);
+        try (FileChannel channel = FileChannel.open(filePath, StandardOpenOption.READ);
+             FileLock lock = channel.lock(0, Long.MAX_VALUE, true)) {
+            props.load(Channels.newInputStream(channel));
+        } catch (java.nio.file.NoSuchFileException e) {
+            return Optional.empty();
         } catch (IOException | IllegalArgumentException e) {
             throw new ArcaAuthException("Failed to read persistent ticket cache file for key: " + key, e);
         }
@@ -123,8 +124,9 @@ public final class PersistentTicketCache implements TicketCache {
             props.setProperty("generationTime", ticket.generationTime().toString());
             props.setProperty("expirationTime", ticket.expirationTime().toString());
 
-            try (OutputStream out = Files.newOutputStream(filePath)) {
-                props.store(out, "ARCA SDK WSAA Access Ticket Cache File");
+            try (FileChannel channel = FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+                 FileLock lock = channel.lock()) {
+                props.store(Channels.newOutputStream(channel), "ARCA SDK WSAA Access Ticket Cache File");
             }
         } catch (IOException e) {
             throw new ArcaAuthException("Failed to write persistent ticket cache file for key: " + key, e);
