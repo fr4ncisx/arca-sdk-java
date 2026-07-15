@@ -24,7 +24,20 @@ import java.time.Duration;
 public record ArcaConfig(Cuit cuit,
                          ArcaEnvironment environment,
                          Duration connectTimeout,
-                         Duration readTimeout) {
+                         Duration readTimeout,
+                         boolean resilienceEnabled) {
+
+    /**
+     * Creates an ArcaConfig with resilience enabled by default.
+     *
+     * @param cuit taxpayer CUIT.
+     * @param environment target environment.
+     * @param connectTimeout connection timeout.
+     * @param readTimeout read timeout.
+     */
+    public ArcaConfig(Cuit cuit, ArcaEnvironment environment, Duration connectTimeout, Duration readTimeout) {
+        this(cuit, environment, connectTimeout, readTimeout, true);
+    }
 
     /**
      * Validates all fields at construction time.
@@ -72,7 +85,20 @@ public record ArcaConfig(Cuit cuit,
      */
     public ArcaConfig withReadTimeout(Duration timeout) {
         validateTimeout(timeout, "readTimeout");
-        return new ArcaConfig(cuit, environment, connectTimeout, timeout);
+        return new ArcaConfig(cuit, environment, connectTimeout, timeout, resilienceEnabled);
+    }
+
+    /**
+     * Returns a new configuration instance with the resilience setting updated.
+     * <p>
+     * The original instance remains unchanged.
+     *
+     * @param enabled whether resilience (retries/circuit breaker) should be enabled.
+     * @return a new configuration instance with the updated resilience setting.
+     * @since 1.1.0
+     */
+    public ArcaConfig withResilienceEnabled(boolean enabled) {
+        return new ArcaConfig(cuit, environment, connectTimeout, readTimeout, enabled);
     }
 
     private static void validateTimeout(Duration timeout, String fieldName) {

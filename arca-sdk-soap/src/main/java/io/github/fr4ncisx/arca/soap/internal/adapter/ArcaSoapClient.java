@@ -12,6 +12,7 @@ import com.sun.xml.ws.developer.JAXWSProperties;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.soap.internal.config.SoapConfig;
+import io.github.fr4ncisx.arca.soap.internal.resilience.ResilienceDecorator;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import jakarta.xml.ws.Binding;
 import jakarta.xml.ws.BindingProvider;
@@ -45,6 +46,7 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
     private final BindingProvider bindingProvider;
     private final Function<R, S> operation;
     private final SoapConfig config;
+    private final ArcaSoapPort<R, S> runner;
 
     /**
      * Creates an internal SOAP client for a concrete generated JAX-WS port.
@@ -70,6 +72,30 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
         this.operation = operation;
         this.config = config;
         installSoapHandler(bindingProvider);
+
+        ArcaSoapPort<R, S> rawPort = req -> {
+            applyTimeouts();
+            try {
+                return operation.apply(req);
+            } catch (SOAPFaultException exception) {
+                throw new ArcaSoapException(SOAP_FAULT_MESSAGE, exception);
+            } catch (ArcaSoapException exception) {
+                throw exception;
+            } catch (WebServiceException exception) {
+                if (isTimeout(exception)) {
+                    throw new ArcaSoapException(SOAP_TIMEOUT_MESSAGE, exception);
+                }
+                throw new ArcaSoapException(SOAP_FAILURE_MESSAGE, exception);
+            } catch (RuntimeException exception) {
+                throw new ArcaSoapException(SOAP_FAILURE_MESSAGE, exception);
+            }
+        };
+
+        if (config.resilienceEnabled()) {
+            this.runner = new ResilienceDecorator<>(rawPort);
+        } else {
+            this.runner = rawPort;
+        }
     }
 
     /**
@@ -89,21 +115,7 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
         if (request == null) {
             throw new ArcaValidationException(NULL_REQUEST);
         }
-        applyTimeouts();
-        try {
-            return operation.apply(request);
-        } catch (SOAPFaultException exception) {
-            throw new ArcaSoapException(SOAP_FAULT_MESSAGE, exception);
-        } catch (ArcaSoapException exception) {
-            throw exception;
-        } catch (WebServiceException exception) {
-            if (isTimeout(exception)) {
-                throw new ArcaSoapException(SOAP_TIMEOUT_MESSAGE, exception);
-            }
-            throw new ArcaSoapException(SOAP_FAILURE_MESSAGE, exception);
-        } catch (RuntimeException exception) {
-            throw new ArcaSoapException(SOAP_FAILURE_MESSAGE, exception);
-        }
+        return runner.invoke(request);
     }
 
     private void applyTimeouts() {
