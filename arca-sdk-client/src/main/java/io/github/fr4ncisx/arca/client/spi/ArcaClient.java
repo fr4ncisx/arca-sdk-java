@@ -5,13 +5,14 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
 import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
+import io.github.fr4ncisx.arca.wsmtxca.spi.WsmtxcaClient;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 import io.github.fr4ncisx.arca.client.internal.client.DefaultArcaClient;
 
 /**
  * Unified public entry point for the ARCA SDK.
  * <p>
- * This class orchestrates access to the different functional clients (WSFEv1, Registry, WSFEXv1)
+ * This class orchestrates access to the different functional clients (WSFEv1, Registry, WSFEXv1, WSMTXCA)
  * and centralizes basic configuration and authentication.
  *
  * @author fr4ncisx
@@ -22,6 +23,7 @@ public final class ArcaClient {
     private final WsfeClient wsfeClient;
     private final RegistryClient registryClient;
     private final WsfexClient wsfexClient;
+    private final WsmtxcaClient wsmtxcaClient;
 
     /**
      * Package-private constructor to build a client instance.
@@ -29,8 +31,9 @@ public final class ArcaClient {
      * @param wsfeClient     the wired electronic billing client
      * @param registryClient the wired registry lookup client
      * @param wsfexClient    the wired export billing client
+     * @param wsmtxcaClient   the wired itemized billing client
      */
-    public ArcaClient(WsfeClient wsfeClient, RegistryClient registryClient, WsfexClient wsfexClient) {
+    public ArcaClient(WsfeClient wsfeClient, RegistryClient registryClient, WsfexClient wsfexClient, WsmtxcaClient wsmtxcaClient) {
         if (wsfeClient == null) {
             throw new ArcaValidationException("wsfeClient must not be null");
         }
@@ -40,9 +43,13 @@ public final class ArcaClient {
         if (wsfexClient == null) {
             throw new ArcaValidationException("wsfexClient must not be null");
         }
+        if (wsmtxcaClient == null) {
+            throw new ArcaValidationException("wsmtxcaClient must not be null");
+        }
         this.wsfeClient = wsfeClient;
         this.registryClient = registryClient;
         this.wsfexClient = wsfexClient;
+        this.wsmtxcaClient = wsmtxcaClient;
     }
 
     /**
@@ -73,12 +80,22 @@ public final class ArcaClient {
     }
 
     /**
+     * Accesses the WSMTXCA itemized electronic invoicing service client.
+     *
+     * @return the WsmtxcaClient instance
+     * @since 0.7.0
+     */
+    public WsmtxcaClient wsmtxca() {
+        return wsmtxcaClient;
+    }
+
+    /**
      * Performs a unified availability ping checking all child services.
      *
      * @return {@code true} if all sub-services are online, {@code false} otherwise
      */
     public boolean ping() {
-        return wsfeClient.ping() && registryClient.ping() && wsfexClient.ping();
+        return wsfeClient.ping() && registryClient.ping() && wsfexClient.ping() && wsmtxcaClient.ping();
     }
 
     /**

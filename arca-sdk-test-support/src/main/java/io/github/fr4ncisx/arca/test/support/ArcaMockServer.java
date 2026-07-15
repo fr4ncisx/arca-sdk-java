@@ -25,12 +25,16 @@ public final class ArcaMockServer implements AutoCloseable {
     private static final String WSAA_LOGIN_CMS_PATH = "/ws/services/LoginCms";
     private static final String WSFEV1_SERVICE_PATH = "/wsfev1/service.asmx";
     private static final String WSFEXV1_SERVICE_PATH = "/wsfexv1/service.asmx";
+    private static final String WSMTXCA_SERVICE_PATH = "/wsmtxca/services/MTXCAService";
     private static final String SOAP_ACTION_HEADER = "SOAPAction";
     private static final String FECAESOLICITAR_ACTION = "http://ar.gov.afip.dif.FEV1/FECAESolicitar";
     private static final String FECOMPULTIMOAUTORIZADO_ACTION =
         "http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado";
     private static final String WSFEX_LAST_VOUCHER_ACTION = "http://ar.gov.afip.dif.fexv1/FEXGetLast_CMP";
     private static final String WSFEX_AUTHORIZE_ACTION = "http://ar.gov.afip.dif.fexv1/FEXAuthorize";
+    private static final String WSMTXCA_LAST_VOUCHER_ACTION = "http://impl.service.wsmtxca.afip.gov.ar/service/consultarUltimoComprobanteAutorizado";
+    private static final String WSMTXCA_AUTHORIZE_ACTION = "http://impl.service.wsmtxca.afip.gov.ar/service/autorizarComprobante";
+    private static final String WSMTXCA_GET_VOUCHER_ACTION = "http://impl.service.wsmtxca.afip.gov.ar/service/consultarComprobante";
     private static final String XML_CONTENT_TYPE = "text/xml; charset=UTF-8";
 
     private static final String LOGIN_CMS_SUCCESS_FIXTURE = "/fixtures/wsaa/login-cms-success.xml";
@@ -40,6 +44,9 @@ public final class ArcaMockServer implements AutoCloseable {
     private static final String CAE_REJECTED_FIXTURE = "/fixtures/wsfev1/cae-request-rejection-001.xml";
     private static final String WSFEX_LAST_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsfexv1/last-voucher-success.xml";
     private static final String WSFEX_CAE_SUCCESS_FIXTURE = "/fixtures/wsfexv1/cae-success.xml";
+    private static final String WSMTXCA_LAST_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsmtxca/last-voucher-success.xml";
+    private static final String WSMTXCA_CAE_SUCCESS_FIXTURE = "/fixtures/wsmtxca/cae-success.xml";
+    private static final String WSMTXCA_GET_VOUCHER_SUCCESS_FIXTURE = "/fixtures/wsmtxca/get-voucher-success.xml";
 
     private final WireMockServer server;
     private final FixtureLoader fixtureLoader;
@@ -168,6 +175,33 @@ public final class ArcaMockServer implements AutoCloseable {
      */
     public void stubWsfexCaeSuccess() {
         stubSoapAction(WSFEXV1_SERVICE_PATH, WSFEX_AUTHORIZE_ACTION, WSFEX_CAE_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers a successful WSMTXCA consultarUltimoComprobanteAutorizado response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWsmtxcaLastVoucherSuccess() {
+        stubSoapAction(WSMTXCA_SERVICE_PATH, WSMTXCA_LAST_VOUCHER_ACTION, WSMTXCA_LAST_VOUCHER_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers an approved WSMTXCA autorizarComprobante response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWsmtxcaCaeSuccess() {
+        stubSoapAction(WSMTXCA_SERVICE_PATH, WSMTXCA_AUTHORIZE_ACTION, WSMTXCA_CAE_SUCCESS_FIXTURE, 200);
+    }
+
+    /**
+     * Registers a successful WSMTXCA consultarComprobante response.
+     *
+     * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
+     */
+    public void stubWsmtxcaGetVoucherSuccess() {
+        stubSoapAction(WSMTXCA_SERVICE_PATH, WSMTXCA_GET_VOUCHER_ACTION, WSMTXCA_GET_VOUCHER_SUCCESS_FIXTURE, 200);
     }
 
     private void stubPath(String path, String fixturePath, int status) {

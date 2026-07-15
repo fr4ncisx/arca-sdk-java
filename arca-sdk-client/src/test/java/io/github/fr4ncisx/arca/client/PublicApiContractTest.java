@@ -52,6 +52,7 @@ class PublicApiContractTest {
     private static URI originalWsfev1Url;
     private static URI originalRegistryUrl;
     private static URI originalWsfexv1Url;
+    private static URI originalWsmtxcaUrl;
 
     @BeforeAll
     static void setUpAll() throws Exception {
@@ -66,12 +67,14 @@ class PublicApiContractTest {
         originalWsfev1Url = ArcaEnvironment.HOMOLOGACION.getWsfev1Url();
         originalRegistryUrl = ArcaEnvironment.HOMOLOGACION.getRegistryUrl();
         originalWsfexv1Url = ArcaEnvironment.HOMOLOGACION.getWsfexv1Url();
+        originalWsmtxcaUrl = ArcaEnvironment.HOMOLOGACION.getWsmtxcaUrl();
 
         URI mockBase = server.baseUrl();
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsaaUrl", mockBase.resolve("/ws/services/LoginCms"));
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfev1Url", mockBase.resolve("/wsfev1/service.asmx"));
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "registryUrl", mockBase.resolve("/sr-padron/webservices/personaServiceA4"));
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfexv1Url", mockBase.resolve("/wsfexv1/service.asmx"));
+        setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsmtxcaUrl", mockBase.resolve("/wsmtxca/services/MTXCAService"));
     }
 
     @AfterAll
@@ -83,6 +86,7 @@ class PublicApiContractTest {
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfev1Url", originalWsfev1Url);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "registryUrl", originalRegistryUrl);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfexv1Url", originalWsfexv1Url);
+        setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsmtxcaUrl", originalWsmtxcaUrl);
     }
 
     @Test
@@ -144,6 +148,37 @@ class PublicApiContractTest {
         assertThat(response.lastNumber()).isEqualTo(42);
         log.info("PublicApiContractTest WSFEXv1 succeeded: last export voucher is {}", response.lastNumber());
     }
+
+    @Test
+    void executeLastWsmtxcaVoucherFlowUsingPublicApiOnly() throws Exception {
+        server.stubLoginCmsSuccess();
+
+        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
+        server.stubWsmtxcaLastVoucherSuccess();
+
+        ArcaConfig config = new ArcaConfig(
+                Cuit.parse("20-33333333-4"),
+                ArcaEnvironment.HOMOLOGACION,
+                Duration.ofSeconds(5),
+                Duration.ofSeconds(5)
+        );
+
+        KeyStore keyStore = createKeyStore("CN=Test, SERIALNUMBER=20333333334");
+        CertificateSource certificate = () -> keyStore;
+
+        ArcaClient client = ArcaClient.builder()
+                .config(config)
+                .certificate(certificate)
+                .build();
+
+        var request = new io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherRequest(1, (short) 1);
+        var response = client.wsmtxca().getLastVoucher(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.lastVoucherNumber()).isEqualTo(123L);
+        log.info("PublicApiContractTest WSMTXCA succeeded: last WSMTXCA voucher is {}", response.lastVoucherNumber());
+    }
+
 
     private static void setEnvUrl(ArcaEnvironment env, String fieldName, URI value) throws Exception {
         java.lang.reflect.Field field = ArcaEnvironment.class.getDeclaredField(fieldName);

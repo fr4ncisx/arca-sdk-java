@@ -1,0 +1,8 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://impl.service.wsmtxca.afip.gov.ar/service/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ser:consultarUltimoComprobanteAutorizadoResponse>
+         <numeroComprobante>123</numeroComprobante>
+      </ser:consultarUltimoComprobanteAutorizadoResponse>
+   </soapenv:Body>
+</soapenv:Envelope>

@@ -1,0 +1,17 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://impl.service.wsmtxca.afip.gov.ar/service/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ser:autorizarComprobanteResponse>
+         <resultado>A</resultado>
+         <comprobanteResponse>
+            <cuit>20300000007</cuit>
+            <codigoTipoComprobante>1</codigoTipoComprobante>
+            <numeroPuntoVenta>1</numeroPuntoVenta>
+            <numeroComprobante>124</numeroComprobante>
+            <fechaEmision>2026-07-15</fechaEmision>
+            <CAE>12345678901234</CAE>
+            <fechaVencimientoCAE>2026-07-25</fechaVencimientoCAE>
+         </comprobanteResponse>
+      </ser:autorizarComprobanteResponse>
+   </soapenv:Body>
+</soapenv:Envelope>
