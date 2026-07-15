@@ -33,6 +33,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>arca-sdk-wsmtxca</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arca-sdk-wscdc</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>

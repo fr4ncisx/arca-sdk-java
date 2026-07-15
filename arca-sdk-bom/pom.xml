@@ -56,6 +56,11 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>arca-sdk-wscdc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>arca-sdk-test-support</artifactId>
                 <version>${revision}</version>
             </dependency>
