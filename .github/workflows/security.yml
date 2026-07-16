@@ -2,11 +2,15 @@ name: Security Scan
 
 on:
   schedule:
-    - cron: '0 2 * * *' # Nightly at 2:00 AM UTC
-  workflow_dispatch: # On-demand manual trigger
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   security-check:
@@ -39,4 +43,6 @@ jobs:
             dependency-check-${{ runner.os }}-
 
       - name: Run OWASP Dependency Scan
-        run: mvn dependency-check:check -Psecurity-scan --batch-mode --no-transfer-progress
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: mvn dependency-check:aggregate -Psecurity-scan --batch-mode --no-transfer-progress
