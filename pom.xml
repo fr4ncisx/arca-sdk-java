@@ -50,13 +50,15 @@
         <module>arca-sdk-test-support</module>
         <module>arca-sdk-registry</module>
         <module>arca-sdk-client</module>
+        <module>arca-sdk-spring-boot-starter</module>
     </modules>
 
     <properties>
-        <revision>1.1.0</revision>
+        <revision>1.2.0</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <spring-boot.version>3.5.16</spring-boot.version>
         <metro.version>4.0.4</metro.version>
         <jaxb.version>4.0.8</jaxb.version>
         <slf4j.version>2.0.17</slf4j.version>
