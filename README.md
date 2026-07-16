@@ -163,7 +163,7 @@ Importa el BOM para gestionar versiones automáticamente:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -204,7 +204,7 @@ Sin BOM, una sola dependencia con todos los módulos:
     <dependency>
         <groupId>io.github.fr4ncisx</groupId>
         <artifactId>arca-sdk-bundle</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
     </dependency>
 </dependencies>
 ```
@@ -369,6 +369,123 @@ WscdcClient wscdc = arca.wscdc();
 WscdcDummyResponse dummy = wscdc.dummy();
 System.out.println("Estado Servidor: " + dummy.appServer());
 System.out.println("Estado Base Datos: " + dummy.dbServer());
+```
+
+---
+
+## Integración con Spring Boot 3.x / 4.x
+
+El SDK provee dos alternativas de integración para proyectos basados en Spring Boot:
+
+### Opción A — Starter de Autoconfiguración (Recomendado)
+
+Agrega la dependencia del starter en tu `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>io.github.fr4ncisx</groupId>
+    <artifactId>arca-sdk-spring-boot-starter</artifactId>
+</dependency>
+```
+
+Configura las propiedades correspondientes en tu `application.yml`:
+
+```yaml
+arca:
+  cuit: "20-33333333-4"
+  environment: HOMOLOGACION                # HOMOLOGACION o PRODUCCION
+  connect-timeout: 10s                     # Opcional (default: 10s)
+  read-timeout: 30s                        # Opcional (default: 30s)
+  resilience-enabled: true                 # Opcional (default: true)
+  certificate-location: classpath:cert.p12  # Soporta classpath:, file:, etc.
+  certificate-password: "ClaveDelCertificado"
+```
+
+Luego, simplemente inyecta y utiliza cualquiera de los clientes funcionales gestionados de forma nativa en tus beans:
+
+```java
+import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
+import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
+import org.springframework.stereotype.Service;
+
+@Service
+public class FacturacionService {
+
+    private final WsfeClient wsfeClient;
+    private final RegistryClient registryClient;
+
+    public FacturacionService(WsfeClient wsfeClient, RegistryClient registryClient) {
+        this.wsfeClient = wsfeClient;
+        this.registryClient = registryClient;
+    }
+
+    public void facturar() {
+        // wsfeClient.getLastVoucher(...);
+    }
+}
+```
+
+*Nota: La autoconfiguración automática de ArcaClient y sus sub-clientes se desactivará (back-off) automáticamente si declaras tus propios beans de tipo `ArcaClient` o `WsfeClient` en el contexto.*
+
+---
+
+### Opción B — Integración Manual (Sin Starter)
+
+Si prefieres tener control absoluto de la instanciación de los beans o necesitas soportar múltiples CUITs (Multitenancy), puedes usar la dependencia de API base e instanciar la configuración manualmente:
+
+```xml
+<dependency>
+    <groupId>io.github.fr4ncisx</groupId>
+    <artifactId>arca-sdk-client</artifactId>
+</dependency>
+```
+
+Crea una clase de configuración `@Configuration` para declarar tus beans:
+
+```java
+import io.github.fr4ncisx.arca.client.spi.ArcaClient;
+import io.github.fr4ncisx.arca.core.config.ArcaConfig;
+import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
+import io.github.fr4ncisx.arca.core.tax.Cuit;
+import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
+import io.github.fr4ncisx.arca.wsaa.spi.Pkcs12CertificateSource;
+import io.github.fr4ncisx.arca.wsfev1.spi.WsfeClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.nio.file.Path;
+
+@Configuration
+public class ArcaManualConfiguration {
+
+    @Bean
+    public CertificateSource certificateSource(
+            @Value("${app.arca.cert-path}") String certPath,
+            @Value("${app.arca.cert-pass}") String certPass) {
+        return Pkcs12CertificateSource.fromPath(Path.of(certPath), certPass.toCharArray());
+    }
+
+    @Bean
+    public ArcaClient arcaClient(
+            CertificateSource certificateSource,
+            @Value("${app.arca.cuit}") String cuit) {
+        ArcaConfig config = new ArcaConfig(
+            Cuit.parse(cuit),
+            ArcaEnvironment.HOMOLOGACION
+        );
+
+        return ArcaClient.builder()
+            .config(config)
+            .certificate(certificateSource)
+            .build();
+    }
+
+    @Bean
+    public WsfeClient wsfeClient(ArcaClient arcaClient) {
+        return arcaClient.wsfev1();
+    }
+}
 ```
 
 ---
