@@ -3,7 +3,8 @@ package io.github.fr4ncisx.arca.wsfev1.model.catalog;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 
 import java.time.LocalDate;
-import java.util.Optional;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details of an official optional field type registered in the ARCA catalog.
@@ -13,16 +14,16 @@ import java.util.Optional;
  *
  * @param id          the official alphanumeric ID of the optional field
  * @param description the description of the optional field
- * @param since       the start date of validity, if defined
- * @param until       the end date of validity, if defined
+ * @param since       the start date of validity, or null if not defined
+ * @param until       the end date of validity, or null if not defined
  * @author fr4ncisx
  * @since 0.6.0
  */
 public record OptionalFieldTypeInfo(
         String id,
         String description,
-        Optional<LocalDate> since,
-        Optional<LocalDate> until
+        @Nullable LocalDate since,
+        @Nullable LocalDate until
 ) {
 
     public OptionalFieldTypeInfo {
@@ -31,12 +32,6 @@ public record OptionalFieldTypeInfo(
         }
         if (description == null || description.trim().isEmpty()) {
             throw new ArcaValidationException("description must not be null or blank");
-        }
-        if (since == null) {
-            throw new ArcaValidationException("since must not be null");
-        }
-        if (until == null) {
-            throw new ArcaValidationException("until must not be null");
         }
     }
 }
