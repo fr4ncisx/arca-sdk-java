@@ -10,6 +10,7 @@ import io.github.fr4ncisx.arca.wsfexv1.internal.generated.ClsFEXGetCMP;
 import io.github.fr4ncisx.arca.wsfexv1.internal.generated.FEXGetCMP;
 import io.github.fr4ncisx.arca.wsfexv1.internal.generated.FEXGetCMPResponseDataType;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportVoucherConsultRequest;
+import io.github.fr4ncisx.arca.wsfexv1.internal.adapter.WsfexMapper;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportVoucherConsultResponse;
 
 public final class GetExportVoucherUseCase {

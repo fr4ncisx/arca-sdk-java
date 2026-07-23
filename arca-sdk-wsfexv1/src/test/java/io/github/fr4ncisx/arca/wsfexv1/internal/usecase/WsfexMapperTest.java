@@ -16,6 +16,7 @@ import io.github.fr4ncisx.arca.wsfexv1.model.ExportOptionalField;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportPermit;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportVoucherRequest;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportVoucherResponse;
+import io.github.fr4ncisx.arca.wsfexv1.internal.adapter.WsfexMapper;
 import io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

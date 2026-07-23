@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.wsfexv1.internal.usecase;
+package io.github.fr4ncisx.arca.wsfexv1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
@@ -40,7 +40,6 @@ import io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherRequest;
 import io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherResponse;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class WsfexMapper {
@@ -240,10 +239,10 @@ public final class WsfexMapper {
         if (response == null) {
             throw new ArcaValidationException("response must not be null");
         }
-        Optional<ExportVoucherDetail> detail = Optional.empty();
+        ExportVoucherDetail detail = null;
         ClsFEXGetCMPR get = response.getFEXResultGet();
         if (get != null) {
-            detail = Optional.of(mapDetail(get));
+            detail = mapDetail(get);
         }
 
         return new ExportVoucherConsultResponse(

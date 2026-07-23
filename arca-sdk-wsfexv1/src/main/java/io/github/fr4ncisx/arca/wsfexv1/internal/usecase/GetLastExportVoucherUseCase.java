@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsfexv1.internal.generated.ClsFEXLastCMP;
 import io.github.fr4ncisx.arca.wsfexv1.internal.generated.FEXResponseLastCMP;
 import io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherRequest;
+import io.github.fr4ncisx.arca.wsfexv1.internal.adapter.WsfexMapper;
 import io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherResponse;
 
 public final class GetLastExportVoucherUseCase {

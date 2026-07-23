@@ -10,6 +10,7 @@ import io.github.fr4ncisx.arca.wsfexv1.internal.generated.ClsFEXRequest;
 import io.github.fr4ncisx.arca.wsfexv1.internal.generated.FEXAuthorize;
 import io.github.fr4ncisx.arca.wsfexv1.internal.generated.FEXResponseAuthorize;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportVoucherRequest;
+import io.github.fr4ncisx.arca.wsfexv1.internal.adapter.WsfexMapper;
 import io.github.fr4ncisx.arca.wsfexv1.model.ExportVoucherResponse;
 
 public final class AuthorizeExportVoucherUseCase {
