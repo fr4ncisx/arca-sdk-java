@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
+import io.github.fr4ncisx.arca.registry.internal.adapter.RegistryMapper;
 import io.github.fr4ncisx.arca.registry.internal.generated.GetPersona;
 import io.github.fr4ncisx.arca.registry.internal.generated.PersonaReturn;
 import io.github.fr4ncisx.arca.registry.internal.generated.SRValidationException_Exception;

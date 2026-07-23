@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.registry.internal.usecase;
+package io.github.fr4ncisx.arca.registry.internal.adapter;
 
 import io.github.fr4ncisx.arca.registry.internal.generated.*;
 import io.github.fr4ncisx.arca.registry.model.*;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @author fr4ncisx
  * @since 0.5.0-M1
  */
-final class RegistryMapper {
+public final class RegistryMapper {
 
     private RegistryMapper() {
     }
@@ -26,7 +26,7 @@ final class RegistryMapper {
      * @param personaReturn the technical persona return structure
      * @return the mapped domain TaxpayerData
      */
-    static TaxpayerData toDomain(PersonaReturn personaReturn) {
+    public static TaxpayerData toDomain(PersonaReturn personaReturn) {
         Persona p = personaReturn.getPersona();
         long cuit = p.getIdPersona() != null ? p.getIdPersona() : 0L;
 

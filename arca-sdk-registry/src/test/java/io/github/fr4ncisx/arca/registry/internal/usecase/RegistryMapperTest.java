@@ -1,5 +1,6 @@
 package io.github.fr4ncisx.arca.registry.internal.usecase;
 
+import io.github.fr4ncisx.arca.registry.internal.adapter.RegistryMapper;
 import io.github.fr4ncisx.arca.registry.internal.generated.*;
 import io.github.fr4ncisx.arca.registry.model.TaxpayerData;
 import org.junit.jupiter.api.Test;
