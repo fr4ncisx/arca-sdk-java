@@ -1,6 +1,7 @@
 package io.github.fr4ncisx.arca.wsfev1.internal.usecase.salespoint;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.SalesPointMapper;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
 import io.github.fr4ncisx.arca.wsfev1.model.salespoint.SalesPoint;
 import org.junit.jupiter.api.Test;
@@ -47,12 +48,12 @@ class SalesPointMapperTest {
         assertThat(response.get(0).number()).isEqualTo(1);
         assertThat(response.get(0).emissionType()).isEqualTo("RECE");
         assertThat(response.get(0).blocked()).isFalse();
-        assertThat(response.get(0).dropDate()).isEmpty();
+        assertThat(response.get(0).dropDate()).isNull();
 
         assertThat(response.get(1).number()).isEqualTo(2);
         assertThat(response.get(1).emissionType()).isEqualTo("RECE");
         assertThat(response.get(1).blocked()).isTrue();
-        assertThat(response.get(1).dropDate()).hasValue(LocalDate.of(2026, 7, 7));
+        assertThat(response.get(1).dropDate()).isEqualTo(LocalDate.of(2026, 7, 7));
     }
 
     @Test

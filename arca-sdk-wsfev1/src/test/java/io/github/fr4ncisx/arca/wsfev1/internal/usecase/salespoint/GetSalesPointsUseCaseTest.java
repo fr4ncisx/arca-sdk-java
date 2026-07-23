@@ -86,7 +86,7 @@ class GetSalesPointsUseCaseTest {
         assertThat(points.get(0).number()).isEqualTo(1);
         assertThat(points.get(0).emissionType()).isEqualTo("Fisico");
         assertThat(points.get(0).blocked()).isFalse();
-        assertThat(points.get(0).dropDate()).isEmpty();
+        assertThat(points.get(0).dropDate()).isNull();
 
         FEParamGetPtosVenta soapReq = capturedRequest.get();
         assertThat(soapReq).isNotNull();
