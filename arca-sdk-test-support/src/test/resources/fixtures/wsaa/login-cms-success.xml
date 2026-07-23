@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsaa="http://wsaa.view.sua.dvadac.desein.afip.gov">
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
   <soapenv:Body>
-    <wsaa:loginCmsResponse>
-      <loginCmsReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;loginTicketReturn version="1.0"&gt;&lt;header&gt;&lt;source&gt;CN=wsaa, O=afip, C=ar&lt;/source&gt;&lt;destination&gt;C=ar, SERIALNUMBER=CUIT 20333333339&lt;/destination&gt;&lt;uniqueId&gt;a1b2c3d4-e5f6-7890-abcd-ef1234567890&lt;/uniqueId&gt;&lt;generationTime&gt;2026-05-13T10:00:00-03:00&lt;/generationTime&gt;&lt;expirationTime&gt;2026-05-13T22:00:00-03:00&lt;/expirationTime&gt;&lt;/header&gt;&lt;credentials&gt;&lt;token&gt;PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48bG9naW5UaWNrZXRSZXF1ZXN0IHZlcnNpb249IjEuMCI+PCEtLSBUT0tFTiBOTyBSRUFMPS0tPjwvbG9naW5UaWNrZXRSZXF1ZXN0Pg==&lt;/token&gt;&lt;sign&gt;MIICSgYJKoZIhvcNAQcCoIICOzCCAjcCAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAaCAgX1YZXMgbGEgZmlybWEgZGUgZXN0ZSBmaXh0dXJlIHNvbG8gZXMgdW4gZWplbXBsbyBkZSB0ZXN0LCBubyBjb250aWVuZSBkYXRvcyByZWFsZXM=&lt;/sign&gt;&lt;/credentials&gt;&lt;/loginTicketReturn&gt;</loginCmsReturn>
-    </wsaa:loginCmsResponse>
+    <tns1:loginCmsResponse xmlns:tns1="http://wsaa.view.sua.dvadac.desein.afip.gov">
+      <tns1:loginCmsReturn>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;loginTicketReturn version="1.0"&gt;&lt;header&gt;&lt;source&gt;CN=wsaa, O=afip, C=ar&lt;/source&gt;&lt;destination&gt;C=ar, SERIALNUMBER=CUIT 20333333339&lt;/destination&gt;&lt;uniqueId&gt;a1b2c3d4-e5f6-7890-abcd-ef1234567890&lt;/uniqueId&gt;&lt;generationTime&gt;2026-05-13T10:00:00-03:00&lt;/generationTime&gt;&lt;expirationTime&gt;2026-05-13T22:00:00-03:00&lt;/expirationTime&gt;&lt;/header&gt;&lt;credentials&gt;&lt;token&gt;PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48bG9naW5UaWNrZXRSZXF1ZXN0IHZlcnNpb249IjEuMCI+PCEtLSBUT0tFTiBOTyBSRUFMPS0tPjwvbG9naW5UaWNrZXRSZXF1ZXN0Pg==&lt;/token&gt;&lt;sign&gt;MIICSgYJKoZIhvcNAQcCoIICOzCCAjcCAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAaCAgX1YZXMgbGEgZmlybWEgZGUgZXN0ZSBmaXh0dXJlIHNvbG8gZXMgdW4gZWplbXBsbyBkZSB0ZXN0LCBubyBjb250aWVuZSBkYXRvcyByZWFsZXM=&lt;/sign&gt;&lt;/credentials&gt;&lt;/loginTicketReturn&gt;</tns1:loginCmsReturn>
+    </tns1:loginCmsResponse>
   </soapenv:Body>
 </soapenv:Envelope>
