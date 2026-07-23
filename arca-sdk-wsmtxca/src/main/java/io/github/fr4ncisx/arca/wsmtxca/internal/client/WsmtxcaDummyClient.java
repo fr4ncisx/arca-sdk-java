@@ -9,10 +9,24 @@ import com.sun.xml.ws.developer.JAXWSProperties;
 
 import java.time.Duration;
 
+/**
+ * Technical client for executing connectivity checks against ARCA's WSMTXCA Dummy endpoint.
+ * <p>
+ * This client runs independently of WSAA authorization and does not require CMS signatures.
+ *
+ * @author fr4ncisx
+ * @since 1.0.0
+ */
 public final class WsmtxcaDummyClient {
 
     private final MTXCAServicePortType port;
 
+    /**
+     * Creates a new WsmtxcaDummyClient using the provided MTXCAServicePortType port.
+     *
+     * @param port the JAX-WS client port
+     * @throws ArcaValidationException if port is null
+     */
     public WsmtxcaDummyClient(MTXCAServicePortType port) {
         if (port == null) {
             throw new ArcaValidationException("port must not be null");
@@ -20,6 +34,14 @@ public final class WsmtxcaDummyClient {
         this.port = port;
     }
 
+    /**
+     * Executes a ping call to ARCA's WSMTXCA Dummy service.
+     *
+     * @param env     the target ARCA environment
+     * @param timeout the maximum time allowed for the network call to complete
+     * @return {@code true} if all server components respond with {@code OK}
+     * @throws ArcaValidationException if env is null, or timeout is null or negative
+     */
     @SuppressWarnings("null")
     public boolean ping(ArcaEnvironment env, Duration timeout) {
         if (env == null) {
