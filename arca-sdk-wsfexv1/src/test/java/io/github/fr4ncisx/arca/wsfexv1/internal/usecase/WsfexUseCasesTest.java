@@ -124,8 +124,8 @@ class WsfexUseCasesTest {
         ExportVoucherConsultResponse response = useCase.execute(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.detail()).isPresent();
-        assertThat(response.detail().get().cae()).isEqualTo("CAE-8888");
-        assertThat(response.detail().get().status()).isEqualTo("A");
+        assertThat(response.detail()).isNotNull();
+        assertThat(response.detail().cae()).isEqualTo("CAE-8888");
+        assertThat(response.detail().status()).isEqualTo("A");
     }
 }
