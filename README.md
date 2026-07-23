@@ -90,7 +90,7 @@ Luego, en tu proyecto, elige una de estas opciones:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -104,7 +104,7 @@ Luego, en tu proyecto, elige una de estas opciones:
 <dependency>
     <groupId>io.github.fr4ncisx</groupId>
     <artifactId>arca-sdk-bundle</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
