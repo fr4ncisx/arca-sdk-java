@@ -9,13 +9,13 @@ import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wscdc.internal.client.DefaultWscdcClient;
 import io.github.fr4ncisx.arca.wscdc.internal.client.WscdcDummyClient;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpResponse;
-import io.github.fr4ncisx.arca.wscdc.internal.generated.DummyResponse;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.Service;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.ServiceSoap;
 import io.github.fr4ncisx.arca.wscdc.internal.usecase.ConstatVoucherUseCase;
 import io.github.fr4ncisx.arca.wscdc.internal.usecase.WscdcRequestWrapper;
 import io.github.fr4ncisx.arca.wscdc.spi.WscdcClient;
 import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.WebServiceException;
 
 /**
  * Assembler to configure and build instances of the WscdcClient facade.
@@ -73,21 +73,12 @@ public final class WscdcClientAssembler {
                     try {
                         return port.comprobanteConstatar(req.auth(), req.cmpReq());
                     } catch (Exception e) {
-                        throw new jakarta.xml.ws.WebServiceException(e);
-                    }
-                }, soapConfig);
-
-        ArcaSoapPort<Void, DummyResponse> dummySoapPort =
-                new ArcaSoapClient<>(bp, req -> {
-                    try {
-                        return port.comprobanteDummy();
-                    } catch (Exception e) {
-                        throw new jakarta.xml.ws.WebServiceException(e);
+                        throw new WebServiceException(e);
                     }
                 }, soapConfig);
 
         ConstatVoucherUseCase constatUseCase = new ConstatVoucherUseCase(config, authProvider, constatSoapPort);
-        WscdcDummyClient dummyClient = new WscdcDummyClient(dummySoapPort);
+        WscdcDummyClient dummyClient = new WscdcDummyClient(port, config.environment(), config.readTimeout());
 
         return new DefaultWscdcClient(dummyClient, constatUseCase);
     }

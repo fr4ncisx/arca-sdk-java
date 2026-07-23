@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpAuthRequest;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpDatos;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpResponse;
 import io.github.fr4ncisx.arca.wscdc.model.WscdcConstatRequest;
+import io.github.fr4ncisx.arca.wscdc.internal.adapter.WscdcMapper;
 import io.github.fr4ncisx.arca.wscdc.model.WscdcConstatResponse;
 import java.util.Objects;
 

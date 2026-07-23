@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.wscdc.internal.usecase;
+package io.github.fr4ncisx.arca.wscdc.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.ArrayOfOpcional;

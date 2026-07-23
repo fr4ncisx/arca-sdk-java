@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wscdc.internal.usecase;
 
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
+import io.github.fr4ncisx.arca.wscdc.internal.adapter.WscdcMapper;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpAuthRequest;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpDatos;
 import io.github.fr4ncisx.arca.wscdc.internal.generated.CmpResponse;
