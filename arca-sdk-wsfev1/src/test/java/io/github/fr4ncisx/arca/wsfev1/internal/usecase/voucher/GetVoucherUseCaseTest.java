@@ -100,9 +100,9 @@ class GetVoucherUseCaseTest {
         VoucherConsultResponse response = useCase.execute(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.detail()).isPresent();
-        assertThat(response.detail().get().cae()).isEqualTo("cae-12345");
-        assertThat(response.detail().get().number()).isEqualTo(42L);
+        assertThat(response.detail()).isNotNull();
+        assertThat(response.detail().cae()).isEqualTo("cae-12345");
+        assertThat(response.detail().number()).isEqualTo(42L);
 
         FECompConsultar soapReq = capturedRequest.get();
         assertThat(soapReq).isNotNull();

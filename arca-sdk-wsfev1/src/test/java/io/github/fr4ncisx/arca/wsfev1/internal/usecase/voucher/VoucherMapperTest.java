@@ -3,7 +3,8 @@ package io.github.fr4ncisx.arca.wsfev1.internal.usecase.voucher;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.VoucherMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
@@ -84,9 +85,9 @@ class VoucherMapperTest {
         VoucherConsultResponse response = VoucherMapper.toDomainResponse(result);
 
         assertThat(response).isNotNull();
-        assertThat(response.detail()).isPresent();
+        assertThat(response.detail()).isNotNull();
         
-        VoucherDetail detail = response.detail().get();
+        VoucherDetail detail = response.detail();
         assertThat(detail.voucherType()).isEqualTo(VoucherType.INVOICE_A);
         assertThat(detail.salesPoint()).isEqualTo(1);
         assertThat(detail.number()).isEqualTo(42L);

@@ -1,10 +1,9 @@
-package io.github.fr4ncisx.arca.wsfev1.internal.usecase.voucher;
+package io.github.fr4ncisx.arca.wsfev1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.common.AfipError;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
@@ -17,7 +16,6 @@ import io.github.fr4ncisx.arca.wsfev1.model.voucher.VoucherDetail;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Encapsulated package-private translator for Voucher query requests and responses.
@@ -25,12 +23,12 @@ import java.util.Optional;
  * @author fr4ncisx
  * @since 0.5.0-M1
  */
-final class VoucherMapper {
+public final class VoucherMapper {
 
     private VoucherMapper() {
     }
 
-    static FECompConsultar toSoapRequest(FEAuthRequest auth, VoucherConsultRequest request) {
+    public static FECompConsultar toSoapRequest(FEAuthRequest auth, VoucherConsultRequest request) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -48,7 +46,7 @@ final class VoucherMapper {
         return soapRequest;
     }
 
-    static VoucherConsultResponse toDomainResponse(FECompConsultaResponse result) {
+    public static VoucherConsultResponse toDomainResponse(FECompConsultaResponse result) {
         if (result == null) {
             throw new ArcaSoapException("Received empty result from ARCA SOAP service");
         }
@@ -112,6 +110,6 @@ final class VoucherMapper {
             );
         }
 
-        return new VoucherConsultResponse(Optional.ofNullable(detail), errors);
+        return new VoucherConsultResponse(detail, errors);
     }
 }
