@@ -9,10 +9,14 @@ import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherResponse;
+import io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherRequest;
+import io.github.fr4ncisx.arca.wscdc.model.WscdcConstatRequest;
+import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherRequest;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -21,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
@@ -34,6 +40,12 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -60,7 +72,7 @@ class PublicApiContractTest {
     @BeforeAll
     static void setUpAll() throws Exception {
         if (Security.getProvider("BC") == null) {
-            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+            Security.addProvider(new BouncyCastleProvider());
         }
 
         server = new ArcaMockServer();
@@ -99,7 +111,7 @@ class PublicApiContractTest {
     void executeLastVoucherFlowUsingPublicApiOnly() throws Exception {
         server.stubLoginCmsSuccess();
 
-        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
+        configureFor("localhost", server.baseUrl().getPort());
         stubLastVoucherSoapSuccess();
 
         ArcaConfig config = new ArcaConfig(
@@ -129,7 +141,7 @@ class PublicApiContractTest {
     void executeLastExportVoucherFlowUsingPublicApiOnly() throws Exception {
         server.stubLoginCmsSuccess();
 
-        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
+        configureFor("localhost", server.baseUrl().getPort());
         server.stubWsfexLastVoucherSuccess();
 
         ArcaConfig config = new ArcaConfig(
@@ -147,7 +159,7 @@ class PublicApiContractTest {
                 .certificate(certificate)
                 .build();
 
-        var request = new io.github.fr4ncisx.arca.wsfexv1.model.LastExportVoucherRequest(1, (short) 19);
+        var request = new LastExportVoucherRequest(1, (short) 19);
         var response = client.wsfexv1().getLastVoucher(request);
 
         assertThat(response).isNotNull();
@@ -159,7 +171,7 @@ class PublicApiContractTest {
     void executeLastWsmtxcaVoucherFlowUsingPublicApiOnly() throws Exception {
         server.stubLoginCmsSuccess();
 
-        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
+        configureFor("localhost", server.baseUrl().getPort());
         server.stubWsmtxcaLastVoucherSuccess();
 
         ArcaConfig config = new ArcaConfig(
@@ -177,7 +189,7 @@ class PublicApiContractTest {
                 .certificate(certificate)
                 .build();
 
-        var request = new io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherRequest(1, (short) 1);
+        var request = new WsmtxcaLastVoucherRequest(1, (short) 1);
         var response = client.wsmtxca().getLastVoucher(request);
 
         assertThat(response).isNotNull();
@@ -194,7 +206,7 @@ class PublicApiContractTest {
     void executeWscdcConstatFlowUsingPublicApiOnly() throws Exception {
         server.stubLoginCmsSuccess();
 
-        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", server.baseUrl().getPort());
+        configureFor("localhost", server.baseUrl().getPort());
         server.stubWscdcConstatSuccess();
 
         ArcaConfig config = new ArcaConfig(
@@ -212,14 +224,14 @@ class PublicApiContractTest {
                 .certificate(certificate)
                 .build();
 
-        var request = new io.github.fr4ncisx.arca.wscdc.model.WscdcConstatRequest(
+        var request = new WscdcConstatRequest(
                 "CAE",
                 Cuit.parse("20-30000000-3"),
                 1,
                 1,
                 100L,
                 LocalDate.of(2026, 7, 15),
-                new java.math.BigDecimal("121.0"),
+                new BigDecimal("121.0"),
                 "12345678901234",
                 "80",
                 "20300000007",
@@ -236,7 +248,7 @@ class PublicApiContractTest {
 
 
     private static void setEnvUrl(ArcaEnvironment env, String fieldName, URI value) throws Exception {
-        java.lang.reflect.Field field = ArcaEnvironment.class.getDeclaredField(fieldName);
+        Field field = ArcaEnvironment.class.getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(env, value);
     }
@@ -286,13 +298,13 @@ class PublicApiContractTest {
             </soapenv:Envelope>
             """;
 
-        com.github.tomakehurst.wiremock.client.WireMock.stubFor(
-            com.github.tomakehurst.wiremock.client.WireMock.post(
-                com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo("/wsfev1/service.asmx")
+        stubFor(
+            post(
+                urlPathEqualTo("/wsfev1/service.asmx")
             )
-            .withHeader("SOAPAction", com.github.tomakehurst.wiremock.client.WireMock.containing("FECompUltimoAutorizado"))
+            .withHeader("SOAPAction", containing("FECompUltimoAutorizado"))
             .willReturn(
-                com.github.tomakehurst.wiremock.client.WireMock.aResponse()
+                aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "text/xml; charset=utf-8")
                     .withBody(soapEnvelope)
