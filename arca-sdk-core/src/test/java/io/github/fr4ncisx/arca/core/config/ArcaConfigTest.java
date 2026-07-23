@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.nio.file.Path;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -282,6 +283,51 @@ class ArcaConfigTest {
                 CONNECT_TIMEOUT,
                 READ_TIMEOUT
         );
+    }
+
+    /**
+     * Verifies that the default configuration has a null ticket cache directory.
+     */
+    @Test
+    void shouldDefaultTicketCacheDirToNull() {
+        ArcaConfig config = validConfig();
+
+        assertThat(config.ticketCacheDir()).isNull();
+    }
+
+    /**
+     * Verifies that {@link ArcaConfig#withTicketCacheDir(Path)} returns a new
+     * configuration instance with the provided directory and preserves all other fields.
+     */
+    @Test
+    void withTicketCacheDirShouldReturnNewInstanceWithDirectory() {
+        ArcaConfig original = validConfig();
+        Path cacheDir = Path.of("/tmp/arca-cache");
+
+        ArcaConfig updated = original.withTicketCacheDir(cacheDir);
+
+        assertThat(updated).isNotSameAs(original);
+        assertThat(updated.ticketCacheDir()).isEqualTo(cacheDir);
+        assertThat(updated.cuit()).isEqualTo(original.cuit());
+        assertThat(updated.environment()).isEqualTo(original.environment());
+        assertThat(updated.connectTimeout()).isEqualTo(original.connectTimeout());
+        assertThat(updated.readTimeout()).isEqualTo(original.readTimeout());
+        assertThat(updated.resilienceEnabled()).isEqualTo(original.resilienceEnabled());
+    }
+
+    /**
+     * Verifies that {@link ArcaConfig#withTicketCacheDir(Path)} accepts null
+     * to disable persistence, preserving all other fields.
+     */
+    @Test
+    void withTicketCacheDirShouldAcceptNull() {
+        ArcaConfig original = validConfig().withTicketCacheDir(Path.of("/tmp/cache"));
+
+        ArcaConfig updated = original.withTicketCacheDir(null);
+
+        assertThat(updated.ticketCacheDir()).isNull();
+        assertThat(updated.cuit()).isEqualTo(original.cuit());
+        assertThat(updated.environment()).isEqualTo(original.environment());
     }
 
     /**
