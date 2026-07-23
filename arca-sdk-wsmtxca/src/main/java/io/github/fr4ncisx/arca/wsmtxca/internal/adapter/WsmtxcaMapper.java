@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.wsmtxca.internal.usecase;
+package io.github.fr4ncisx.arca.wsmtxca.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;

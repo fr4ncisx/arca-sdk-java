@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsmtxca.internal.generated.ConsultarComprobanteRequestType;
 import io.github.fr4ncisx.arca.wsmtxca.internal.generated.ConsultarComprobanteResponseType;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaVoucherConsultRequest;
+import io.github.fr4ncisx.arca.wsmtxca.internal.adapter.WsmtxcaMapper;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaVoucherConsultResponse;
 
 public final class GetWsmtxcaVoucherUseCase {

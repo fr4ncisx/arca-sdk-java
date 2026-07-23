@@ -15,6 +15,7 @@ import io.github.fr4ncisx.arca.wsmtxca.model.TaxDetail;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherRequest;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherResponse;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaVoucherRequest;
+import io.github.fr4ncisx.arca.wsmtxca.internal.adapter.WsmtxcaMapper;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaVoucherResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

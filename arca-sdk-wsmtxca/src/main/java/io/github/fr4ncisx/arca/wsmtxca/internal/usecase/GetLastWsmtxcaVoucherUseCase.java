@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsmtxca.internal.generated.ConsultarUltimoComprobanteAutorizadoRequestType;
 import io.github.fr4ncisx.arca.wsmtxca.internal.generated.ConsultarUltimoComprobanteAutorizadoResponseType;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherRequest;
+import io.github.fr4ncisx.arca.wsmtxca.internal.adapter.WsmtxcaMapper;
 import io.github.fr4ncisx.arca.wsmtxca.model.WsmtxcaLastVoucherResponse;
 
 public final class GetLastWsmtxcaVoucherUseCase {
