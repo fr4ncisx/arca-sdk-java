@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.wsfev1.internal.usecase.lastvoucher;
+package io.github.fr4ncisx.arca.wsfev1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
@@ -15,12 +15,12 @@ import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherResponse;
  * @author fr4ncisx
  * @since 0.5.0-M1
  */
-final class LastVoucherMapper {
+public final class LastVoucherMapper {
 
     private LastVoucherMapper() {
     }
 
-    static FECompUltimoAutorizado toSoapRequest(FEAuthRequest auth, LastVoucherRequest request) {
+    public static FECompUltimoAutorizado toSoapRequest(FEAuthRequest auth, LastVoucherRequest request) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -34,7 +34,7 @@ final class LastVoucherMapper {
         return soapRequest;
     }
 
-    static LastVoucherResponse toDomainResponse(
+    public static LastVoucherResponse toDomainResponse(
             FERecuperaLastCbteResponse result,
             LastVoucherRequest request) {
         if (result == null) {
