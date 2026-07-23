@@ -74,7 +74,7 @@ class BatchProcessUseCaseTest {
 
         assertThat(response.interrupted()).isFalse();
         assertThat(response.entries()).hasSize(2);
-        assertThat(response.entries().get(0).response()).contains(res);
+        assertThat(response.entries().get(0).response()).isEqualTo(res);
     }
 
     @Test
@@ -92,8 +92,8 @@ class BatchProcessUseCaseTest {
 
         assertThat(response.interrupted()).isTrue();
         assertThat(response.entries()).hasSize(1);
-        assertThat(response.entries().get(0).error()).isPresent();
-        assertThat(response.entries().get(0).error().get()).isInstanceOf(ArcaSoapException.class);
+        assertThat(response.entries().get(0).error()).isNotNull();
+        assertThat(response.entries().get(0).error()).isInstanceOf(ArcaSoapException.class);
     }
 
     @Test
