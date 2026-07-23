@@ -1,5 +1,5 @@
 /**
- * Internal JAX-WS client adapters for calling AFIP WSAA SOAP service.
+ * Internal WSAA client adapters for calling the ARCA WSAA SOAP service.
  * All types in this package are marked as null-marked by default.
  */
 @NullMarked
