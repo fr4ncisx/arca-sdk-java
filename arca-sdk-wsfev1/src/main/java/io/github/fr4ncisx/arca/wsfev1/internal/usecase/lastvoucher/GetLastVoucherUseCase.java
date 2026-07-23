@@ -8,7 +8,8 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompUltimoAutorizado;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FERecuperaLastCbteResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.LastVoucherMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherResponse;
 

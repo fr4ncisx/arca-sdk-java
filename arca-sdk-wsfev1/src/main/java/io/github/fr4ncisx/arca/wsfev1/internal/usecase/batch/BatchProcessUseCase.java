@@ -69,9 +69,9 @@ public final class BatchProcessUseCase {
                 }
                 try {
                     CaeResponse res = requestCaeUseCase.execute(req);
-                    entries.add(new BatchEntry(req, Optional.of(res), Optional.empty()));
+                    entries.add(new BatchEntry(req, res, null));
                 } catch (Throwable t) {
-                    entries.add(new BatchEntry(req, Optional.empty(), Optional.of(t)));
+                    entries.add(new BatchEntry(req, null, t));
                     if (strategy == BatchStrategy.FAIL_FAST) {
                         aborted.set(true);
                     }
@@ -101,9 +101,9 @@ public final class BatchProcessUseCase {
                         return;
                     }
                     CaeResponse res = requestCaeUseCase.execute(req);
-                    entries.add(new BatchEntry(req, Optional.of(res), Optional.empty()));
+                    entries.add(new BatchEntry(req, res, null));
                 } catch (Throwable t) {
-                    entries.add(new BatchEntry(req, Optional.empty(), Optional.of(t)));
+                    entries.add(new BatchEntry(req, null, t));
                 } finally {
                     semaphore.release();
                 }

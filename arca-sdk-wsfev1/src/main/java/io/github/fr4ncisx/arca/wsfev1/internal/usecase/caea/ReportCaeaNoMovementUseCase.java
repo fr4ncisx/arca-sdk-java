@@ -10,7 +10,8 @@ import io.github.fr4ncisx.arca.wsfev1.internal.generated.Err;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEASinMovimientoInformar;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEASinMovResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CaeaMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.caea.CaeaNoMovementRequest;
 
 /**

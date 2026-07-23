@@ -8,7 +8,8 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEAGetResponse;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECAEAConsultar;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CaeaMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.caea.CaeaQuery;
 import io.github.fr4ncisx.arca.wsfev1.model.caea.CaeaResponse;
 

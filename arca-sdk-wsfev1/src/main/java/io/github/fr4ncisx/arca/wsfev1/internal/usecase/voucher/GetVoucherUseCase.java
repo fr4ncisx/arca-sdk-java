@@ -8,7 +8,8 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultar;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FECompConsultaResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.VoucherMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.voucher.VoucherConsultRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.voucher.VoucherConsultResponse;
 

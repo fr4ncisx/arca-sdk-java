@@ -8,7 +8,8 @@ import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEParamGetTiposMonedas;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.MonedaResponse;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CatalogMapper;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.catalog.CurrencyInfo;
 
 import java.util.List;

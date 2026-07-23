@@ -1,4 +1,4 @@
-package io.github.fr4ncisx.arca.wsfev1.internal.usecase.common;
+package io.github.fr4ncisx.arca.wsfev1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
@@ -7,6 +7,8 @@ import io.github.fr4ncisx.arca.wsfev1.internal.generated.FEAuthRequest;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Shared utility mappings and formats for WSFEv1 request/response translation.
@@ -59,10 +61,10 @@ public final class CommonMapper {
      * Parses a date string in the standard yyyyMMdd pattern.
      *
      * @param raw the raw date string
-     * @return the parsed LocalDate, or null if input is null or blank
+     * @return the parsed LocalDate, or null if input is null, blank, or the literal "NULL"
      */
-    public static LocalDate parseDate(String raw) {
-        if (raw == null || raw.trim().isEmpty()) {
+    public static @Nullable LocalDate parseDate(@Nullable String raw) {
+        if (raw == null || raw.isBlank() || "NULL".equalsIgnoreCase(raw.trim())) {
             return null;
         }
         return LocalDate.parse(raw.trim(), DATE_FORMATTER);
