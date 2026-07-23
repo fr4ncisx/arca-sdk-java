@@ -94,7 +94,7 @@ feat(wsfev1): implement batch authorization
 fix(core): reject negative CUIT prefix
 test(client): add public API contract tests
 refactor(wsaa): decouple CMS cryptography via TraSigner SPI
-chore(release): bump version to 1.2.0
+chore(release): bump version to 1.2.2
 ```
 
 ## Pull Requests
