@@ -85,7 +85,7 @@ class ArcaMockServerTest {
             HttpResponse<String> success = post(server.baseUrl(), WSAA_PATH, null);
 
             assertThat(success.statusCode()).isEqualTo(200);
-            assertThat(success.body()).contains("<loginCmsReturn>");
+            assertThat(success.body()).contains("<tns1:loginCmsReturn>");
 
             server.reset();
             server.stubLoginCmsError();

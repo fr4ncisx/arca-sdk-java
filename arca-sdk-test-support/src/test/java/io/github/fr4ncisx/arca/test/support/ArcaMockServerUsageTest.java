@@ -35,7 +35,7 @@ class ArcaMockServerUsageTest {
             HttpResponse<String> response = post(server.baseUrl(), "/ws/services/LoginCms", null);
 
             assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.body()).contains("<loginCmsReturn>");
+            assertThat(response.body()).contains("<tns1:loginCmsReturn>");
         }
     }
 
