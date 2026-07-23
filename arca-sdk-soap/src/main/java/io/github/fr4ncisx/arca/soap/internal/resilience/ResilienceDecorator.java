@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.soap.internal.resilience;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaCircuitOpenException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
+import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
      */
     ResilienceDecorator(ArcaSoapPort<R, S> delegate, int maxRetries, long baseDelayMs, int maxConsecutiveFailures, long resetTimeoutMs) {
         if (delegate == null) {
-            throw new IllegalArgumentException("delegate port must not be null");
+            throw new ArcaValidationException("delegate port must not be null");
         }
         this.delegate = delegate;
         this.maxRetries = maxRetries;
