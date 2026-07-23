@@ -1,9 +1,8 @@
-package io.github.fr4ncisx.arca.wsfev1.internal.usecase.caea;
+package io.github.fr4ncisx.arca.wsfev1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.caea.*;
 import io.github.fr4ncisx.arca.wsfev1.model.common.AfipError;
@@ -18,12 +17,12 @@ import java.util.List;
  * @author fr4ncisx
  * @since 0.4.0-M1
  */
-final class CaeaMapper {
+public final class CaeaMapper {
 
     private CaeaMapper() {
     }
 
-    static FECAEASolicitar toSoapRequest(FEAuthRequest auth, CaeaRequest request) {
+    public static FECAEASolicitar toSoapRequest(FEAuthRequest auth, CaeaRequest request) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -37,7 +36,7 @@ final class CaeaMapper {
         return req;
     }
 
-    static CaeaResponse toDomainResponse(FECAEAGetResponse response) {
+    public static CaeaResponse toDomainResponse(FECAEAGetResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -75,7 +74,7 @@ final class CaeaMapper {
         return new CaeaResponse(caea, period, order, startDate, endDate, expirationDate, errors, observations);
     }
 
-    static FECAEAConsultar toSoapRequest(FEAuthRequest auth, CaeaQuery query) {
+    public static FECAEAConsultar toSoapRequest(FEAuthRequest auth, CaeaQuery query) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -89,7 +88,7 @@ final class CaeaMapper {
         return req;
     }
 
-    static FECAEARegInformativo toSoapRequest(FEAuthRequest auth, CaeaReportRequest request) {
+    public static FECAEARegInformativo toSoapRequest(FEAuthRequest auth, CaeaReportRequest request) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -145,7 +144,7 @@ final class CaeaMapper {
         return soapReq;
     }
 
-    static CaeaReportResponse toDomainResponse(FECAEAResponse result) {
+    public static CaeaReportResponse toDomainResponse(FECAEAResponse result) {
         if (result == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -184,7 +183,7 @@ final class CaeaMapper {
         return new CaeaReportResponse(globalResult, detailResults, globalErrors);
     }
 
-    static FECAEASinMovimientoInformar toSoapRequest(FEAuthRequest auth, CaeaNoMovementRequest request) {
+    public static FECAEASinMovimientoInformar toSoapRequest(FEAuthRequest auth, CaeaNoMovementRequest request) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -198,7 +197,7 @@ final class CaeaMapper {
         return req;
     }
 
-    static FECAEASinMovimientoConsultar toSoapRequest(FEAuthRequest auth, CaeaNoMovementQuery query) {
+    public static FECAEASinMovimientoConsultar toSoapRequest(FEAuthRequest auth, CaeaNoMovementQuery query) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
