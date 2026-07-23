@@ -6,6 +6,8 @@ import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.DefaultAuthProvider;
 import io.github.fr4ncisx.arca.wsaa.internal.cache.InMemoryTicketCache;
+import io.github.fr4ncisx.arca.wsaa.internal.cache.PersistentTicketCache;
+import io.github.fr4ncisx.arca.wsaa.internal.cache.TicketCache;
 import io.github.fr4ncisx.arca.wsaa.internal.client.LoginCmsClient;
 import io.github.fr4ncisx.arca.wsaa.internal.cms.CmsSigner;
 import io.github.fr4ncisx.arca.wsaa.internal.tra.TraGenerator;
@@ -61,7 +63,10 @@ public final class DefaultArcaClient {
     public static ArcaClient create(ArcaConfig config, TraSigner signer) {
         TraGenerator traGenerator = new TraGenerator(SystemClock.INSTANCE);
         LoginCmsClient loginCmsClient = new LoginCmsClient(config, config.environment().getWsaaUrl().toString());
-        InMemoryTicketCache ticketCache = new InMemoryTicketCache(SystemClock.INSTANCE);
+
+        TicketCache ticketCache = config.ticketCacheDir() != null
+                ? new PersistentTicketCache(config.ticketCacheDir(), SystemClock.INSTANCE)
+                : new InMemoryTicketCache(SystemClock.INSTANCE);
 
         AuthProvider authProvider = new DefaultAuthProvider(ticketCache, traGenerator, signer, loginCmsClient);
 
