@@ -4,6 +4,7 @@ import io.github.fr4ncisx.arca.core.tax.Cuit;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -40,11 +41,11 @@ public record WscdcConstatRequest(
      * Compact constructor to validate required parameters.
      */
     public WscdcConstatRequest {
-        java.util.Objects.requireNonNull(voucherMode, "voucherMode must not be null");
-        java.util.Objects.requireNonNull(issuerCuit, "issuerCuit must not be null");
-        java.util.Objects.requireNonNull(voucherDate, "voucherDate must not be null");
-        java.util.Objects.requireNonNull(totalAmount, "totalAmount must not be null");
-        java.util.Objects.requireNonNull(authorizationCode, "authorizationCode must not be null");
-        java.util.Objects.requireNonNull(optionalFields, "optionalFields must not be null");
+        Objects.requireNonNull(voucherMode, "voucherMode must not be null");
+        Objects.requireNonNull(issuerCuit, "issuerCuit must not be null");
+        Objects.requireNonNull(voucherDate, "voucherDate must not be null");
+        Objects.requireNonNull(totalAmount, "totalAmount must not be null");
+        Objects.requireNonNull(authorizationCode, "authorizationCode must not be null");
+        Objects.requireNonNull(optionalFields, "optionalFields must not be null");
     }
 }

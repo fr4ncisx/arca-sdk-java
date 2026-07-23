@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wscdc.model;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -24,9 +25,9 @@ public record WscdcConstatResponse(
      * Compact constructor to validate required parameters.
      */
     public WscdcConstatResponse {
-        java.util.Objects.requireNonNull(result, "result must not be null");
-        java.util.Objects.requireNonNull(observations, "observations must not be null");
-        java.util.Objects.requireNonNull(errors, "errors must not be null");
+        Objects.requireNonNull(result, "result must not be null");
+        Objects.requireNonNull(observations, "observations must not be null");
+        Objects.requireNonNull(errors, "errors must not be null");
     }
 
     /**

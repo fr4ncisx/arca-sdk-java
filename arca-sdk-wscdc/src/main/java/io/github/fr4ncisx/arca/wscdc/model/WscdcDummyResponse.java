@@ -1,5 +1,7 @@
 package io.github.fr4ncisx.arca.wscdc.model;
 
+import java.util.Objects;
+
 /**
  * Represents the health status response from the WSCDC dummy operation.
  *
@@ -18,9 +20,9 @@ public record WscdcDummyResponse(
      * Compact constructor to validate required parameters.
      */
     public WscdcDummyResponse {
-        java.util.Objects.requireNonNull(appServer, "appServer must not be null");
-        java.util.Objects.requireNonNull(dbServer, "dbServer must not be null");
-        java.util.Objects.requireNonNull(authServer, "authServer must not be null");
+        Objects.requireNonNull(appServer, "appServer must not be null");
+        Objects.requireNonNull(dbServer, "dbServer must not be null");
+        Objects.requireNonNull(authServer, "authServer must not be null");
     }
 
     /**
