@@ -1,15 +1,13 @@
-package io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog;
+package io.github.fr4ncisx.arca.wsfev1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.catalog.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Encapsulated package-private translator for WSFEv1 electronic invoicing catalogs.
@@ -17,7 +15,7 @@ import java.util.Optional;
  * @author fr4ncisx
  * @since 0.5.0-M1
  */
-final class CatalogMapper {
+public final class CatalogMapper {
 
     private CatalogMapper() {
     }
@@ -29,7 +27,7 @@ final class CatalogMapper {
         }
     }
 
-    static List<VoucherTypeDetail> toVoucherTypes(CbteTipoResponse response) {
+    public static List<VoucherTypeDetail> toVoucherTypes(CbteTipoResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -41,15 +39,15 @@ final class CatalogMapper {
                 list.add(new VoucherTypeDetail(
                         item.getId(),
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static List<DocumentTypeInfo> toDocumentTypes(DocTipoResponse response) {
+    public static List<DocumentTypeInfo> toDocumentTypes(DocTipoResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -61,15 +59,15 @@ final class CatalogMapper {
                 list.add(new DocumentTypeInfo(
                         item.getId(),
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static List<VatTypeInfo> toVatTypes(IvaTipoResponse response) {
+    public static List<VatTypeInfo> toVatTypes(IvaTipoResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -87,15 +85,15 @@ final class CatalogMapper {
                 list.add(new VatTypeInfo(
                         code,
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static List<CurrencyInfo> toCurrencies(MonedaResponse response) {
+    public static List<CurrencyInfo> toCurrencies(MonedaResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -107,15 +105,15 @@ final class CatalogMapper {
                 list.add(new CurrencyInfo(
                         item.getId(),
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static ExchangeRate toExchangeRate(FECotizacionResponse response) {
+    public static ExchangeRate toExchangeRate(FECotizacionResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -128,11 +126,11 @@ final class CatalogMapper {
         return new ExchangeRate(
                 item.getMonId(),
                 item.getMonCotiz(),
-                Optional.ofNullable(CommonMapper.parseDate(item.getFchCotiz()))
+                CommonMapper.parseDate(item.getFchCotiz())
         );
     }
 
-    static List<ConceptTypeInfo> toConceptTypes(ConceptoTipoResponse response) {
+    public static List<ConceptTypeInfo> toConceptTypes(ConceptoTipoResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -144,15 +142,15 @@ final class CatalogMapper {
                 list.add(new ConceptTypeInfo(
                         item.getId(),
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static List<OptionalFieldTypeInfo> toOptionalFieldTypes(OpcionalTipoResponse response) {
+    public static List<OptionalFieldTypeInfo> toOptionalFieldTypes(OpcionalTipoResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -164,15 +162,15 @@ final class CatalogMapper {
                 list.add(new OptionalFieldTypeInfo(
                         item.getId(),
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static List<CountryInfo> toCountries(FEPaisResponse response) {
+    public static List<CountryInfo> toCountries(FEPaisResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -190,7 +188,7 @@ final class CatalogMapper {
         return Collections.unmodifiableList(list);
     }
 
-    static List<TaxTypeInfo> toTaxTypes(FETributoResponse response) {
+    public static List<TaxTypeInfo> toTaxTypes(FETributoResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -202,15 +200,15 @@ final class CatalogMapper {
                 list.add(new TaxTypeInfo(
                         item.getId(),
                         item.getDesc(),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchDesde())),
-                        Optional.ofNullable(CommonMapper.parseDate(item.getFchHasta()))
+                        CommonMapper.parseDate(item.getFchDesde()),
+                        CommonMapper.parseDate(item.getFchHasta())
                 ));
             }
         }
         return Collections.unmodifiableList(list);
     }
 
-    static List<ActivityInfo> toActivities(FEActividadesResponse response) {
+    public static List<ActivityInfo> toActivities(FEActividadesResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -229,7 +227,7 @@ final class CatalogMapper {
         return Collections.unmodifiableList(list);
     }
 
-    static List<VatConditionInfo> toReceiverVatConditions(CondicionIvaReceptorResponse response) {
+    public static List<VatConditionInfo> toReceiverVatConditions(CondicionIvaReceptorResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }
@@ -248,7 +246,7 @@ final class CatalogMapper {
         return Collections.unmodifiableList(list);
     }
 
-    static int toMaxRecords(FERegXReqResponse response) {
+    public static int toMaxRecords(FERegXReqResponse response) {
         if (response == null) {
             throw new ArcaSoapException("Received empty response from ARCA SOAP service");
         }

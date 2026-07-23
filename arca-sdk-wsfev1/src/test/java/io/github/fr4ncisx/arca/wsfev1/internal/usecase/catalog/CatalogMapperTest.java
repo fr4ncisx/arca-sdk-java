@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CatalogMapper;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
 import io.github.fr4ncisx.arca.wsfev1.model.catalog.*;
 import org.junit.jupiter.api.Test;
@@ -37,8 +38,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).code()).isEqualTo(1);
         assertThat(list.get(0).description()).isEqualTo("Factura A");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2020, 1, 1));
-        assertThat(list.get(0).until()).contains(LocalDate.of(2030, 12, 31));
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2020, 1, 1));
+        assertThat(list.get(0).until()).isEqualTo(LocalDate.of(2030, 12, 31));
     }
 
     @Test
@@ -73,8 +74,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).code()).isEqualTo(80);
         assertThat(list.get(0).description()).isEqualTo("CUIT");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2010, 1, 1));
-        assertThat(list.get(0).until()).isEmpty();
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2010, 1, 1));
+        assertThat(list.get(0).until()).isNull();
     }
 
     @Test
@@ -94,8 +95,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).code()).isEqualTo(5);
         assertThat(list.get(0).description()).isEqualTo("21%");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2015, 1, 1));
-        assertThat(list.get(0).until()).isEmpty();
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2015, 1, 1));
+        assertThat(list.get(0).until()).isNull();
     }
 
     @Test
@@ -115,8 +116,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).code()).isEqualTo("DOL");
         assertThat(list.get(0).description()).isEqualTo("Dolar");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2000, 1, 1));
-        assertThat(list.get(0).until()).isEmpty();
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2000, 1, 1));
+        assertThat(list.get(0).until()).isNull();
     }
 
     @Test
@@ -132,7 +133,7 @@ class CatalogMapperTest {
 
         assertThat(rate.currencyId()).isEqualTo("DOL");
         assertThat(rate.rate()).isEqualTo(102.5);
-        assertThat(rate.date()).contains(LocalDate.of(2026, 7, 9));
+        assertThat(rate.date()).isEqualTo(LocalDate.of(2026, 7, 9));
     }
 
     @Test
@@ -161,8 +162,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).code()).isEqualTo(1);
         assertThat(list.get(0).description()).isEqualTo("Productos");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2010, 1, 1));
-        assertThat(list.get(0).until()).isEmpty();
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2010, 1, 1));
+        assertThat(list.get(0).until()).isNull();
     }
 
     @Test
@@ -201,8 +202,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).id()).isEqualTo("01");
         assertThat(list.get(0).description()).isEqualTo("Ingresos Brutos");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2020, 1, 1));
-        assertThat(list.get(0).until()).contains(LocalDate.of(2030, 12, 31));
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2020, 1, 1));
+        assertThat(list.get(0).until()).isEqualTo(LocalDate.of(2030, 12, 31));
     }
 
     @Test
@@ -239,8 +240,8 @@ class CatalogMapperTest {
         assertThat(list).hasSize(1);
         assertThat(list.get(0).id()).isEqualTo((short) 1);
         assertThat(list.get(0).description()).isEqualTo("Impuestos Nacionales");
-        assertThat(list.get(0).since()).contains(LocalDate.of(2020, 1, 1));
-        assertThat(list.get(0).until()).contains(LocalDate.of(2030, 12, 31));
+        assertThat(list.get(0).since()).isEqualTo(LocalDate.of(2020, 1, 1));
+        assertThat(list.get(0).until()).isEqualTo(LocalDate.of(2030, 12, 31));
     }
 
     @Test
