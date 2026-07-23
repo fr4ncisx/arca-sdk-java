@@ -52,6 +52,12 @@ JAXB classes must stay isolated under
 - **JSpecify Integration**: Use JSpecify annotations (`@NullMarked`, `@Nullable`) to enforce compile-time nullness analysis.
 - **Package-Level Defaults**: Every production package must declare a `package-info.java` containing `@NullMarked` to make all parameters and return types non-null by default.
 - **Nullable Types**: Explicitly annotate fields, arguments, or return values that can be null using `@Nullable`.
+- **Optional for Returns Only**: Use `Optional<T>` exclusively as method return types to signal potentially absent values. Never use `Optional` as a record component or class field — this is an anti-pattern per Brian Goetz (Java Language Architect). Store nullable fields as `@Nullable T` instead, and wrap at the call site with `Optional.ofNullable()` only when needed for chaining or stream operations.
+- **No Anti-Patterns**: Avoid these common Java anti-patterns:
+  - `Optional` as field/record component (use `@Nullable` instead)
+  - Generic `catch (Exception e)` or `catch (Throwable t)` (catch precise types)
+  - Returning `null` from collection methods (return `List.of()` or empty collections)
+  - Mutable shared state in utility classes (prefer static methods or immutable instances)
 
 ## Javadoc guidelines
 
@@ -124,6 +130,24 @@ separate from infrastructure adapters, generated SOAP stubs, and transport
 code. Apply SOLID and clean code: small classes, clear names, explicit
 dependencies, and no hidden global state. Prefer immutable records for value
 objects and interfaces for ports.
+
+### Big-O Complexity Awareness
+
+- **Default to efficient algorithms**: Use appropriate data structures and
+  algorithms for the expected data volume. Avoid quadratic or worse complexity
+  on paths that process user-provided collections.
+- **Document non-obvious complexity**: When a method's time or space complexity
+  is not O(1) or O(n), add a Javadoc `@implNote` explaining the complexity
+  class and why it is acceptable in context.
+- **Prefer standard library operations**: Rely on JDK methods (e.g.,
+  `HashMap`, `TreeMap`, streams with short-circuiting) over manual loops when
+  they express intent more clearly and with known complexity guarantees.
+- **Cache repeated computations**: When a value is derived from immutable state
+  and computed more than once, compute once and store in a final field or
+  local variable rather than recalculating.
+- **No hidden O(n²)**: Avoid nested loops over the same collection, repeated
+  `List.get(index)` on `ArrayList` in tight loops, or string concatenation
+  in loops — use `StringBuilder` or collector patterns instead.
 
 - **Strict Hexagonal Boundaries**: The domain layer (input/output records, exceptions, use cases) must remain pure and free from framework, transport, or serialization dependencies (such as `jakarta.xml.ws.*` or JAXB generated stubs under `internal.generated.*`). All SOAP mapping must reside exclusively within the infrastructure/mapper layer (`*Mapper.java`).
 - **Single Responsibility Use Cases (SRP)**: Each remote call or operation must be encapsulated in its own separate Use Case class (e.g., `GetLastVoucherUseCase`, `RequestCaeUseCase`). Do not group unrelated operations into monolithic service classes.
