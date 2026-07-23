@@ -1,9 +1,8 @@
-package io.github.fr4ncisx.arca.wsfev1.internal.usecase.cae;
+package io.github.fr4ncisx.arca.wsfev1.internal.adapter;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsfev1.internal.generated.*;
-import io.github.fr4ncisx.arca.wsfev1.internal.usecase.common.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeResponse;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
@@ -19,12 +18,12 @@ import java.util.List;
  * @author fr4ncisx
  * @since 0.5.0-M1
  */
-final class CaeMapper {
+public final class CaeMapper {
 
     private CaeMapper() {
     }
 
-    static FECAESolicitar toSoapRequest(FEAuthRequest auth, CaeRequest request) {
+    public static FECAESolicitar toSoapRequest(FEAuthRequest auth, CaeRequest request) {
         if (auth == null) {
             throw new ArcaValidationException("auth must not be null");
         }
@@ -78,7 +77,7 @@ final class CaeMapper {
         return solicitar;
     }
 
-    static CaeResponse toDomainResponse(FECAEResponse result) {
+    public static CaeResponse toDomainResponse(FECAEResponse result) {
         if (result == null) {
             throw new ArcaSoapException("Received empty result from ARCA SOAP service");
         }
