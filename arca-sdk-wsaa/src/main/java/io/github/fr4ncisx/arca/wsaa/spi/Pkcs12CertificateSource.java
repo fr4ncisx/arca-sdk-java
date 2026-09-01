@@ -3,6 +3,7 @@ package io.github.fr4ncisx.arca.wsaa.spi;
 import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,6 +18,8 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * PKCS#12-backed implementation of {@link CertificateSource}.
  * <p>
@@ -24,15 +27,16 @@ import java.util.Enumeration;
  * {@code .p12} or {@code .pfx} extension, and validates that the contained
  * X.509 certificate can be used by the WSAA authentication flow.
  * <p>
- * Instances are created through {@link #fromPath(Path, char[])}. The factory
- * only validates local construction arguments and captures the provided
- * references. It does not access the file system, does not inspect the
- * certificate content, does not clone the password array, and does not clear
- * the password array.
+ * Instances are created through {@link #fromPath(Path, char[])} or
+ * {@link #fromBytes(byte[], char[])}. Factories only validate local
+ * construction arguments and capture the provided references. They do not
+ * access the file system, do not inspect the certificate content, do not clone
+ * the password array, and do not clear the password array.
  * <p>
- * Every call to {@link #load()} opens the PKCS#12 file again, loads a new
- * {@link KeyStore}, and validates the certificate again. The loaded
- * {@link KeyStore} is not cached between invocations.
+ * Every call to {@link #load()} re-reads the configured material (file system
+ * path or in-memory bytes), loads a new {@link KeyStore}, and validates the
+ * certificate again. The loaded {@link KeyStore} is not cached between
+ * invocations.
  * <p>
  * Authentication failures are reported with stable messages that do not expose
  * the certificate path, password, or key store bytes.
@@ -44,11 +48,19 @@ public final class Pkcs12CertificateSource implements CertificateSource {
 
     private static final String KEY_STORE_TYPE = "PKCS12";
 
-    private final Path path;
+    private final @Nullable Path path;
+    private final @Nullable byte[] keystoreBytes;
     private final char[] password;
 
     private Pkcs12CertificateSource(Path path, char[] password) {
         this.path = path;
+        this.keystoreBytes = null;
+        this.password = password;
+    }
+
+    private Pkcs12CertificateSource(byte[] keystoreBytes, char[] password) {
+        this.path = null;
+        this.keystoreBytes = keystoreBytes;
         this.password = password;
     }
 
@@ -82,26 +94,64 @@ public final class Pkcs12CertificateSource implements CertificateSource {
     }
 
     /**
-     * Returns the password used to load the PKCS#12 key store.
+     * Creates a PKCS#12 certificate source from in-memory keystore bytes.
+     * <p>
+     * This factory is the preferred option when the PKCS#12 material comes
+     * from classpath resources or secret managers, because it avoids writing
+     * private key material to temporary files on disk. The byte array is
+     * captured by reference and must be treated as immutable by the caller.
+     * <p>
+     * This factory validates only construction arguments. It does not parse
+     * the PKCS#12 content and does not check certificate validity. Those
+     * operations are performed by {@link #load()}.
      *
-     * @return the key store password
+     * @param keystoreBytes the raw PKCS#12 encoded bytes.
+     * @param password      the password used to load the PKCS#12 key store.
+     * @return a PKCS#12-backed certificate source backed by in-memory bytes.
+     * @throws ArcaValidationException if the bytes are null or empty, the password
+     *                                 is null, or the password is empty.
+     * @since 1.3.0
      */
+    public static Pkcs12CertificateSource fromBytes(byte[] keystoreBytes, char[] password) {
+        if (keystoreBytes == null || keystoreBytes.length == 0) {
+            throw new ArcaValidationException("the keystore bytes must not be null or empty");
+        }
+        if (password == null) {
+            throw new ArcaValidationException("the password must not be null");
+        }
+        if (password.length == 0) {
+            throw new ArcaValidationException("the password must not be empty");
+        }
+        return new Pkcs12CertificateSource(keystoreBytes, password);
+    }
+
+    /**
+     * Returns a defensive copy of the password used to load the PKCS#12 key store.
+     *
+     * @return a copy of the key store password
+     * @deprecated Direct exposure of keystore passwords encourages secret
+     *             handling outside the SDK. Keep the password encapsulated in
+     *             this source instead of reading it back.
+     * @since 0.1.0-M2
+     */
+    @Deprecated(since = "1.3.0")
     public char[] getPassword() {
-        return password;
+        return password.clone();
     }
 
     /**
      * Loads and validates the PKCS#12 key store.
      * <p>
-     * This method opens the configured file on every invocation, loads a fresh
-     * {@link KeyStore}, and verifies that at least one private-key entry has an
-     * X.509 certificate that is currently valid.
+     * This method re-reads the configured material on every invocation (file
+     * system path or in-memory bytes), loads a fresh {@link KeyStore}, and
+     * verifies that at least one private-key entry has an X.509 certificate
+     * that is currently valid.
      * <p>
      * File system errors, incorrect passwords, invalid PKCS#12 content, and
      * unusable certificates are translated to {@link ArcaAuthException}.
      *
      * @return a newly loaded PKCS#12 key store.
-     * @throws ArcaAuthException if the PKCS#12 file does not exist, cannot be
+     * @throws ArcaAuthException if the PKCS#12 material does not exist, cannot be
      *                           loaded, has an invalid format, has an incorrect password, or does
      *                           not contain a currently valid X.509 certificate usable for
      *                           authentication.
@@ -111,8 +161,12 @@ public final class Pkcs12CertificateSource implements CertificateSource {
         try {
             KeyStore keyStore = KeyStore.getInstance(KEY_STORE_TYPE);
 
-            try (InputStream inputStream = Files.newInputStream(path)) {
-                keyStore.load(inputStream, password);
+            if (path != null) {
+                try (InputStream inputStream = Files.newInputStream(path)) {
+                    keyStore.load(inputStream, password);
+                }
+            } else {
+                keyStore.load(new ByteArrayInputStream(keystoreBytes), password);
             }
 
             validateUsableCertificate(keyStore);
