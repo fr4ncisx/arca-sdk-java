@@ -219,7 +219,7 @@ boolean wsfeOnline = client.wsfev1().ping();
 
 ### Integración con Spring Boot
 
-El starter `arca-sdk-spring-boot-starter` autoconfigura `ArcaClient` y los subclientes funcionales en Spring Boot 3.5.x. Las propiedades del bloque `arca` pueden definirse en `application.yml` o resolverse desde variables de entorno.
+El starter `arca-sdk-spring-boot-starter` autoconfigura `ArcaClient` y los subclientes funcionales en Spring Boot 4.0.x. Las propiedades del bloque `arca` pueden definirse en `application.yml` o resolverse desde variables de entorno.
 
 Cuando la aplicación se despliega con configuración externa, Spring Boot puede poblar el bloque `arca` a partir de variables de entorno con el prefijo `ARCA_`.
 
@@ -322,7 +322,7 @@ ArcaClient client = ArcaClient.builder()
 
 * Java 21 o superior.
 * Maven 3.9 o superior.
-* Spring Boot 3.5.x para el starter.
+* Spring Boot 4.0.x para el starter.
 
 ## Recursos oficiales
 
