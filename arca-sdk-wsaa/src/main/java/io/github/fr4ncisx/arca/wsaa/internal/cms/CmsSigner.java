@@ -4,7 +4,9 @@ import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsaa.spi.TraSigner;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -15,6 +17,7 @@ import java.util.Base64;
 import java.util.Enumeration;
 import java.util.List;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
+import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSProcessableByteArray;
 import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.cms.CMSSignedDataGenerator;
@@ -22,6 +25,7 @@ import org.bouncycastle.cms.CMSTypedData;
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.Store;
@@ -125,7 +129,7 @@ public final class CmsSigner implements TraSigner {
             return Base64.getEncoder().encodeToString(signedData.getEncoded());
         } catch (ArcaAuthException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | CMSException | OperatorCreationException | IOException e) {
             throw new ArcaAuthException("Failed to generate PKCS#7 (CMS) signature: " + e.getMessage(), e);
         }
     }

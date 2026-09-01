@@ -12,6 +12,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Raw SOAP 1.1 HTTP client for the WSAA {@code loginCms} operation.
@@ -30,6 +32,8 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
     private static final String SOAP_NS = "http://schemas.xmlsoap.org/soap/envelope/";
     private static final String WSAA_NS = "http://wsaa.view.sua.dvadac.desein.afip.gov";
     private static final String CONTENT_TYPE = "text/xml; charset=utf-8";
+    private static final Pattern STRICT_BASE64_PATTERN = Pattern.compile("^[A-Za-z0-9+/]+={0,2}$");
+    private static final Pattern LOOPBACK_IPV4_PATTERN = Pattern.compile("^127(\\.\\d{1,3}){3}$");
 
     private final HttpClient httpClient;
     private final URI endpoint;
@@ -37,15 +41,24 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
 
     /**
      * Creates a raw SOAP HTTP client for the given endpoint and timeouts.
+     * <p>
+     * Only HTTPS endpoints are accepted. Loopback hosts are exempted from the
+     * TLS requirement so that local mock servers can be used in tests.
      *
      * @param endpoint     the WSAA SOAP endpoint URL.
      * @param connectTimeout maximum time allowed to establish a connection.
      * @param readTimeout    maximum time allowed waiting for a response.
-     * @throws ArcaValidationException if any argument is null or negative.
+     * @throws ArcaValidationException if any argument is null or negative, or
+     *                                 the endpoint scheme is not HTTPS on a non-loopback host.
      */
     RawSoapHttpClient(URI endpoint, Duration connectTimeout, Duration readTimeout) {
         if (endpoint == null) {
             throw new ArcaValidationException("endpoint must not be null");
+        }
+        if (!isSecureEndpoint(endpoint)) {
+            throw new ArcaValidationException(
+                "Only HTTPS endpoints are allowed for SOAP transport; "
+                + "loopback hosts are exempted for testing: " + endpoint);
         }
         if (connectTimeout == null || connectTimeout.isNegative()) {
             throw new ArcaValidationException("connectTimeout must not be null or negative");
@@ -60,15 +73,35 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
                 .build();
     }
 
+    private static boolean isSecureEndpoint(URI endpoint) {
+        String scheme = endpoint.getScheme();
+        return "https".equalsIgnoreCase(scheme) || isLoopbackHost(endpoint);
+    }
+
+    private static boolean isLoopbackHost(URI endpoint) {
+        String host = endpoint.getHost();
+        if (host == null) {
+            return false;
+        }
+        String normalized = host.toLowerCase(Locale.ROOT);
+        return normalized.equals("localhost")
+            || normalized.equals("::1")
+            || LOOPBACK_IPV4_PATTERN.matcher(normalized).matches();
+    }
+
     /**
      * {@inheritDoc}
      * <p>
      * Sends a SOAP 1.1 {@code loginCms} envelope to the WSAA endpoint and
      * returns the raw XML response body. The request envelope is constructed
-     * using the real ARCA WSAA element namespace.
+     * using the real ARCA WSAA element namespace. The CMS payload must be
+     * strict Base64; any other content is rejected before it can reach the
+     * envelope template.
      *
      * @param cmsBase64 the Base64-encoded CMS signed TRA payload.
      * @return the raw XML response body from the WSAA service.
+     * @throws ArcaValidationException if the payload is null, blank, or not
+     *                                 strict Base64.
      * @throws ArcaSoapException if the HTTP request fails or the response is invalid.
      */
     @Override
@@ -76,11 +109,19 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
         if (cmsBase64 == null || cmsBase64.isBlank()) {
             throw new ArcaValidationException("cmsBase64 must not be null or blank");
         }
+        if (!isValidBase64Payload(cmsBase64)) {
+            throw new ArcaValidationException("cmsBase64 must contain only strict Base64 characters");
+        }
 
         String envelope = buildEnvelope(cmsBase64);
         HttpResponse<String> response = sendRequest(envelope);
         validateResponse(response);
         return response.body();
+    }
+
+    private static boolean isValidBase64Payload(String cmsBase64) {
+        String compact = cmsBase64.replaceAll("[\r\n]", "");
+        return compact.length() % 4 == 0 && STRICT_BASE64_PATTERN.matcher(compact).matches();
     }
 
     private String buildEnvelope(String cmsBase64) {

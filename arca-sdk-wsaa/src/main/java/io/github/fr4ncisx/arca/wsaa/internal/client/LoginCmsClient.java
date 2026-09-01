@@ -4,17 +4,16 @@ import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.logging.LogSanitizer;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
+import io.github.fr4ncisx.arca.wsaa.internal.xml.HardenedXmlParser;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.time.format.DateTimeParseException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
@@ -101,14 +100,7 @@ public final class LoginCmsClient {
     private static String extractLoginCmsReturn(String xmlResponse) {
         if (xmlResponse.contains("loginCmsReturn")) {
             try {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                factory.setNamespaceAware(true);
-                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                Document doc = builder.parse(new ByteArrayInputStream(xmlResponse.getBytes(StandardCharsets.UTF_8)));
+                Document doc = HardenedXmlParser.parse(xmlResponse);
 
                 NodeList nodes = doc.getElementsByTagNameNS("*", "loginCmsReturn");
                 if (nodes.getLength() > 0 && nodes.item(0) != null) {
@@ -132,14 +124,7 @@ public final class LoginCmsClient {
         }
 
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            factory.setNamespaceAware(true);
-
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new ByteArrayInputStream(xmlResponse.getBytes(StandardCharsets.UTF_8)));
+            Document doc = HardenedXmlParser.parse(xmlResponse);
 
             NodeList tokens = doc.getElementsByTagNameNS("*", "token");
             NodeList signs = doc.getElementsByTagNameNS("*", "sign");
@@ -166,22 +151,24 @@ public final class LoginCmsClient {
             return new ArcaAccessTicket(token, sign, generationTime, expirationTime);
         } catch (ArcaAuthException e) {
             throw e;
-        } catch (Exception e) {
-            throw new ArcaAuthException("Failed to parse the XML response from WSAA: " + e.getMessage(), e);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            throw new ArcaAuthException("Failed to parse the XML response from WSAA.", e);
+        } catch (DateTimeParseException e) {
+            throw new ArcaAuthException("Failed to parse WSAA ticket timestamps: " + e.getMessage(), e);
         }
     }
 
     private static String extractFaultString(String xmlResponse) {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new ByteArrayInputStream(xmlResponse.getBytes(StandardCharsets.UTF_8)));
+            Document doc = HardenedXmlParser.parse(xmlResponse);
             var faultNodes = doc.getElementsByTagName("faultstring");
-            if (faultNodes.getLength() > 0) {
-                return faultNodes.item(0).getTextContent();
+            if (faultNodes.getLength() > 0 && faultNodes.item(0) != null) {
+                return LogSanitizer.sanitize(faultNodes.item(0).getTextContent());
             }
-        } catch (ParserConfigurationException | SAXException | IOException ignored) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            throw new ArcaAuthException(
+                "WSAA returned an unparseable SOAP fault response; "
+                + "the raw content was discarded for security reasons.", e);
         }
         return "unknown error";
     }
