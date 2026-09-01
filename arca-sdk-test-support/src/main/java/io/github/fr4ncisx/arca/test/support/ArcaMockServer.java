@@ -139,6 +139,23 @@ public final class ArcaMockServer implements AutoCloseable {
     }
 
     /**
+     * Registers a raw WSAA LoginCms response body for security regression tests.
+     *
+     * @param rawXmlBody the exact response body to serve.
+     * @param status the HTTP status code to respond with.
+     * @throws IllegalStateException if the server is stopped
+     * @since 1.3.0
+     */
+    public void stubLoginCmsRawBody(String rawXmlBody, int status) {
+        ensureStarted();
+        server.stubFor(post(urlPathEqualTo(WSAA_LOGIN_CMS_PATH))
+            .willReturn(aResponse()
+                .withStatus(status)
+                .withHeader("Content-Type", XML_CONTENT_TYPE)
+                .withBody(rawXmlBody)));
+    }
+
+    /**
      * Registers a successful WSFEv1 FECompUltimoAutorizado response.
      *
      * @throws IllegalStateException if the server is stopped or the fixture cannot be loaded
