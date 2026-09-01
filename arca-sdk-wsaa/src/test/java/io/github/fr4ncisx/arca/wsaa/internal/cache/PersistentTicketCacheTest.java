@@ -8,8 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -131,5 +133,45 @@ class PersistentTicketCacheTest {
 
         assertThat(tempDir.resolve("wsfe.cache")).doesNotExist();
         assertThat(tempDir.resolve("ws_sr_padron_a4.cache")).doesNotExist();
+    }
+
+    /**
+     * Verifies that clear() only deletes files owned by the cache (*.cache)
+     * and preserves unrelated files sharing the configured directory.
+     */
+    @Test
+    void clearPreservesUnrelatedFilesInDirectory() throws IOException {
+        var cache = new PersistentTicketCache(tempDir, new FixedClock(NOW));
+        Path unrelatedFile = tempDir.resolve("operator-notes.txt");
+        Files.writeString(unrelatedFile, "keep me");
+
+        cache.put(KEY, new ArcaAccessTicket(TOKEN, SIGN, GEN, EXP));
+        cache.clear();
+
+        assertThat(unrelatedFile).exists();
+        assertThat(tempDir.resolve(KEY + ".cache")).doesNotExist();
+    }
+
+    /**
+     * Verifies that persisted ticket files are restricted to their owner on
+     * POSIX-compliant filesystems. The assertion is skipped on filesystems
+     * without POSIX support.
+     */
+    @Test
+    void restrictsPersistedTicketFilePermissionsOnPosixFilesystems() throws IOException {
+        var cache = new PersistentTicketCache(tempDir, new FixedClock(NOW));
+
+        cache.put(KEY, new ArcaAccessTicket(TOKEN, SIGN, GEN, EXP));
+
+        if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            return;
+        }
+
+        var permissions = Files.getPosixFilePermissions(tempDir.resolve(KEY + ".cache"));
+        assertThat(permissions)
+                .contains(PosixFilePermission.OWNER_READ,
+                          PosixFilePermission.OWNER_WRITE)
+                .doesNotContain(PosixFilePermission.GROUP_READ,
+                                PosixFilePermission.OTHERS_READ);
     }
 }

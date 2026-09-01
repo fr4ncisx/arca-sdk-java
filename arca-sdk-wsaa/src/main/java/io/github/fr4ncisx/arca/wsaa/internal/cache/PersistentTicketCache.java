@@ -9,12 +9,18 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * File-system based implementation of the WSAA ticket cache.
@@ -23,13 +29,27 @@ import java.util.Properties;
  * within a dedicated cache directory, enabling session persistence across
  * application restarts.
  * <p>
+ * Because tickets hold live credentials, persisted files are restricted to
+ * their owner on POSIX-compliant filesystems ({@code rw-------} for files and
+ * {@code rwx------} for the cache directory). On filesystems without POSIX
+ * support, platform default permissions apply and the directory should be
+ * pre-configured by the operator with equivalent restrictions.
+ * <p>
  * Expired tickets are cleaned up lazily from disk during read operations.
- * Technical I/O issues are caught and translated to {@link ArcaAuthException}.
+ * {@link #clear()} only deletes files owned by this cache (the
+ * {@code *.cache} entries inside the configured directory). Technical I/O
+ * issues are caught and translated to {@link ArcaAuthException}.
  *
  * @author fr4ncisx
  * @since 0.3.0-M1
  */
 public final class PersistentTicketCache implements TicketCache {
+
+    private static final String CACHE_FILE_SUFFIX = ".cache";
+    private static final Set<PosixFilePermission> RESTRICTED_FILE_PERMISSIONS =
+            PosixFilePermissions.fromString("rw-------");
+    private static final Set<PosixFilePermission> RESTRICTED_DIRECTORY_PERMISSIONS =
+            PosixFilePermissions.fromString("rwx------");
 
     private final Path directory;
     private final ArcaClock clock;
@@ -118,12 +138,14 @@ public final class PersistentTicketCache implements TicketCache {
         Path filePath = resolvePath(key);
         try {
             Files.createDirectories(directory);
+            restrictDirectoryPermissions();
             Properties props = new Properties();
             props.setProperty("token", ticket.token());
             props.setProperty("sign", ticket.sign());
             props.setProperty("generationTime", ticket.generationTime().toString());
             props.setProperty("expirationTime", ticket.expirationTime().toString());
 
+            prepareRestrictedFile(filePath);
             try (FileChannel channel = FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
                  FileLock lock = channel.lock()) {
                 props.store(Channels.newOutputStream(channel), "ARCA SDK WSAA Access Ticket Cache File");
@@ -152,7 +174,10 @@ public final class PersistentTicketCache implements TicketCache {
     }
 
     /**
-     * Clears all cached ticket files in the directory.
+     * Clears every cached ticket file owned by this cache in the directory.
+     * <p>
+     * Only regular files ending with {@code *.cache} are deleted; unrelated
+     * files sharing the configured directory are preserved.
      *
      * @throws ArcaAuthException if an I/O error occurs listing or deleting files
      */
@@ -162,7 +187,7 @@ public final class PersistentTicketCache implements TicketCache {
             if (Files.exists(directory)) {
                 try (var stream = Files.list(directory)) {
                     for (Path path : stream.toList()) {
-                        if (Files.isRegularFile(path)) {
+                        if (isOwnedCacheFile(path)) {
                             Files.delete(path);
                         }
                     }
@@ -173,14 +198,43 @@ public final class PersistentTicketCache implements TicketCache {
         }
     }
 
+    private static boolean isOwnedCacheFile(Path path) throws IOException {
+        if (!Files.isRegularFile(path)) {
+            return false;
+        }
+        var fileName = path.getFileName();
+        return fileName != null && fileName.toString().endsWith(CACHE_FILE_SUFFIX);
+    }
+
     private Path resolvePath(String key) {
         String sanitizedKey = key.replaceAll("[^a-zA-Z0-9_-]", "_");
-        return directory.resolve(sanitizedKey + ".cache");
+        return directory.resolve(sanitizedKey + CACHE_FILE_SUFFIX);
     }
 
     private static void validateKey(String key) {
         if (key == null || key.trim().isEmpty()) {
             throw new ArcaValidationException("key must not be null or blank");
+        }
+    }
+
+    private static boolean supportsPosix() {
+        return FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+    }
+
+    private void restrictDirectoryPermissions() throws IOException {
+        if (supportsPosix()) {
+            Files.setPosixFilePermissions(directory, RESTRICTED_DIRECTORY_PERMISSIONS);
+        }
+    }
+
+    private static void prepareRestrictedFile(Path filePath) throws IOException {
+        if (!supportsPosix()) {
+            return;
+        }
+        try {
+            Files.createFile(filePath, PosixFilePermissions.asFileAttribute(RESTRICTED_FILE_PERMISSIONS));
+        } catch (FileAlreadyExistsException e) {
+            Files.setPosixFilePermissions(filePath, RESTRICTED_FILE_PERMISSIONS);
         }
     }
 }
