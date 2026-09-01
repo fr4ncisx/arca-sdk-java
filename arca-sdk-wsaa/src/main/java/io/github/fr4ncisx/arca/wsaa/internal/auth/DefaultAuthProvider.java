@@ -99,7 +99,7 @@ public final class DefaultAuthProvider implements AuthProvider {
                     newLogin.ticket = loginCmsClient.loginCms(cms);
                     ticketCache.put(sanitizedService, newLogin.ticket);
                 }
-            } catch (Throwable t) {
+            } catch (RuntimeException t) {
                 newLogin.error = t;
             } finally {
                 activeLogins.remove(sanitizedService);
