@@ -1,6 +1,7 @@
 package io.github.fr4ncisx.arca.spring;
 
 import io.github.fr4ncisx.arca.client.spi.ArcaClient;
+import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wscdc.spi.WscdcClient;
@@ -14,10 +15,13 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,6 +36,7 @@ class ArcaAutoConfigurationTest {
     @Test
     void shouldAutoconfigureBeansWhenPropertiesProvided() throws IOException {
         Path tempCert = Files.createTempFile(tempDir, "test-cert", ".p12");
+        Files.writeString(tempCert, "dummy-pkcs12-bytes");
         String certPath = tempCert.toAbsolutePath().toString();
 
         contextRunner
@@ -55,7 +60,7 @@ class ArcaAutoConfigurationTest {
 
     @Test
     void shouldAutoconfigureFromNonFileResource() {
-        org.springframework.core.io.Resource nonFileResource = new org.springframework.core.io.ByteArrayResource(new byte[]{1, 2, 3});
+        Resource nonFileResource = new ByteArrayResource(new byte[]{1, 2, 3});
         contextRunner
             .withPropertyValues(
                 "arca.cuit=20-33333333-4",
@@ -63,9 +68,9 @@ class ArcaAutoConfigurationTest {
             )
             .withBean("arca-io.github.fr4ncisx.arca.spring.ArcaProperties", ArcaProperties.class, () -> new ArcaProperties(
                 "20-33333333-4",
-                io.github.fr4ncisx.arca.core.config.ArcaEnvironment.HOMOLOGACION,
-                java.time.Duration.ofSeconds(10),
-                java.time.Duration.ofSeconds(30),
+                ArcaEnvironment.HOMOLOGACION,
+                Duration.ofSeconds(10),
+                Duration.ofSeconds(30),
                 true,
                 nonFileResource,
                 "changeit"
@@ -74,6 +79,45 @@ class ArcaAutoConfigurationTest {
                 assertThat(context).hasSingleBean(CertificateSource.class);
                 assertThat(context).hasSingleBean(ArcaClient.class);
             });
+    }
+
+    /**
+     * Verifies that wiring the certificate source from a non-file resource
+     * never writes private key material to a temporary file on disk.
+     */
+    @Test
+    void shouldNotWriteCertificateMaterialToTempFiles() {
+        Resource nonFileResource = new ByteArrayResource(new byte[]{1, 2, 3});
+        long leakedFilesBefore = countLeakedCertTempFiles();
+
+        contextRunner
+            .withPropertyValues(
+                "arca.cuit=20-33333333-4",
+                "arca.certificate-location=dummy"
+            )
+            .withBean("arca-io.github.fr4ncisx.arca.spring.ArcaProperties", ArcaProperties.class, () -> new ArcaProperties(
+                "20-33333333-4",
+                ArcaEnvironment.HOMOLOGACION,
+                Duration.ofSeconds(10),
+                Duration.ofSeconds(30),
+                true,
+                nonFileResource,
+                "changeit"
+            ))
+            .run(context -> assertThat(context).hasSingleBean(CertificateSource.class));
+
+        assertThat(countLeakedCertTempFiles()).isEqualTo(leakedFilesBefore);
+    }
+
+    private static long countLeakedCertTempFiles() {
+        try (var stream = Files.list(Path.of(System.getProperty("java.io.tmpdir")))) {
+            return stream
+                .map(path -> path.getFileName().toString())
+                .filter(name -> name.startsWith("arca-cert-"))
+                .count();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to inspect temp directory", e);
+        }
     }
 
     @Test
@@ -102,6 +146,7 @@ class ArcaAutoConfigurationTest {
     @Test
     void shouldBackOffWhenCustomSubClientBeanProvided() throws IOException {
         Path tempCert = Files.createTempFile(tempDir, "test-cert", ".p12");
+        Files.writeString(tempCert, "dummy-pkcs12-bytes");
         String certPath = tempCert.toAbsolutePath().toString();
 
         contextRunner

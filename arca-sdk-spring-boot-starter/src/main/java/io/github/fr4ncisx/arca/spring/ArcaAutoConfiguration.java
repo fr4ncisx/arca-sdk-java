@@ -23,9 +23,6 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 /**
  * Spring Boot Auto-Configuration for the ARCA SDK.
@@ -59,8 +56,7 @@ final class ArcaAutoConfiguration {
             }
 
             try {
-                Path certPath = resolveCertificatePath(location);
-                return Pkcs12CertificateSource.fromPath(certPath, password.toCharArray());
+                return Pkcs12CertificateSource.fromBytes(readCertificateBytes(location), password.toCharArray());
             } catch (IOException e) {
                 throw new ApplicationContextException(
                     "Failed to resolve ARCA certificate from location: " + location, e
@@ -128,16 +124,9 @@ final class ArcaAutoConfiguration {
         return arcaClient.wscdc();
     }
 
-    private static Path resolveCertificatePath(Resource resource) throws IOException {
-        try {
-            return resource.getFile().toPath();
-        } catch (IOException e) {
-            Path tempFile = Files.createTempFile("arca-cert-", ".p12");
-            try (InputStream in = resource.getInputStream()) {
-                Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            }
-            tempFile.toFile().deleteOnExit();
-            return tempFile;
+    private static byte[] readCertificateBytes(Resource resource) throws IOException {
+        try (InputStream in = resource.getInputStream()) {
+            return in.readAllBytes();
         }
     }
 }
