@@ -2,7 +2,11 @@ package io.github.fr4ncisx.arca.core.logging;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 /**
  * Tests for {@link LogSanitizer}.
@@ -265,5 +269,80 @@ class LogSanitizerTest {
             {"password":"[REDACTED]","env":"test"}
             token=[REDACTED]
             """);
+    }
+
+    /**
+     * Validates that dotted sensitive keys inside JSON are redacted by resolving
+     * their local name.
+     */
+    @Test
+    void redactsDottedSensitiveKeysInJsonFormat() {
+        var input = "{\"auth.token\":\"secret-token-value\",\"env\":\"test\"}";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("{\"auth.token\":\"[REDACTED]\",\"env\":\"test\"}");
+    }
+
+    /**
+     * Validates that dotted sensitive keys in {@code key=value} format are redacted.
+     */
+    @Test
+    void redactsDottedSensitiveKeysInKeyValueFormat() {
+        var input = "auth.token=abc123 traceId=req-42";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("auth.token=[REDACTED] traceId=req-42");
+    }
+
+    /**
+     * Validates that underscore-separated sensitive key variants are redacted.
+     */
+    @Test
+    void redactsUnderscoreSeparatedSensitiveKeys() {
+        var input = "private_key=MIIABC123 client_secret=s3cr3t";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("private_key=[REDACTED] client_secret=[REDACTED]");
+    }
+
+    /**
+     * Validates that namespaced XML elements with dotted local names are redacted.
+     */
+    @Test
+    void redactsDottedSensitiveXmlElementText() {
+        var input = "<credentials.auth.token>abc</credentials.auth.token>";
+
+        assertThat(LogSanitizer.sanitize(input))
+            .isEqualTo("<credentials.auth.token>[REDACTED]</credentials.auth.token>");
+    }
+
+    /**
+     * Validates that an unknown key fails closed by redacting the value instead
+     * of returning it unsanitized.
+     */
+    @Test
+    void sanitizeKeyValueRedactsWhenKeyIsNull() {
+        assertThat(LogSanitizer.sanitizeKeyValue(null, "secret-value")).isEqualTo("[REDACTED]");
+    }
+
+    /**
+     * Validates that a known sensitive key is redacted even when passed directly.
+     */
+    @Test
+    void sanitizeKeyValueRedactsSensitiveKey() {
+        assertThat(LogSanitizer.sanitizeKeyValue("access_token", "abc.def")).isEqualTo("[REDACTED]");
+    }
+
+    /**
+     * Validates that sanitization terminates quickly on large adversarial input
+     * containing an unterminated sensitive block, bounding regex backtracking.
+     */
+    @Test
+    void completesOnLargeAdversarialInputWithUnterminatedBlock() {
+        var adversarial = "-----BEGIN PRIVATE KEY-----\n" + "A".repeat(2_000_000);
+
+        assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
+            assertThatCode(() -> LogSanitizer.sanitize(adversarial))
+                .doesNotThrowAnyException());
     }
 }

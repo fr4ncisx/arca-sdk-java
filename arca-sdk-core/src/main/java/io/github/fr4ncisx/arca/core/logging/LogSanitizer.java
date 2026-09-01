@@ -61,21 +61,41 @@ public final class LogSanitizer {
         "pwd",
         "secret",
         "privatekey",
+        "private_key",
         "cert",
         "certificate",
         "keystorepassword",
+        "keystore_password",
         "pkcs12password",
+        "pkcs12_password",
+        "clientsecret",
+        "client_secret",
+        "accesstoken",
+        "access_token",
         "authorization",
         "set-cookie");
 
+    /**
+     * Matches complete PEM blocks (private keys and certificates).
+     * <p>
+     * The scanned body length is capped at 8192 characters so that
+     * attacker-controlled diagnostics cannot drive unbounded regex
+     * backtracking (ReDoS). Larger blocks may be only partially redacted,
+     * which is an accepted trade-off for a log sanitization path.
+     */
     private static final Pattern SENSITIVE_BLOCK_PATTERN = Pattern.compile(
         """
-        (?is)-{5}BEGIN[^\\r\\n]*?(PRIVATE KEY|CERTIFICATE)[^\\r\\n]*-{5}.*?
+        (?is)-{5}BEGIN[^\\r\\n]*?(PRIVATE KEY|CERTIFICATE)[^\\r\\n]*?-{5}(?:\\r?\\n)?[\\s\\S]{0,8192}?
         -{5}END[^\\r\\n]*?(PRIVATE KEY|CERTIFICATE)[^\\r\\n]*-{5}(\\r?\\n)?\
         """);
 
+    /**
+     * Matches XML-style attributes. The mandatory boundary (start of input or a
+     * structural separator) prevents quadratic rescanning of adversarial
+     * inputs whose bodies consist of ordinary word characters.
+     */
     private static final Pattern XML_ATTRIBUTE_PATTERN = Pattern.compile(
-        "([A-Z_][\\w.:-]*)(\\s*=\\s*)([\"'])(.*?)\\3",
+        "(?:(?<=[\\s<,;\"'])|\\A)([A-Z_][\\w.:-]*)(\\s*=\\s*)([\"'])(.*?)\\3",
         Pattern.CASE_INSENSITIVE);
 
     private static final Pattern XML_ELEMENT_PATTERN = Pattern.compile(
@@ -86,11 +106,11 @@ public final class LogSanitizer {
         "(\"([^\"]+)\")(\\s*:\\s*)(\")([^\"]*)(\")");
 
     private static final Pattern KEY_VALUE_EQUALS_PATTERN = Pattern.compile(
-        "(^|[\\s,;>])([A-Z][A-Z\\d-]*)(\\s*=\\s*)((?![\"'])[^\\s,;<]+)",
+        "(^|[\\s,;>])([A-Z][A-Z\\d._-]*)(\\s*=\\s*)((?![\"'])[^\\s,;<]+)",
         Pattern.CASE_INSENSITIVE);
 
     private static final Pattern KEY_VALUE_COLON_PATTERN = Pattern.compile(
-        "(^|[\\s,;>])([A-Z][A-Z\\d-]*)(\\s*:\\s*)([^\\r\\n,;<]+)",
+        "(^|[\\s,;>])([A-Z][A-Z\\d._-]*)(\\s*:\\s*)([^\\r\\n,;<]+)",
         Pattern.CASE_INSENSITIVE);
 
     /**
@@ -114,17 +134,21 @@ public final class LogSanitizer {
     }
 
     /**
-     * Sanitizes a single key-value pair, redacting the value if the key is sensitive.
+     * Sanitizes a single key-value pair, redacting the value if the key is
+     * sensitive.
+     * <p>
+     * A {@code null} key is treated as sensitive so that the method always
+     * fails closed when the key cannot be inspected.
      *
-     * @param key the key name.
+     * @param key the key name, or null when unknown.
      * @param value the value.
-     * @return the sanitized value.
+     * @return the sanitized value; {@code null} only when the supplied value is null.
      * @since 0.1.0-M4
      */
     public static String sanitizeKeyValue(String key, String value) {
-        if (key == null || value == null)
-            return value;
-        if (isSensitiveKey(key))
+        if (value == null)
+            return null;
+        if (key == null || isSensitiveKey(key))
             return REDACTED;
         return sanitize(value);
     }
@@ -244,13 +268,18 @@ public final class LogSanitizer {
 
     /**
      * Determines whether the given key name must be treated as sensitive.
+     * <p>
+     * Namespaced keys are resolved to their local name by splitting on the
+     * last {@code :} or {@code .} separator, so qualified forms such as
+     * {@code wsse:token}, {@code auth.token}, or {@code credentials.password}
+     * are redacted as well.
      *
      * @param key the key name extracted from the input text.
      * @return {@code true} when the key is configured as sensitive; otherwise {@code false}.
      */
     private static boolean isSensitiveKey(String key) {
         var normalized = key.toLowerCase();
-        var localNameIndex = normalized.lastIndexOf(':');
+        int localNameIndex = Math.max(normalized.lastIndexOf(':'), normalized.lastIndexOf('.'));
         var localName = localNameIndex >= 0 ? normalized.substring(localNameIndex + 1) : normalized;
         return SENSITIVE_KEYS.contains(normalized) || SENSITIVE_KEYS.contains(localName);
     }
