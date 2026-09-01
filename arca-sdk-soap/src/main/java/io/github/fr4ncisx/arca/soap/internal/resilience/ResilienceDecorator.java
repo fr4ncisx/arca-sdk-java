@@ -154,8 +154,7 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
         while (current != null) {
             if (current instanceof SocketTimeoutException
                     || current instanceof HttpTimeoutException
-                    || current instanceof TimeoutException
-                    || "SOAP invocation timed out".equals(current.getMessage())) {
+                    || current instanceof TimeoutException) {
                 return true;
             }
             current = current.getCause();

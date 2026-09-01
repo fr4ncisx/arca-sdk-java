@@ -4,7 +4,6 @@ import java.time.Duration;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
-import io.github.fr4ncisx.arca.soap.internal.security.SoapHardeningUtil;
 
 /**
  * Internal SOAP transport configuration derived from the SDK configuration.
@@ -19,10 +18,6 @@ import io.github.fr4ncisx.arca.soap.internal.security.SoapHardeningUtil;
  * @since 0.1.0-M3
  */
 public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean resilienceEnabled) {
-
-    static {
-        SoapHardeningUtil.apply();
-    }
 
     private static final String NULL_CONFIG = "config must not be null";
     private static final String CONNECT_TIMEOUT = "connectTimeout";

@@ -6,6 +6,7 @@ import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import org.junit.jupiter.api.Test;
 
 import java.net.SocketTimeoutException;
+import java.net.http.HttpTimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +72,7 @@ class ResilienceDecoratorTest {
         var callCount = new AtomicInteger(0);
         ArcaSoapPort<String, String> delegate = req -> {
             callCount.incrementAndGet();
-            throw new ArcaSoapException("SOAP invocation timed out");
+            throw new ArcaSoapException("SOAP invocation timed out", new SocketTimeoutException("Read timed out"));
         };
 
         var port = new ResilienceDecorator<>(delegate, 1, 1L, 3, 1000L);
@@ -99,7 +100,7 @@ class ResilienceDecoratorTest {
         ArcaSoapPort<String, String> delegate = req -> {
             callCount.incrementAndGet();
             if (succeed.get() == 0) {
-                throw new ArcaSoapException("SOAP invocation timed out");
+                throw new ArcaSoapException("SOAP invocation timed out", new HttpTimeoutException("Response timed out"));
             }
             return RESPONSE;
         };
