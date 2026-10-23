@@ -21,7 +21,7 @@ import java.time.Duration;
  * @param connectTimeout maximum time allowed establishing a network connection; zero disables the limit.
  * @param readTimeout maximum time allowed waiting for response data; zero disables the limit.
  * @param resilienceEnabled whether resilience (retries/circuit breaker) is enabled.
- * @param ticketCacheDir optional directory for persisting WSAA access tickets across restarts.
+ * @param ticketCacheDir optional root directory for per-environment and per-CUIT WSAA ticket caches.
  *
  * @author fr4ncisx
  * @since 0.1.0-M2
@@ -125,9 +125,10 @@ public record ArcaConfig(Cuit cuit,
      * Returns a new configuration instance with the provided ticket cache directory.
      * <p>
      * The original instance remains unchanged. When a non-null directory is provided,
-     * WSAA access tickets are persisted to disk and reused across application restarts.
+     * WSAA access tickets are persisted below per-environment and per-CUIT subdirectories
+     * and reused across application restarts.
      *
-     * @param directory the directory where ticket cache files will be stored, or null to disable persistence.
+     * @param directory the root directory for scoped ticket caches, or null to disable persistence.
      * @return a new configuration instance with the updated ticket cache directory.
      * @since 1.2.0
      */
