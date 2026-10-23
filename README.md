@@ -90,7 +90,7 @@ Luego, en tu proyecto, elige una de estas opciones:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.4</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -104,11 +104,11 @@ Luego, en tu proyecto, elige una de estas opciones:
 <dependency>
     <groupId>io.github.fr4ncisx</groupId>
     <artifactId>arca-sdk-bundle</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.4</version>
 </dependency>
 ```
 
-## Cambios de seguridad y compatibilidad
+## Actualización a 1.2.4
 
 - Los DTO conservan copias inmutables de sus listas. Para editar sus datos, utiliza una lista propia y construye un nuevo DTO.
 - Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
@@ -118,6 +118,8 @@ Luego, en tu proyecto, elige una de estas opciones:
 - Los importes CAE y CAEA deben ser finitos y las cotizaciones, finitas y positivas.
 - Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
 - Los logs del transporte SOAP contienen únicamente dirección y tipo de mensaje. El hardening TLS es optativo y global para la JVM; no sustituye los parches del proveedor de Java.
+
+Consulta [SECURITY.md](SECURITY.md) para los detalles de seguridad y transición. Estos cambios conservan las firmas públicas; las integraciones que mutaban listas de DTO deben adaptarse.
 
 ## Verificación del SDK
 

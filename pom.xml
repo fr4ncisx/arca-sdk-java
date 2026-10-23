@@ -47,7 +47,7 @@
         <module>arca-sdk-spring-boot-starter</module>
     </modules>
     <properties>
-        <revision>1.2.3</revision>
+        <revision>1.2.4</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dependencyCheckDataDirectory>${maven.multiModuleProjectDirectory}/.dependency-check-data/db-5.6</dependencyCheckDataDirectory>
@@ -279,6 +279,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.12.0</version>
+                    <configuration>
+                        <excludePackageNames>*.internal.*</excludePackageNames>
+                    </configuration>
                     <executions>
                         <execution>
                             <id>attach-javadocs</id>
