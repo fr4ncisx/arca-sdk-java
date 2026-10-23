@@ -70,25 +70,35 @@ DTO collection inputs are immutable snapshots. Use a separate mutable list when 
 
 ## Supply Chain and Software Bill of Materials (SBOM)
 
-The SDK generates an aggregate CycloneDX SBOM locally. The `Security Scan` workflow scans pull requests with the cached NVD database and never receives the NVD API key. Pull requests fail if the cached data is missing or older than 48 hours. The separate `NVD Database Refresh` workflow updates the database on pushes to `main` and daily. Only its update step receives `NVD_API_KEY` as a GitHub Actions secret environment variable.
+The SDK generates an aggregate CycloneDX 1.5 SBOM. The `Security Scan` workflow runs Grype 0.121.0 for pull requests targeting `main`, pushes to `main`, and daily. The Grype binary is pinned and verified against its SHA-256 checksum. No API credentials are provided to the workflow.
 
-The `NVD Database Refresh` workflow seeds the default-branch cache after the change is merged to `main`. Pull requests restore that cache and run their normal scan without NVD credentials.
+The Maven `security-scan` profile produces the SBOM. Vulnerability policy enforcement requires the Grype scan and Python validation commands below.
+
+Grype downloads a prebuilt vulnerability database published by Anchore. A cache miss downloads this database during the same job, including on a pull request; no default-branch bootstrap is required. Each job explicitly checks for updates, verifies database validity and a build age of at most 48 hours, and saves the validated database before scanning. The manifest request has a 30-second timeout, the database download has a five-minute timeout, and the job has a 20-minute limit. Failed updates or invalid databases fail the check. Scan commands disable automatic updates so the report uses the database already validated by that job.
 
 ```bash
-python -B scripts/check_security_cache.py .dependency-check-data/db-5.6
-mvn package dependency-check:aggregate -Psecurity-scan -DskipTests -DautoUpdate=false
-python -B scripts/check_security_cache.py .dependency-check-data/db-5.6 --report target/dependency-check-report.json
+mvn package dependency:tree -Psecurity-scan -DskipTests -DoutputType=json -DoutputFile=target/security-dependencies.json
+python -B scripts/check_grype_report.py --sbom target/bom.json --dependency-root .
+grype --config .grype.yaml db update
+grype --config .grype.yaml db status -o json > target/grype-db-status.json
+python -B scripts/check_grype_report.py --database target/grype-db-status.json
+grype --config .grype.yaml sbom:target/bom.json -o json --file target/grype-report.json
+python -B scripts/check_grype_report.py --sbom target/bom.json --report target/grype-report.json
 ```
 
-These commands require a successfully refreshed database and its trusted marker. They write HTML and JSON vulnerability reports at `target/dependency-check-report.*` and CycloneDX 1.5 SBOMs at `target/bom.json` and `target/bom.xml`. The scan fails on CVSS scores of 7 or higher. Do not create or renew a marker without a complete, successful database refresh.
+Install and verify Grype 0.121.0 before running these commands. JSON files must be UTF-8; Windows PowerShell redirection before PowerShell 7.4 may require explicit UTF-8 output handling. The commands write `target/grype-report.json`, database status, and `target/bom.json` and `target/bom.xml`. Maven includes compile, runtime, provided, and system dependencies, excluding dependencies used only in test scope. Published test-support dependencies remain included when their declared scope is compile. The SBOM must cover the external coordinates in each reactor module's resolved dependency tree, including transitive dependencies.
+
+The policy rejects any CVSS base score of 7 or higher from a matched advisory or its related advisories. Without numeric CVSS data, High and Critical severities block; unknown severity fails as inconclusive. Malformed scores, non-finite values, invalid reports, unexpected ignored matches, and missing or stale database metadata fail validation. Findings are not filtered based on fix availability, and no ignore rules are configured. JSON reports and SBOMs remain available as workflow artifacts when the policy rejects findings.
 
 ### Validation Evidence and Limits
 
 Run `python -B scripts/check_compatibility.py` to compare all runtime public APIs against the pinned v1.2.3 commit and exercise Java and Spring reference consumers. The normal unit-test command alone does not perform the baseline comparison. Reference consumers do not establish compatibility for unknown external applications, especially applications that mutate DTO lists.
 
-The security workflow checks both the trusted refresh marker and the NVD last-check metadata in its JSON report. Missing, future-dated, or older-than-48-hour evidence fails validation. A successful scan against stale local data is not production approval. Security reports and SBOMs are retained as workflow artifacts.
+The policy validates the database build timestamp in both `grype db status` and the scan report, rejecting future dates and ages over 48 hours. It also verifies that the report identifies the validated SBOM as its input. The age describes the published database build, not the arrival time of every upstream advisory.
 
-Dependency-Check is pinned to 12.2.2, which uses database schema 5.6 with support for longer NVD reference URLs. Its local cache is isolated under `.dependency-check-data/db-5.6`; older caches are retained and not reused. The refresh step also rejects logged processing errors even when Maven returns success, before recording a new freshness marker.
+Grype primarily uses GitHub Security Advisories for Maven packages and other feeds for other ecosystems, including NVD. Matching and CVSS results can differ from Dependency-Check. A passing scan does not establish complete advisory coverage or verify the Java runtime installed by a consumer. Anchore availability is still required for updates; caching avoids repeated database downloads but does not eliminate that external dependency. Old `.dependency-check-data` directories are not reused or deleted by this migration.
+
+The migration also upgrades the managed Bouncy Castle provider and PKIX artifacts from 1.78.1 to 1.85, addressing the advisories detected by the new scan, including CVE-2026-8763 and CVE-2026-13506. Applications overriding the managed Bouncy Castle version must independently verify their resolved classpath and security exposure.
 
 Live authorization requires a separately reviewed homologation configuration and explicit write opt-in. A successful catalog query verifies authenticated access, not voucher authorization. An existing voucher reconciled on a rerun must not be reported as a new successful authorization. Mock-server recovery tests establish SDK retry behavior, not remote service availability.
 

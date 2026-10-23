@@ -157,19 +157,27 @@ La autorización real es una prueba separada: `RealHomologationAuthorizationInte
 
 Esta prueba utiliza productos, moneda PES y un único desglose de IVA. Consulta la secuencia antes de emitir y luego consulta la misma identidad. Si el número ya existe, únicamente lo concilia. Ante un fallo de transporte, consulta y no reenvía. Nunca apunta a producción. Una prueba omitida o una conciliación de un comprobante anterior no demuestra una nueva autorización en esa ejecución.
 
-El workflow `NVD Database Refresh` actualiza la base en cambios a `main` y diariamente; `Security Scan` escanea los PR con esa caché, sin exponerles `NVD_API_KEY`. Conserva el informe y el SBOM; verifica la fecha interna de NVD además del marcador de caché. Los PR fallan si la base falta o supera las 48 horas.
+El workflow `Security Scan` usa Grype 0.121.0 en cada PR hacia `main`, en cambios a `main` y diariamente. Descarga una base preconstruida de Anchore, sin claves de API ni consultas directas a NVD. Si la caché está vacía, descarga la base en esa misma ejecución; no requiere un bootstrap previo en `main`. La base validada se guarda antes del escaneo y su fecha de construcción no puede superar las 48 horas. Una descarga o validación fallida bloquea el check.
 
-El escáner usa Dependency-Check 12.2.2 y una base separada en `.dependency-check-data/db-5.6`, compatible con las referencias largas actuales de NVD. La actualización se rechaza si registra errores de procesamiento, aunque Maven termine con `BUILD SUCCESS`.
+Para ejecutar el mismo análisis localmente, instala Grype 0.121.0 desde su release oficial y verifica el checksum del binario. El perfil Maven genera un CycloneDX agregado con dependencias de compilación, ejecución, provided y system; excluye las dependencias exclusivamente de test. El validador compara sus coordenadas Maven con el árbol resuelto de todos los módulos, incluidas las transitivas:
 
-Con una base local actualizada y su marcador de actualización validado, puedes repetir el escaneo sin refrescar NVD:
+El perfil `security-scan` genera el SBOM; la política de vulnerabilidades se aplica mediante Grype y el validador Python de los comandos siguientes.
 
 ```bash
-python -B scripts/check_security_cache.py .dependency-check-data/db-5.6
-mvn package dependency-check:aggregate -Psecurity-scan -DskipTests -DautoUpdate=false
-python -B scripts/check_security_cache.py .dependency-check-data/db-5.6 --report target/dependency-check-report.json
+mvn package dependency:tree -Psecurity-scan -DskipTests -DoutputType=json -DoutputFile=target/security-dependencies.json
+python -B scripts/check_grype_report.py --sbom target/bom.json --dependency-root .
+grype --config .grype.yaml db update
+grype --config .grype.yaml db status -o json > target/grype-db-status.json
+python -B scripts/check_grype_report.py --database target/grype-db-status.json
+grype --config .grype.yaml sbom:target/bom.json -o json --file target/grype-report.json
+python -B scripts/check_grype_report.py --sbom target/bom.json --report target/grype-report.json
 ```
 
-Los informes quedan en `target/dependency-check-report.html` y `target/dependency-check-report.json`; el SBOM, en `target/bom.json` y `target/bom.xml`. El escaneo falla ante vulnerabilidades con CVSS de 7 o superior. No crees ni renueves el marcador para hacer pasar una base que no se actualizó correctamente.
+El informe queda en `target/grype-report.json`; el SBOM, en `target/bom.json` y `target/bom.xml`. Se bloquea cualquier CVSS de 7 o superior del aviso o de sus avisos relacionados, aunque no exista parche. Sin puntuación numérica, High/Critical bloquean; una severidad desconocida falla como análisis inconcluso. No se configuran supresiones globales.
+
+Grype utiliza principalmente GitHub Security Advisories para Maven y otras fuentes según el ecosistema. Los resultados pueden diferir de Dependency-Check. La caché acelera ejecuciones posteriores, pero sigue existiendo una descarga inicial y dependencia de la disponibilidad de Anchore. En PowerShell anterior a 7.4, guarda la salida JSON de `db status` explícitamente en UTF-8; la redirección de Windows PowerShell puede producir UTF-16.
+
+La migración actualiza Bouncy Castle de 1.78.1 a 1.85 para corregir los avisos detectados en el proveedor criptográfico y PKIX, incluidos CVE-2026-8763 y CVE-2026-13506. La versión del SDK y sus firmas públicas se mantienen; se requiere volver a validar el classpath si la aplicación consumidora fuerza otra versión de Bouncy Castle.
 
 ## Uso
 

@@ -50,9 +50,6 @@
         <revision>1.2.4</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dependencyCheckDataDirectory>${maven.multiModuleProjectDirectory}/.dependency-check-data/db-5.6</dependencyCheckDataDirectory>
-        <dependency-check.version>12.2.2</dependency-check.version>
-        <autoUpdate>false</autoUpdate>
         <spring-boot.version>4.0.8</spring-boot.version>
         <metro.version>4.0.4</metro.version>
         <jaxb.version>4.0.8</jaxb.version>
@@ -571,36 +568,6 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.owasp</groupId>
-                        <artifactId>dependency-check-maven</artifactId>
-                        <version>${dependency-check.version}</version>
-                        <configuration>
-                            <failBuildOnCVSS>7.0</failBuildOnCVSS>
-                            <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
-                            <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
-                            <connectionTimeout>30000</connectionTimeout>
-                            <readTimeout>60000</readTimeout>
-                            <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
-                            <autoUpdate>${autoUpdate}</autoUpdate>
-                            <formats>
-                                <format>HTML</format>
-                                <format>JSON</format>
-                            </formats>
-                            <dataDirectory>${dependencyCheckDataDirectory}</dataDirectory>
-                            <suppressionFiles>
-                                <suppressionFile>${maven.multiModuleProjectDirectory}/dependency-check-suppressions.xml</suppressionFile>
-                            </suppressionFiles>
-                            <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>aggregate</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
                         <groupId>org.cyclonedx</groupId>
                         <artifactId>cyclonedx-maven-plugin</artifactId>
                         <version>${cyclonedx.version}</version>
@@ -610,6 +577,11 @@
                             <includeBomSerialNumber>true</includeBomSerialNumber>
                             <outputFormat>all</outputFormat>
                             <outputName>bom</outputName>
+                            <includeCompileScope>true</includeCompileScope>
+                            <includeRuntimeScope>true</includeRuntimeScope>
+                            <includeProvidedScope>true</includeProvidedScope>
+                            <includeSystemScope>true</includeSystemScope>
+                            <includeTestScope>false</includeTestScope>
                         </configuration>
                         <executions>
                             <execution>

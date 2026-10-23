@@ -3,6 +3,10 @@ name: Security Scan
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *'
 
 permissions:
   contents: read
@@ -14,8 +18,7 @@ concurrency:
 jobs:
   security-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -29,43 +32,65 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Restore OWASP Dependency Check Database
-        uses: actions/cache/restore@v5
-        with:
-          path: ${{ runner.temp }}/dependency-check-data
-          key: dependency-check-db5.6-main-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            dependency-check-db5.6-main-${{ runner.os }}-
-            dependency-check-db5.6-${{ runner.os }}-
-
-      - name: Check cached database freshness
-        id: database-freshness
-        shell: bash
-        run: python -B scripts/check_security_cache.py "$RUNNER_TEMP/dependency-check-data"
-
-      - name: Run OWASP Dependency Scan
-        id: scan
+      - name: Install verified Grype 0.121.0
         shell: bash
         run: |
-          mvn package dependency-check:aggregate -Psecurity-scan \
-            -DskipTests \
-            -DdependencyCheckDataDirectory="$RUNNER_TEMP/dependency-check-data" \
-            -DdataDirectory="$RUNNER_TEMP/dependency-check-data" \
-            -DautoUpdate=false \
-            --batch-mode --no-transfer-progress
+          set -euo pipefail
+          archive="$RUNNER_TEMP/grype.tar.gz"
+          curl --fail --location --connect-timeout 30 --max-time 300 \
+            https://github.com/anchore/grype/releases/download/v0.121.0/grype_0.121.0_linux_amd64.tar.gz \
+            --output "$archive"
+          printf '%s  %s\n' '64e07133d3486115de647a66581461dccf5c732748a0a3119077395565f15519' "$archive" | sha256sum --check --status
+          mkdir -p "$RUNNER_TEMP/grype-bin"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/grype-bin" grype
+          echo "$RUNNER_TEMP/grype-bin" >> "$GITHUB_PATH"
+          echo "GRYPE_DB_CACHE_DIR=$RUNNER_TEMP/grype-db" >> "$GITHUB_ENV"
 
-      - name: Verify database metadata in report
-        id: database-metadata
-        if: ${{ !cancelled() && (steps.scan.outcome == 'success' || hashFiles('target/dependency-check-report.json') != '') }}
+      - name: Restore Grype database
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/grype-db
+          key: grype-db-v6-${{ runner.os }}-0.121.0-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            grype-db-v6-${{ runner.os }}-0.121.0-
+
+      - name: Update and validate Grype database
         shell: bash
-        run: python -B scripts/check_security_cache.py "$RUNNER_TEMP/dependency-check-data" --report target/dependency-check-report.json
+        run: |
+          set -euo pipefail
+          grype --config .grype.yaml db update
+          grype --config .grype.yaml db status -o json > "$RUNNER_TEMP/grype-db-status.json"
+          python -B scripts/check_grype_report.py --database "$RUNNER_TEMP/grype-db-status.json"
+
+      - name: Save validated Grype database
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ runner.temp }}/grype-db
+          key: grype-db-v6-${{ runner.os }}-0.121.0-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Generate and validate aggregate SBOM
+        shell: bash
+        run: |
+          set -euo pipefail
+          mvn package dependency:tree -Psecurity-scan -DskipTests \
+            -DoutputType=json -DoutputFile=target/security-dependencies.json \
+            --batch-mode --no-transfer-progress
+          python -B scripts/check_grype_report.py --sbom target/bom.json --dependency-root .
+
+      - name: Scan SBOM and enforce CVSS policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          grype --config .grype.yaml sbom:target/bom.json -o json --file target/grype-report.json
+          python -B scripts/check_grype_report.py --sbom target/bom.json --report target/grype-report.json
 
       - name: Upload security reports
-        if: ${{ !cancelled() && hashFiles('target/dependency-check-report.*', 'target/bom.*') != '' }}
+        if: ${{ !cancelled() && hashFiles('target/grype-report.json', 'target/bom.*') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
-            target/dependency-check-report.*
+            target/grype-report.json
             target/bom.*
+            ${{ runner.temp }}/grype-db-status.json
           if-no-files-found: error
