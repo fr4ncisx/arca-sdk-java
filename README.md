@@ -112,6 +112,7 @@ Luego, en tu proyecto, elige una de estas opciones:
 
 - Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
 - Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
+- Los logs del transporte SOAP contienen únicamente dirección y tipo de mensaje. El hardening TLS es optativo y global para la JVM; no sustituye los parches del proveedor de Java.
 
 ## Uso
 
