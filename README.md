@@ -108,24 +108,9 @@ Luego, en tu proyecto, elige una de estas opciones:
 </dependency>
 ```
 
-## Actualización a 1.2.5
+## Historial de cambios
 
-- El workflow `Security Scan` usa Grype 0.121.0 sobre el SBOM CycloneDX agregado. La base de vulnerabilidades se actualiza desde Anchore y debe tener menos de 48 horas.
-- Bouncy Castle se actualiza a 1.85 para corregir avisos de seguridad detectados en las dependencias criptográficas y PKIX.
-- Las firmas públicas del SDK no cambian. Consulta [SECURITY.md](SECURITY.md) para conocer la política de bloqueo y sus límites.
-
-## Actualización a 1.2.4
-
-- Los DTO conservan copias inmutables de sus listas. Para editar sus datos, utiliza una lista propia y construye un nuevo DTO.
-- Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
-- Los lotes interrumpidos por el hilo conservan una entrada por posición, incluidos duplicados. Los errores distinguen solicitudes no enviadas de operaciones con resultado incierto. La estrategia fail-fast conserva el prefijo procesado.
-- El caché persistente se separa por ambiente y CUIT; los archivos planos antiguos no se migran. Coordina la actualización con la expiración del ticket vigente para evitar el rechazo de WSAA por un ticket ya activo.
-- El directorio de caché debe permitir escritura, bloqueo de archivos y reemplazo atómico. En Windows, restringe sus permisos a la cuenta de la aplicación.
-- Los importes CAE y CAEA deben ser finitos y las cotizaciones, finitas y positivas.
-- Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
-- Los logs del transporte SOAP contienen únicamente dirección y tipo de mensaje. El hardening TLS es optativo y global para la JVM; no sustituye los parches del proveedor de Java.
-
-Consulta [SECURITY.md](SECURITY.md) para los detalles de seguridad y transición. Estos cambios conservan las firmas públicas; las integraciones que mutaban listas de DTO deben adaptarse.
+Consulta [CHANGELOG.md](CHANGELOG.md) para ver las notas de cada versión. Los detalles de la política y las limitaciones de seguridad están en [SECURITY.md](SECURITY.md).
 
 ## Verificación del SDK
 
