@@ -24,7 +24,14 @@ def check_timestamp(value, now):
 
 def check_cache(directory, report=None, now=None):
     now = now or datetime.now(timezone.utc)
-    check_timestamp((directory / "refreshed-at.txt").read_text(encoding="utf-8"), now)
+    marker = directory / "refreshed-at.txt"
+    if not marker.exists():
+        raise FileNotFoundError(
+            f"Database refresh marker '{marker}' does not exist. "
+            "The security cache has not been seeded yet. "
+            "The trusted 'NVD Database Refresh' workflow must seed the cache from the 'main' branch before this scan can run."
+        )
+    check_timestamp(marker.read_text(encoding="utf-8"), now)
     if report is not None:
         data = json.loads(report.read_text(encoding="utf-8"))
         sources = data.get("scanInfo", {}).get("dataSource", [])

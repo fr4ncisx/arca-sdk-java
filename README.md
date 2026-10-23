@@ -157,7 +157,7 @@ La autorización real es una prueba separada: `RealHomologationAuthorizationInte
 
 Esta prueba utiliza productos, moneda PES y un único desglose de IVA. Consulta la secuencia antes de emitir y luego consulta la misma identidad. Si el número ya existe, únicamente lo concilia. Ante un fallo de transporte, consulta y no reenvía. Nunca apunta a producción. Una prueba omitida o una conciliación de un comprobante anterior no demuestra una nueva autorización en esa ejecución.
 
-El workflow de seguridad debe completar una actualización NVD confiable y un escaneo con datos de menos de 48 horas. Conserva el informe y el SBOM; verifica la fecha interna de NVD además del marcador de caché. La actualización del secreto se gestiona en GitHub y no requiere leerlo localmente.
+El workflow `NVD Database Refresh` actualiza la base en cambios a `main` y diariamente; `Security Scan` escanea los PR con esa caché, sin exponerles `NVD_API_KEY`. Conserva el informe y el SBOM; verifica la fecha interna de NVD además del marcador de caché. Los PR fallan si la base falta o supera las 48 horas.
 
 El escáner usa Dependency-Check 12.2.2 y una base separada en `.dependency-check-data/db-5.6`, compatible con las referencias largas actuales de NVD. La actualización se rechaza si registra errores de procesamiento, aunque Maven termine con `BUILD SUCCESS`.
 

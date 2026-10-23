@@ -29,7 +29,7 @@ class SecurityCacheTest(unittest.TestCase):
             directory = Path(temporary)
             marker = directory / "refreshed-at.txt"
             report = directory / "report.json"
-            with self.assertRaises(OSError):
+            with self.assertRaisesRegex(FileNotFoundError, "main"):
                 check_cache(directory, now=now)
             marker.write_text("2026-10-22T00:00:00Z", encoding="utf-8")
             check_cache(directory, now=now)

@@ -70,9 +70,9 @@ DTO collection inputs are immutable snapshots. Use a separate mutable list when 
 
 ## Supply Chain and Software Bill of Materials (SBOM)
 
-The SDK generates an aggregate CycloneDX SBOM locally. Dependency-Check scans use the cached NVD database and do not update it during a pull request. The scheduled workflow refreshes the database daily; pull requests fail if the cached data is missing or older than 48 hours. The NVD API key is provided only to scheduled or manually triggered refreshes as a GitHub Actions secret environment variable.
+The SDK generates an aggregate CycloneDX SBOM locally. The `Security Scan` workflow scans pull requests with the cached NVD database and never receives the NVD API key. Pull requests fail if the cached data is missing or older than 48 hours. The separate `NVD Database Refresh` workflow updates the database on pushes to `main` and daily. Only its update step receives `NVD_API_KEY` as a GitHub Actions secret environment variable.
 
-To initialize a new schema-specific cache without running an extra scan, dispatch the Security Scan workflow on the trusted branch with `refresh_only=true`. The pull request can then restore that branch-scoped cache and run its normal scan.
+The `NVD Database Refresh` workflow seeds the default-branch cache after the change is merged to `main`. Pull requests restore that cache and run their normal scan without NVD credentials.
 
 ```bash
 python -B scripts/check_security_cache.py .dependency-check-data/db-5.6

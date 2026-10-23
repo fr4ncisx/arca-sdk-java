@@ -578,8 +578,8 @@
                             <failBuildOnCVSS>7.0</failBuildOnCVSS>
                             <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
                             <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
-                            <connectionTimeout>5000</connectionTimeout>
-                            <readTimeout>5000</readTimeout>
+                            <connectionTimeout>30000</connectionTimeout>
+                            <readTimeout>60000</readTimeout>
                             <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
                             <autoUpdate>${autoUpdate}</autoUpdate>
                             <formats>
