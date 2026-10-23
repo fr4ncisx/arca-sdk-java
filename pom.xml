@@ -422,6 +422,74 @@
             </build>
         </profile>
         <profile>
+            <id>compatibility</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>require-compatibility-baseline</id>
+                                <goals><goal>enforce</goal></goals>
+                                <configuration>
+                                    <rules>
+                                        <requireProperty>
+                                            <property>compatibilityBaselineDirectory</property>
+                                            <message>compatibilityBaselineDirectory is required; run python scripts/check_compatibility.py to prepare v1.2.3.</message>
+                                        </requireProperty>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <arca.compatibility.baselineDir>${compatibilityBaselineDirectory}</arca.compatibility.baselineDir>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.github.siom79.japicmp</groupId>
+                        <artifactId>japicmp-maven-plugin</artifactId>
+                        <version>${japicmp.version}</version>
+                        <configuration>
+                            <oldVersion>
+                                <file>
+                                    <path>${compatibilityBaselineDirectory}/${project.artifactId}/target/${project.artifactId}-1.2.3.jar</path>
+                                </file>
+                            </oldVersion>
+                            <newVersion>
+                                <file><path>${project.build.directory}/${project.build.finalName}.jar</path></file>
+                            </newVersion>
+                            <parameter>
+                                <skipPomModules>true</skipPomModules>
+                                <excludeModules><excludeModule>arca-sdk-test-support</excludeModule></excludeModules>
+                                <excludes><exclude>io.github.fr4ncisx.arca.*.internal.*</exclude></excludes>
+                                <accessModifier>protected</accessModifier>
+                                <onlyModified>true</onlyModified>
+                                <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
+                                <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
+                                <ignoreMissingOldVersion>false</ignoreMissingOldVersion>
+                                <ignoreMissingNewVersion>false</ignoreMissingNewVersion>
+                                <ignoreMissingClasses>false</ignoreMissingClasses>
+                            </parameter>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>compare-public-api</id>
+                                <phase>verify</phase>
+                                <goals><goal>cmp</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>ci</id>
             <build>
                 <plugins>

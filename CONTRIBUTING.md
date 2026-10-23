@@ -83,6 +83,8 @@ Los casos de uso dependen de puertos (`ArcaSoapPort`, `AuthProvider`), nunca de 
 - **Integración** — usar WireMock, nunca tráfico de red real.
 - **Ejecutar**: `mvn clean verify` (compila + tests).
 - **Un módulo**: `mvn test -pl arca-sdk-wsfev1`.
+- **Production compatibility gate**: `python -B scripts/check_compatibility.py` builds the pinned `v1.2.3` baseline in the OS temporary directory and runs `clean verify -Pci,compatibility`. Missing or mismatched baseline artifacts fail the gate. Reports are written under each runtime module's `target/japicmp` directory. The baseline-compiled reference-consumer test runs only through this gate.
+- **Validation scripts**: `python -B -m unittest discover -s scripts -p 'test_*.py'`.
 - **Integración real**: `mvn verify -Darca.integration=true` (requiere certificados).
 
 ## Commits

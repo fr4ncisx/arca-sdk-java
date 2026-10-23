@@ -119,6 +119,19 @@ Luego, en tu proyecto, elige una de estas opciones:
 - Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
 - Los logs del transporte SOAP contienen únicamente dirección y tipo de mensaje. El hardening TLS es optativo y global para la JVM; no sustituye los parches del proveedor de Java.
 
+## Verificación del SDK
+
+Ejecuta desde la raíz, con Java 21 o 25 y Python 3.9 o superior:
+
+```bash
+python -B -m unittest discover -s scripts -p 'test_*.py'
+python -B scripts/check_compatibility.py
+```
+
+El segundo comando construye el tag `v1.2.3` en un directorio temporal, verifica su commit y ejecuta pruebas, cobertura y comparación de API pública. También compila consumidores Java y Spring de referencia contra ambas versiones y ejecuta su bytecode contra el candidato. Requiere disponer del tag local; no modifica ramas ni instala la versión anterior en el repositorio Maven local.
+
+La comparación de firmas no detecta por sí sola cambios de comportamiento. Los consumidores de referencia cubren construcción de DTO, edición mediante copias de listas y autoconfiguración Spring. No sustituyen las pruebas de una aplicación externa.
+
 ## Uso
 
 ### Inicialización del cliente

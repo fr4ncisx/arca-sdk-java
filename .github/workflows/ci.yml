@@ -17,19 +17,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: ['21', '25']
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+          fetch-depth: 0
 
-      - name: Set up JDK 25
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v5
         with:
-          java-version: '25'
+          java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
           cache: maven
 
-      - name: Build and test
-        run: mvn verify -Pci --batch-mode --no-transfer-progress
+      - name: Test validation scripts
+        run: python -B -m unittest discover -s scripts -p 'test_*.py'
+
+      - name: Build, test, and compare public API
+        run: python -B scripts/check_compatibility.py
+
+      - name: Upload compatibility reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-java-${{ matrix.java-version }}
+          path: '**/target/japicmp/*'
+          if-no-files-found: error
