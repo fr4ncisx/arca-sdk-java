@@ -132,6 +132,29 @@ El segundo comando construye el tag `v1.2.3` en un directorio temporal, verifica
 
 La comparación de firmas no detecta por sí sola cambios de comportamiento. Los consumidores de referencia cubren construcción de DTO, edición mediante copias de listas y autoconfiguración Spring. No sustituyen las pruebas de una aplicación externa.
 
+La suite local y la comparación de compatibilidad no requieren credenciales de ARCA. Las pruebas reales de homologación son optativas; cuando no se dispone de un entorno para ejecutarlas, la integración remota queda sin verificar.
+
+Para consultas reales de homologación, configura externamente `ARCA_TEST_CERT_PATH`, `ARCA_TEST_CERT_PASSWORD` y `ARCA_TEST_CUIT`:
+
+```bash
+mvn test -Phomologation -pl arca-sdk-client -am -Dtest=RealHomologationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+La autorización real es una prueba separada: `RealHomologationAuthorizationIntegrationTest`. Solo se activa con `ARCA_TEST_WRITE_ENABLED=true` y requiere estos datos revisados por el operador:
+
+| Variable | Valor requerido |
+|---|---|
+| `ARCA_TEST_SALES_POINT` | Punto de venta reservado para homologación, sin otros emisores concurrentes |
+| `ARCA_TEST_VOUCHER_TYPE` | Código del tipo de comprobante |
+| `ARCA_TEST_VOUCHER_NUMBER` | Número explícito; no se incrementa automáticamente al repetir la prueba |
+| `ARCA_TEST_RECEIVER_CUIT` | CUIT del receptor de prueba |
+| `ARCA_TEST_VOUCHER_DATE` | Fecha revisada en formato `AAAA-MM-DD` |
+| `ARCA_TEST_NET_AMOUNT` | Importe neto positivo, con punto decimal |
+| `ARCA_TEST_VAT_AMOUNT` | IVA no negativo, con punto decimal |
+| `ARCA_TEST_VAT_TYPE` | Código de alícuota, obligatorio cuando el IVA es mayor que cero |
+
+Esta prueba utiliza productos, moneda PES y un único desglose de IVA. Consulta la secuencia antes de emitir y luego consulta la misma identidad. Si el número ya existe, únicamente lo concilia. Ante un fallo de transporte, consulta y no reenvía. Nunca apunta a producción. Una prueba omitida o una conciliación de un comprobante anterior no demuestra una nueva autorización en esa ejecución.
+
 ## Uso
 
 ### Inicialización del cliente
