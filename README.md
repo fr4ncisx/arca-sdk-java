@@ -90,7 +90,7 @@ Luego, en tu proyecto, elige una de estas opciones:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.2.4</version>
+            <version>1.2.5</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -104,9 +104,15 @@ Luego, en tu proyecto, elige una de estas opciones:
 <dependency>
     <groupId>io.github.fr4ncisx</groupId>
     <artifactId>arca-sdk-bundle</artifactId>
-    <version>1.2.4</version>
+    <version>1.2.5</version>
 </dependency>
 ```
+
+## Actualización a 1.2.5
+
+- El workflow `Security Scan` usa Grype 0.121.0 sobre el SBOM CycloneDX agregado. La base de vulnerabilidades se actualiza desde Anchore y debe tener menos de 48 horas.
+- Bouncy Castle se actualiza a 1.85 para corregir avisos de seguridad detectados en las dependencias criptográficas y PKIX.
+- Las firmas públicas del SDK no cambian. Consulta [SECURITY.md](SECURITY.md) para conocer la política de bloqueo y sus límites.
 
 ## Actualización a 1.2.4
 
