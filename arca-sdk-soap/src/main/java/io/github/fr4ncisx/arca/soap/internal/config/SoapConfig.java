@@ -26,8 +26,8 @@ public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean 
     /**
      * Creates an internal SOAP configuration with resilience enabled by default.
      *
-     * @param connectTimeout maximum time allowed to establish a SOAP connection.
-     * @param readTimeout maximum time allowed to wait for SOAP response data.
+     * @param connectTimeout maximum time allowed to establish a SOAP connection; zero disables the limit.
+     * @param readTimeout maximum time allowed to wait for SOAP response data; zero disables the limit.
      */
     public SoapConfig(Duration connectTimeout, Duration readTimeout) {
         this(connectTimeout, readTimeout, true);
@@ -36,8 +36,8 @@ public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean 
     /**
      * Creates an internal SOAP configuration.
      *
-     * @param connectTimeout maximum time allowed to establish a SOAP connection.
-     * @param readTimeout maximum time allowed to wait for SOAP response data.
+     * @param connectTimeout maximum time allowed to establish a SOAP connection; zero disables the limit.
+     * @param readTimeout maximum time allowed to wait for SOAP response data; zero disables the limit.
      * @param resilienceEnabled whether retry and circuit breaker logic is enabled.
      * @throws ArcaValidationException if a timeout is null, negative, or exceeds the
      *                                 Metro integer millisecond limit.

@@ -18,8 +18,8 @@ import java.time.Duration;
  *
  * @param cuit taxpayer CUIT used by the SDK clients.
  * @param environment target ARCA environment.
- * @param connectTimeout maximum time allowed establishing a network connection.
- * @param readTimeout maximum time allowed waiting for response data.
+ * @param connectTimeout maximum time allowed establishing a network connection; zero disables the limit.
+ * @param readTimeout maximum time allowed waiting for response data; zero disables the limit.
  * @param resilienceEnabled whether resilience (retries/circuit breaker) is enabled.
  * @param ticketCacheDir optional directory for persisting WSAA access tickets across restarts.
  *
@@ -38,8 +38,8 @@ public record ArcaConfig(Cuit cuit,
      *
      * @param cuit taxpayer CUIT.
      * @param environment target environment.
-     * @param connectTimeout connection timeout.
-     * @param readTimeout read timeout.
+     * @param connectTimeout connection timeout; zero disables the limit.
+     * @param readTimeout read timeout; zero disables the limit.
      */
     public ArcaConfig(Cuit cuit, ArcaEnvironment environment, Duration connectTimeout, Duration readTimeout) {
         this(cuit, environment, connectTimeout, readTimeout, true, null);
@@ -50,8 +50,8 @@ public record ArcaConfig(Cuit cuit,
      *
      * @param cuit taxpayer CUIT.
      * @param environment target environment.
-     * @param connectTimeout connection timeout.
-     * @param readTimeout read timeout.
+     * @param connectTimeout connection timeout; zero disables the limit.
+     * @param readTimeout read timeout; zero disables the limit.
      * @param resilienceEnabled whether resilience is enabled.
      */
     public ArcaConfig(Cuit cuit, ArcaEnvironment environment, Duration connectTimeout, Duration readTimeout,
@@ -84,7 +84,7 @@ public record ArcaConfig(Cuit cuit,
      * The original instance remains unchanged. The returned instance preserves
      * the CUIT, environment, read timeout, resilience, and ticket cache settings.
      *
-     * @param timeout new connection timeout value.
+     * @param timeout new connection timeout value; zero disables the limit.
      * @return a new configuration instance with the updated connection timeout.
      * @throws ArcaValidationException if timeout is null or negative.
      */
@@ -99,7 +99,7 @@ public record ArcaConfig(Cuit cuit,
      * The original instance remains unchanged. The returned instance preserves
      * the CUIT, environment, connection timeout, resilience, and ticket cache settings.
      *
-     * @param timeout new read timeout value.
+     * @param timeout new read timeout value; zero disables the limit.
      * @return a new configuration instance with the updated read timeout.
      * @throws ArcaValidationException if timeout is null or negative.
      */

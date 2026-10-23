@@ -111,6 +111,7 @@ Luego, en tu proyecto, elige una de estas opciones:
 ## Cambios de seguridad y compatibilidad
 
 - Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
+- Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
 
 ## Uso
 
