@@ -3,10 +3,16 @@ package io.github.fr4ncisx.arca.client;
 import io.github.fr4ncisx.arca.client.spi.ArcaClient;
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
+import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.test.support.ArcaMockServer;
 import io.github.fr4ncisx.arca.wsaa.spi.CertificateSource;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
+import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeRequest;
+import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
+import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
+import io.github.fr4ncisx.arca.wsfev1.model.voucher.VoucherConsultRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherResponse;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -19,6 +25,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -31,9 +38,12 @@ import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 /**
@@ -92,6 +102,15 @@ class SoapResilienceIntegrationTest {
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsfexv1Url", originalWsfexv1Url);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wsmtxcaUrl", originalWsmtxcaUrl);
         setEnvUrl(ArcaEnvironment.HOMOLOGACION, "wscdcUrl", originalWscdcUrl);
+    }
+
+    /**
+     * Resets simulated remote state and request history between recovery scenarios.
+     */
+    @BeforeEach
+    void resetScenario() {
+        server.reset();
+        WireMock.configureFor("localhost", server.baseUrl().getPort());
     }
 
     @Test
@@ -154,6 +173,121 @@ class SoapResilienceIntegrationTest {
 
         assertThat(response).isNotNull();
         assertThat(response.lastNumber()).isEqualTo(105);
+    }
+
+    /**
+     * Recovers an authorization whose response was lost by querying the original voucher.
+     *
+     * @throws Exception if the local certificate cannot be created.
+     */
+    @Test
+    void recoversAuthorizationThroughQueryAfterLostResponse() throws Exception {
+        ArcaClient client = clientWithLostAuthorizationResponse();
+        stubFor(post(urlPathEqualTo("/wsfev1/service.asmx"))
+                .inScenario("Authorization recovery").whenScenarioStateIs("Authorized")
+                .withHeader("SOAPAction", containing("FECompConsultar"))
+                .willReturn(aResponse().withHeader("Content-Type", "text/xml; charset=utf-8")
+                        .withBody(queryResponse("""
+                            <ResultGet>
+                              <Concepto>1</Concepto><DocTipo>80</DocTipo><DocNro>20333333334</DocNro>
+                              <CbteDesde>1</CbteDesde><CbteHasta>1</CbteHasta><CbteFch>20261022</CbteFch>
+                              <ImpTotal>121</ImpTotal><ImpTotConc>0</ImpTotConc><ImpNeto>100</ImpNeto>
+                              <ImpOpEx>0</ImpOpEx><ImpIVA>21</ImpIVA><ImpTrib>0</ImpTrib>
+                              <MonId>PES</MonId><MonCotiz>1</MonCotiz><Resultado>A</Resultado>
+                              <CodAutorizacion>70000000000001</CodAutorizacion><EmisionTipo>CAE</EmisionTipo>
+                              <FchVto>20261101</FchVto><PtoVta>1</PtoVta><CbteTipo>1</CbteTipo>
+                            </ResultGet>
+                            """))));
+
+        assertUnknownAuthorization(client);
+        var response = client.wsfev1().getVoucher(new VoucherConsultRequest(1, VoucherType.INVOICE_A, 1));
+
+        assertThat(response.detail()).isNotNull();
+        assertThat(response.detail().number()).isEqualTo(1);
+        assertThat(response.detail().salesPoint()).isEqualTo(1);
+        assertThat(response.detail().voucherType()).isEqualTo(VoucherType.INVOICE_A);
+        assertThat(response.detail().total()).isEqualTo(121);
+        assertThat(response.detail().cae()).isEqualTo("70000000000001");
+        verifySingleAuthorizationAndQueries(1);
+    }
+
+    /**
+     * Leaves reconciliation to the caller when the timed-out voucher is not found.
+     *
+     * @throws Exception if the local certificate cannot be created.
+     */
+    @Test
+    void neverResubmitsWhenQueryDoesNotFindVoucher() throws Exception {
+        ArcaClient client = clientWithLostAuthorizationResponse();
+        stubFor(post(urlPathEqualTo("/wsfev1/service.asmx"))
+                .withHeader("SOAPAction", containing("FECompConsultar"))
+                .willReturn(aResponse().withHeader("Content-Type", "text/xml; charset=utf-8")
+                        .withBody(queryResponse("<Errors><Err><Code>602</Code><Msg>Not found</Msg></Err></Errors>"))));
+
+        assertUnknownAuthorization(client);
+        var response = client.wsfev1().getVoucher(new VoucherConsultRequest(1, VoucherType.INVOICE_A, 1));
+
+        assertThat(response.detail()).isNull();
+        assertThat(response.errors()).extracting(error -> error.code()).containsExactly(602);
+        verifySingleAuthorizationAndQueries(1);
+    }
+
+    /**
+     * Retries only the safe query when both authorization and reconciliation time out.
+     *
+     * @throws Exception if the local certificate cannot be created.
+     */
+    @Test
+    void neverResubmitsWhenQueryTimesOut() throws Exception {
+        ArcaClient client = clientWithLostAuthorizationResponse();
+        stubFor(post(urlPathEqualTo("/wsfev1/service.asmx"))
+                .withHeader("SOAPAction", containing("FECompConsultar"))
+                .willReturn(aResponse().withFixedDelay(1500)));
+
+        assertUnknownAuthorization(client);
+        assertThatThrownBy(() -> client.wsfev1().getVoucher(
+                new VoucherConsultRequest(1, VoucherType.INVOICE_A, 1)))
+                .isInstanceOf(ArcaSoapException.class);
+        verifySingleAuthorizationAndQueries(3);
+    }
+
+    private static ArcaClient clientWithLostAuthorizationResponse() throws Exception {
+        server.stubLoginCmsSuccess();
+        stubFor(post(urlPathEqualTo("/wsfev1/service.asmx"))
+                .inScenario("Authorization recovery").whenScenarioStateIs(Scenario.STARTED)
+                .withHeader("SOAPAction", containing("FECAESolicitar"))
+                .willSetStateTo("Authorized")
+                .willReturn(aResponse().withFixedDelay(1500)));
+        ArcaConfig config = new ArcaConfig(Cuit.parse("20-33333333-4"), ArcaEnvironment.HOMOLOGACION,
+                Duration.ofSeconds(2), Duration.ofMillis(500));
+        KeyStore keyStore = createKeyStore("CN=Test, SERIALNUMBER=20333333334");
+        return ArcaClient.builder().config(config).certificate(() -> keyStore).build();
+    }
+
+    private static void assertUnknownAuthorization(ArcaClient client) {
+        CaeRequest request = new CaeRequest(VoucherType.INVOICE_A, 1, 1, ConceptType.PRODUCTS,
+                Cuit.parse("20-33333333-4"), 100, 0, 0, 21, 121, LocalDate.of(2026, 10, 22),
+                List.of(new CaeVatLine(VatType.VAT_21, 100, 21)));
+        assertThatThrownBy(() -> client.wsfev1().requestCae(request))
+                .isInstanceOf(ArcaSoapException.class).hasMessageContaining("outcome is unknown");
+    }
+
+    private static String queryResponse(String result) {
+        return """
+                <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                  <soap:Body><FECompConsultarResponse xmlns="http://ar.gov.afip.dif.FEV1/">
+                    <FECompConsultarResult>%s</FECompConsultarResult>
+                  </FECompConsultarResponse></soap:Body>
+                </soap:Envelope>
+                """.formatted(result);
+    }
+
+    private static void verifySingleAuthorizationAndQueries(int queries) {
+        verify(1, postRequestedFor(urlPathEqualTo("/wsfev1/service.asmx"))
+                .withHeader("SOAPAction", containing("FECAESolicitar")));
+        verify(queries, postRequestedFor(urlPathEqualTo("/wsfev1/service.asmx"))
+                .withHeader("SOAPAction", containing("FECompConsultar"))
+                .withRequestBody(matchingXPath("//*[local-name()='CbteNro' and text()='1']")));
     }
 
     private static void setEnvUrl(ArcaEnvironment env, String fieldName, URI value) throws Exception {

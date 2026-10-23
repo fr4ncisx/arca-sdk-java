@@ -41,6 +41,8 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
     private static final String NULL_REQUEST = "request must not be null";
     private static final String SOAP_FAULT_MESSAGE = "SOAP fault received";
     private static final String SOAP_TIMEOUT_MESSAGE = "SOAP invocation timed out";
+    private static final String SOAP_OUTCOME_UNKNOWN_MESSAGE =
+            "SOAP invocation timed out; the operation outcome is unknown. Query its status before resubmitting.";
     private static final String SOAP_FAILURE_MESSAGE = "SOAP invocation failed";
 
     private final BindingProvider bindingProvider;
@@ -49,7 +51,7 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
     private final ArcaSoapPort<R, S> runner;
 
     /**
-     * Creates an internal SOAP client for a concrete generated JAX-WS port.
+     * Creates an internal SOAP client with retries disabled by default.
      *
      * @param bindingProvider generated JAX-WS port used to configure transport context.
      * @param operation remote operation to execute with the technical request.
@@ -59,6 +61,23 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
     public ArcaSoapClient(BindingProvider bindingProvider,
                           Function<R, S> operation,
                           SoapConfig config) {
+        this(bindingProvider, operation, config, false);
+    }
+
+    /**
+     * Creates an internal SOAP client with an operation-specific retry policy.
+     *
+     * @param bindingProvider generated JAX-WS port used to configure transport context.
+     * @param operation remote operation to execute with the technical request.
+     * @param config resolved SOAP transport configuration.
+     * @param retrySafe whether transient failures can safely trigger a retry.
+     * @throws ArcaValidationException if any argument is null.
+     * @since 1.2.4
+     */
+    public ArcaSoapClient(BindingProvider bindingProvider,
+                          Function<R, S> operation,
+                          SoapConfig config,
+                          boolean retrySafe) {
         if (bindingProvider == null) {
             throw new ArcaValidationException(NULL_BINDING_PROVIDER);
         }
@@ -80,10 +99,14 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
             } catch (SOAPFaultException exception) {
                 throw new ArcaSoapException(SOAP_FAULT_MESSAGE, exception);
             } catch (ArcaSoapException exception) {
+                if (!retrySafe && isTimeout(exception)) {
+                    throw new ArcaSoapException(SOAP_OUTCOME_UNKNOWN_MESSAGE, exception);
+                }
                 throw exception;
             } catch (WebServiceException exception) {
                 if (isTimeout(exception)) {
-                    throw new ArcaSoapException(SOAP_TIMEOUT_MESSAGE, exception);
+                    String message = retrySafe ? SOAP_TIMEOUT_MESSAGE : SOAP_OUTCOME_UNKNOWN_MESSAGE;
+                    throw new ArcaSoapException(message, exception);
                 }
                 throw new ArcaSoapException(SOAP_FAILURE_MESSAGE, exception);
             } catch (RuntimeException exception) {
@@ -92,7 +115,7 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
         };
 
         if (config.resilienceEnabled()) {
-            this.runner = new ResilienceDecorator<>(rawPort);
+            this.runner = new ResilienceDecorator<>(rawPort, retrySafe);
         } else {
             this.runner = rawPort;
         }

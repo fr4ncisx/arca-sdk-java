@@ -29,10 +29,11 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResilienceDecorator.class);
 
     private final ArcaSoapPort<R, S> delegate;
-    private final int maxRetries;
+    private final int maxAttempts;
     private final long baseDelayMs;
     private final int maxConsecutiveFailures;
     private final long resetTimeoutMs;
+    private final boolean retrySafe;
 
     private enum State {
         CLOSED, OPEN, HALF_OPEN
@@ -47,34 +48,77 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
      * with default production resilience parameters.
      *
      * @param delegate the concrete SOAP port to decorate
+     * @throws ArcaValidationException if the delegate is null.
      */
     public ResilienceDecorator(ArcaSoapPort<R, S> delegate) {
-        this(delegate, 3, 500L, 5, 60_000L);
+        this(delegate, 3, 500L, 5, 60_000L, true);
+    }
+
+    /**
+     * Creates a new ResilienceDecorator with retries enabled only for retry-safe operations.
+     *
+     * @param delegate the concrete SOAP port to decorate.
+     * @param retrySafe whether transient failures can safely trigger a retry.
+     * @throws ArcaValidationException if the delegate is null.
+     * @since 1.2.4
+     */
+    public ResilienceDecorator(ArcaSoapPort<R, S> delegate, boolean retrySafe) {
+        this(delegate, 3, 500L, 5, 60_000L, retrySafe);
     }
 
     /**
      * Creates a new ResilienceDecorator with custom resilience parameters for testing.
      *
      * @param delegate               the concrete SOAP port to decorate
-     * @param maxRetries             maximum number of retries before failing
+     * @param maxAttempts            maximum total invocations, including the initial attempt
      * @param baseDelayMs            base backoff delay in milliseconds
      * @param maxConsecutiveFailures consecutive failures allowed before tripping the circuit
      * @param resetTimeoutMs         cooldown time before attempting a reset in half-open state
      */
-    ResilienceDecorator(ArcaSoapPort<R, S> delegate, int maxRetries, long baseDelayMs, int maxConsecutiveFailures, long resetTimeoutMs) {
+    ResilienceDecorator(ArcaSoapPort<R, S> delegate, int maxAttempts, long baseDelayMs,
+                        int maxConsecutiveFailures, long resetTimeoutMs) {
+        this(delegate, maxAttempts, baseDelayMs, maxConsecutiveFailures, resetTimeoutMs, true);
+    }
+
+    private ResilienceDecorator(ArcaSoapPort<R, S> delegate, int maxAttempts, long baseDelayMs,
+                                int maxConsecutiveFailures, long resetTimeoutMs, boolean retrySafe) {
         if (delegate == null) {
             throw new ArcaValidationException("delegate port must not be null");
         }
+        if (maxAttempts <= 0) {
+            throw new ArcaValidationException("maxAttempts must be greater than 0");
+        }
+        if (baseDelayMs < 0L) {
+            throw new ArcaValidationException("baseDelayMs must not be negative");
+        }
+        if (maxConsecutiveFailures <= 0) {
+            throw new ArcaValidationException("maxConsecutiveFailures must be greater than 0");
+        }
+        if (resetTimeoutMs < 0L) {
+            throw new ArcaValidationException("resetTimeoutMs must not be negative");
+        }
         this.delegate = delegate;
-        this.maxRetries = maxRetries;
+        this.maxAttempts = maxAttempts;
         this.baseDelayMs = baseDelayMs;
         this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.resetTimeoutMs = resetTimeoutMs;
+        this.retrySafe = retrySafe;
     }
 
+    /**
+     * Invokes the operation with up to three total attempts for retry-safe timeouts.
+     * <p>
+     * An open circuit rejects calls. Only one recovery probe is admitted after
+     * cooldown, and that probe is never retried automatically.
+     *
+     * @param request the request passed to the decorated port.
+     * @return the response returned by the decorated port.
+     * @throws ArcaCircuitOpenException if the circuit is open or a probe is already running.
+     * @throws ArcaSoapException if transport fails or retry waiting is interrupted.
+     */
     @Override
     public S invoke(R request) throws ArcaSoapException {
-        checkCircuitState();
+        boolean halfOpenProbe = checkCircuitState();
 
         int attempt = 0;
         long delay = baseDelayMs;
@@ -86,14 +130,14 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
                 onSuccess();
                 return response;
             } catch (ArcaSoapException exception) {
-                if (attempt >= maxRetries || !isTransient(exception)) {
+                if (attempt >= maxAttempts || halfOpenProbe || !retrySafe || !isTransient(exception)) {
                     onFailure(exception);
                     throw exception;
                 }
 
                 long jitteredDelay = calculateJitter(delay);
                 LOGGER.warn("SOAP invocation failed (attempt {}/{}). Retrying in {}ms. Error: {}",
-                        attempt, maxRetries, jitteredDelay, exception.getMessage());
+                        attempt, maxAttempts, jitteredDelay, exception.getMessage());
 
                 try {
                     Thread.sleep(jitteredDelay);
@@ -106,17 +150,24 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
         }
     }
 
-    private void checkCircuitState() throws ArcaSoapException {
-        State currentState = state.get();
-        if (currentState == State.OPEN) {
+    private boolean checkCircuitState() throws ArcaSoapException {
+        while (true) {
+            State currentState = state.get();
+            if (currentState == State.CLOSED) {
+                return false;
+            }
+            if (currentState == State.HALF_OPEN) {
+                throw new ArcaCircuitOpenException("Circuit Breaker is HALF_OPEN. A recovery probe is in progress.");
+            }
+
             long elapsed = System.currentTimeMillis() - lastFailureTime.get();
-            if (elapsed > resetTimeoutMs) {
-                if (state.compareAndSet(State.OPEN, State.HALF_OPEN)) {
-                    LOGGER.info("Circuit Breaker transitioned to HALF_OPEN. Testing next request.");
-                }
-            } else {
+            if (elapsed <= resetTimeoutMs) {
                 throw new ArcaCircuitOpenException("Circuit Breaker is OPEN. Outage detected. Remaining cooldown: "
                         + (resetTimeoutMs - elapsed) + "ms");
+            }
+            if (state.compareAndSet(State.OPEN, State.HALF_OPEN)) {
+                LOGGER.info("Circuit Breaker transitioned to HALF_OPEN. Testing next request.");
+                return true;
             }
         }
     }
@@ -134,7 +185,7 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
     private void onFailure(ArcaSoapException exception) {
         if (isTransient(exception)) {
             int failures = consecutiveFailures.incrementAndGet();
-            if (failures >= maxConsecutiveFailures) {
+            if (state.get() == State.HALF_OPEN || failures >= maxConsecutiveFailures) {
                 synchronized (this) {
                     if (state.get() != State.OPEN) {
                         state.set(State.OPEN);
@@ -146,6 +197,7 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
             }
         } else {
             consecutiveFailures.set(0);
+            state.compareAndSet(State.HALF_OPEN, State.CLOSED);
         }
     }
 

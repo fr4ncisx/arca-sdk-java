@@ -58,7 +58,7 @@ public final class WsmtxcaClientAssembler {
                     } catch (Exception e) {
                         throw new jakarta.xml.ws.WebServiceException(e);
                     }
-                }, soapConfig);
+                }, soapConfig, true);
 
         ArcaSoapPort<AutorizarComprobanteRequestType, AutorizarComprobanteResponseType> authorizeSoapPort =
                 new ArcaSoapClient<>(bp, req -> {
@@ -67,7 +67,7 @@ public final class WsmtxcaClientAssembler {
                     } catch (Exception e) {
                         throw new jakarta.xml.ws.WebServiceException(e);
                     }
-                }, soapConfig);
+                }, soapConfig, false);
 
         ArcaSoapPort<ConsultarComprobanteRequestType, ConsultarComprobanteResponseType> getVoucherSoapPort =
                 new ArcaSoapClient<>(bp, req -> {
@@ -76,7 +76,7 @@ public final class WsmtxcaClientAssembler {
                     } catch (Exception e) {
                         throw new jakarta.xml.ws.WebServiceException(e);
                     }
-                }, soapConfig);
+                }, soapConfig, true);
 
         GetLastWsmtxcaVoucherUseCase getLastWsmtxcaVoucherUseCase =
                 new GetLastWsmtxcaVoucherUseCase(config, authProvider, lastVoucherSoapPort);

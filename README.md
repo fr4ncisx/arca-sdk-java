@@ -108,6 +108,10 @@ Luego, en tu proyecto, elige una de estas opciones:
 </dependency>
 ```
 
+## Cambios de seguridad y compatibilidad
+
+- Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
+
 ## Uso
 
 ### Inicialización del cliente
