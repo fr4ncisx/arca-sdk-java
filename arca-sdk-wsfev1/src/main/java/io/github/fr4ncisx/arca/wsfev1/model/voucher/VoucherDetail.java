@@ -48,6 +48,26 @@ public record VoucherDetail(
         List<CaeVatLine> vatLines
 ) {
 
+    /**
+     * Creates voucher details with finite amounts and an immutable VAT snapshot.
+     *
+     * @param voucherType the type of voucher
+     * @param salesPoint the sales point number
+     * @param number the voucher number
+     * @param concept the billing concept
+     * @param customerCuit the taxpayer CUIT of the buyer
+     * @param netTaxed the net taxable amount
+     * @param netUntaxed the net non-taxable amount
+     * @param exempted the exempt amount
+     * @param vatTotal the total VAT tax amount
+     * @param total the total invoice amount
+     * @param date the date of the voucher
+     * @param cae the CAE authorization code
+     * @param expirationDate the CAE expiration date
+     * @param result the authorization result status
+     * @param vatLines the list of VAT breakdowns
+     * @throws ArcaValidationException if required fields or identifiers are invalid, an amount is non-finite, or a VAT entry is null.
+     */
     public VoucherDetail {
         if (voucherType == null) {
             throw new ArcaValidationException("voucherType must not be null");
@@ -73,8 +93,20 @@ public record VoucherDetail(
         if (result == null || result.trim().isEmpty()) {
             throw new ArcaValidationException("result must not be null or blank");
         }
+        if (!Double.isFinite(netTaxed)
+                || !Double.isFinite(netUntaxed)
+                || !Double.isFinite(exempted)
+                || !Double.isFinite(vatTotal)
+                || !Double.isFinite(total)) {
+            throw new ArcaValidationException("monetary amounts must be finite");
+        }
         if (vatLines == null) {
             throw new ArcaValidationException("vatLines must not be null");
+        }
+        try {
+            vatLines = List.copyOf(vatLines);
+        } catch (NullPointerException exception) {
+            throw new ArcaValidationException("vatLines must not contain null entries", exception);
         }
     }
 }

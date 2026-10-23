@@ -14,15 +14,23 @@ import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
  */
 public record CaeVatLine(VatType vatType, double taxBase, double vatAmount) {
 
+    /**
+     * Creates a VAT line with finite non-negative amounts.
+     *
+     * @param vatType the VAT category type
+     * @param taxBase the net amount subject to tax
+     * @param vatAmount the calculated VAT tax amount
+     * @throws ArcaValidationException if the VAT type is null or an amount is negative or non-finite.
+     */
     public CaeVatLine {
         if (vatType == null) {
             throw new ArcaValidationException("vatType must not be null");
         }
-        if (taxBase < 0) {
-            throw new ArcaValidationException("taxBase must be non-negative");
+        if (!Double.isFinite(taxBase) || taxBase < 0) {
+            throw new ArcaValidationException("taxBase must be finite and non-negative");
         }
-        if (vatAmount < 0) {
-            throw new ArcaValidationException("vatAmount must be non-negative");
+        if (!Double.isFinite(vatAmount) || vatAmount < 0) {
+            throw new ArcaValidationException("vatAmount must be finite and non-negative");
         }
     }
 }

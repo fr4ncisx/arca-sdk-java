@@ -110,10 +110,12 @@ Luego, en tu proyecto, elige una de estas opciones:
 
 ## Cambios de seguridad y compatibilidad
 
+- Los DTO conservan copias inmutables de sus listas. Para editar sus datos, utiliza una lista propia y construye un nuevo DTO.
 - Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
 - Los lotes interrumpidos por el hilo conservan una entrada por posición, incluidos duplicados. Los errores distinguen solicitudes no enviadas de operaciones con resultado incierto. La estrategia fail-fast conserva el prefijo procesado.
 - El caché persistente se separa por ambiente y CUIT; los archivos planos antiguos no se migran. Coordina la actualización con la expiración del ticket vigente para evitar el rechazo de WSAA por un ticket ya activo.
 - El directorio de caché debe permitir escritura, bloqueo de archivos y reemplazo atómico. En Windows, restringe sus permisos a la cuenta de la aplicación.
+- Los importes CAE y CAEA deben ser finitos y las cotizaciones, finitas y positivas.
 - Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
 - Los logs del transporte SOAP contienen únicamente dirección y tipo de mensaje. El hardening TLS es optativo y global para la JVM; no sustituye los parches del proveedor de Java.
 

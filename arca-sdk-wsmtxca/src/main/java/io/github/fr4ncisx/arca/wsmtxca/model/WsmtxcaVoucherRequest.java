@@ -1,5 +1,6 @@
 package io.github.fr4ncisx.arca.wsmtxca.model;
 
+import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -62,4 +63,53 @@ public record WsmtxcaVoucherRequest(
     List<TaxDetail> vatSubtotals,
     List<OtherTaxDetail> otherTaxes,
     List<AssociatedVoucher> associatedVouchers
-) {}
+) {
+
+    /**
+     * Creates an immutable snapshot of the supplied collections.
+     *
+     * @param voucherType the type code of the voucher
+     * @param salesPoint the sales point of the voucher
+     * @param voucherNumber the number of the voucher (or 0 if requesting next)
+     * @param issueDate the issue date of the voucher
+     * @param docType the document type of the receiver
+     * @param docNumber the document number of the receiver
+     * @param receiverVatCondition the VAT condition code of the receiver
+     * @param taxableAmount the taxable amount (importeGravado)
+     * @param nonTaxableAmount the non-taxable amount (importeNoGravado)
+     * @param exemptAmount the exempt amount (importeExento)
+     * @param subtotalAmount the subtotal amount (importeSubtotal)
+     * @param otherTaxesAmount the other taxes amount (importeOtrosTributos)
+     * @param totalAmount the total amount of the voucher (importeTotal)
+     * @param currencyId the currency ID (codigoMoneda)
+     * @param exchangeRate the exchange rate of the currency (cotizacionMoneda)
+     * @param cancellationSameCurrency cancel in same foreign currency option
+     * @param comments comments or observations
+     * @param concept the concept type code of the voucher
+     * @param serviceStartDate the service start date (for services/products)
+     * @param serviceEndDate the service end date
+     * @param paymentDueDate the payment due date
+     * @param items the itemized lines of the voucher
+     * @param vatSubtotals the VAT subtotal lines
+     * @param otherTaxes other taxes detail lines
+     * @param associatedVouchers associated vouchers list
+     * @throws ArcaValidationException if a required collection or one of its elements is null.
+     */
+    public WsmtxcaVoucherRequest {
+        items = snapshot(items, "items");
+        vatSubtotals = snapshot(vatSubtotals, "vatSubtotals");
+        otherTaxes = snapshot(otherTaxes, "otherTaxes");
+        associatedVouchers = snapshot(associatedVouchers, "associatedVouchers");
+    }
+
+    private static <T> List<T> snapshot(List<T> values, String fieldName) {
+        if (values == null) {
+            throw new ArcaValidationException(fieldName + " must not be null");
+        }
+        try {
+            return List.copyOf(values);
+        } catch (NullPointerException exception) {
+            throw new ArcaValidationException(fieldName + " must not contain null entries", exception);
+        }
+    }
+}

@@ -21,12 +21,20 @@ public record ExchangeRate(
         @Nullable LocalDate date
 ) {
 
+    /**
+     * Creates a strictly positive finite currency exchange rate.
+     *
+     * @param currencyId the currency string identifier (e.g. "DOL")
+     * @param rate the exchange rate value
+     * @param date the date of the exchange rate value, or null if not returned by ARCA
+     * @throws ArcaValidationException if the currency is blank or the rate is non-finite or non-positive.
+     */
     public ExchangeRate {
         if (currencyId == null || currencyId.trim().isEmpty()) {
             throw new ArcaValidationException("currencyId must not be null or blank");
         }
-        if (rate <= 0) {
-            throw new ArcaValidationException("rate must be strictly positive");
+        if (!Double.isFinite(rate) || rate <= 0) {
+            throw new ArcaValidationException("rate must be finite and strictly positive");
         }
     }
 }
