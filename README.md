@@ -155,6 +155,20 @@ La autorización real es una prueba separada: `RealHomologationAuthorizationInte
 
 Esta prueba utiliza productos, moneda PES y un único desglose de IVA. Consulta la secuencia antes de emitir y luego consulta la misma identidad. Si el número ya existe, únicamente lo concilia. Ante un fallo de transporte, consulta y no reenvía. Nunca apunta a producción. Una prueba omitida o una conciliación de un comprobante anterior no demuestra una nueva autorización en esa ejecución.
 
+El workflow de seguridad debe completar una actualización NVD confiable y un escaneo con datos de menos de 48 horas. Conserva el informe y el SBOM; verifica la fecha interna de NVD además del marcador de caché. La actualización del secreto se gestiona en GitHub y no requiere leerlo localmente.
+
+El escáner usa Dependency-Check 12.2.2 y una base separada en `.dependency-check-data/db-5.6`, compatible con las referencias largas actuales de NVD. La actualización se rechaza si registra errores de procesamiento, aunque Maven termine con `BUILD SUCCESS`.
+
+Con una base local actualizada y su marcador de actualización validado, puedes repetir el escaneo sin refrescar NVD:
+
+```bash
+python -B scripts/check_security_cache.py .dependency-check-data/db-5.6
+mvn package dependency-check:aggregate -Psecurity-scan -DskipTests -DautoUpdate=false
+python -B scripts/check_security_cache.py .dependency-check-data/db-5.6 --report target/dependency-check-report.json
+```
+
+Los informes quedan en `target/dependency-check-report.html` y `target/dependency-check-report.json`; el SBOM, en `target/bom.json` y `target/bom.xml`. El escaneo falla ante vulnerabilidades con CVSS de 7 o superior. No crees ni renueves el marcador para hacer pasar una base que no se actualizó correctamente.
+
 ## Uso
 
 ### Inicialización del cliente

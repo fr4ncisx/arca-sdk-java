@@ -1,9 +1,17 @@
 name: Security Scan
 
 on:
+  pull_request:
+    branches: [main]
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
+    inputs:
+      refresh_only:
+        description: Refresh NVD and seed the branch cache without running the scan.
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -15,7 +23,7 @@ concurrency:
 jobs:
   security-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -30,19 +38,102 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Get Year-Week for Cache Key
-        id: get-date
-        run: echo "date=$(date +'%Y-W%V')" >> $GITHUB_OUTPUT
-
-      - name: Cache OWASP Dependency Check Database
-        uses: actions/cache@v5
+      - name: Restore OWASP Dependency Check Database
+        uses: actions/cache/restore@v5
         with:
-          path: .dependency-check-data
-          key: dependency-check-${{ runner.os }}-${{ steps.get-date.outputs.date }}
+          path: ${{ runner.temp }}/dependency-check-data
+          key: dependency-check-db5.6-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            dependency-check-${{ runner.os }}-
+            dependency-check-db5.6-${{ runner.os }}-
 
-      - name: Run OWASP Dependency Scan
+      - name: Refresh OWASP Dependency Check Database
+        if: github.event_name != 'pull_request'
+        id: update-database
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn dependency-check:aggregate -Psecurity-scan --batch-mode --no-transfer-progress
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CLEAN_NVD_API_KEY="$(printf '%s' "${NVD_API_KEY:-}" | tr -d '[:space:]')"
+          if [ -z "$CLEAN_NVD_API_KEY" ]; then
+            echo "::error::El secret NVD_API_KEY está vacío o fue configurado como Environment Secret en vez de Repository Secret."
+            exit 1
+          fi
+          export NVD_API_KEY="$CLEAN_NVD_API_KEY"
+
+          mkdir -p "$RUNNER_TEMP/dependency-check-data"
+
+          mvn dependency-check:update-only -Psecurity-scan \
+            -DnvdApiKey="$NVD_API_KEY" \
+            -DnvdApiKeyEnvironmentVariable=NVD_API_KEY \
+            -DautoUpdate=true \
+            -DfailOnError=true \
+            -DdependencyCheckDataDirectory="$RUNNER_TEMP/dependency-check-data" \
+            -DdataDirectory="$RUNNER_TEMP/dependency-check-data" \
+            --batch-mode --no-transfer-progress | tee "$RUNNER_TEMP/nvd-update.log"
+
+          PYTHONPATH="${GITHUB_WORKSPACE}" python -B - "$RUNNER_TEMP/nvd-update.log" <<'PY'
+          import sys
+          from pathlib import Path
+          from scripts.check_security_cache import check_update_log
+
+          check_update_log(Path(sys.argv[1]))
+          PY
+
+      - name: Record database refresh time
+        if: steps.update-database.outcome == 'success'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import os
+          from pathlib import Path
+
+          data_directory = Path(os.environ['RUNNER_TEMP']) / 'dependency-check-data'
+          data_directory.mkdir(parents=True, exist_ok=True)
+          (data_directory / 'refreshed-at.txt').write_text(
+              datetime.now(timezone.utc).isoformat(), encoding='utf-8')
+          PY
+
+      - name: Check cached database freshness
+        id: database-freshness
+        shell: bash
+        run: python -B scripts/check_security_cache.py "$RUNNER_TEMP/dependency-check-data"
+
+      - name: Run OWASP Dependency Scan
+        if: ${{ inputs.refresh_only != true }}
+        id: scan
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        shell: bash
+        run: |
+          mvn package dependency-check:aggregate -Psecurity-scan \
+            -DskipTests \
+            -DdependencyCheckDataDirectory="$RUNNER_TEMP/dependency-check-data" \
+            -DdataDirectory="$RUNNER_TEMP/dependency-check-data" \
+            -DautoUpdate=false \
+            --batch-mode --no-transfer-progress
+
+      - name: Verify database metadata in report
+        id: database-metadata
+        if: ${{ !cancelled() && (steps.scan.outcome == 'success' || hashFiles('target/dependency-check-report.json') != '') }}
+        shell: bash
+        run: python -B scripts/check_security_cache.py "$RUNNER_TEMP/dependency-check-data" --report target/dependency-check-report.json
+
+      - name: Save refreshed OWASP database
+        if: ${{ !cancelled() && steps.update-database.outcome == 'success' && steps.database-freshness.outcome == 'success' && (inputs.refresh_only == true || steps.database-metadata.outcome == 'success') }}
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ runner.temp }}/dependency-check-data
+          key: dependency-check-db5.6-${{ runner.os }}-${{ github.run_id }}
+
+      - name: Upload security reports
+        if: ${{ !cancelled() && hashFiles('target/dependency-check-report.*', 'target/bom.*') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            target/dependency-check-report.*
+            target/bom.*
+          if-no-files-found: error
