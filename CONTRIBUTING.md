@@ -83,7 +83,10 @@ Los casos de uso dependen de puertos (`ArcaSoapPort`, `AuthProvider`), nunca de 
 - **Integración** — usar WireMock, nunca tráfico de red real.
 - **Ejecutar**: `mvn clean verify` (compila + tests).
 - **Un módulo**: `mvn test -pl arca-sdk-wsfev1`.
-- **Integración real**: `mvn verify -Darca.integration=true` (requiere certificados).
+- **Production compatibility gate**: `python -B scripts/check_compatibility.py` builds the pinned `v1.2.3` baseline in the OS temporary directory and runs `clean verify -Pci,compatibility`. Missing or mismatched baseline artifacts fail the gate. Reports are written under each runtime module's `target/japicmp` directory. The baseline-compiled reference-consumer test runs only through this gate.
+- **Validation scripts**: `python -B -m unittest discover -s scripts -p 'test_*.py'`.
+- **Real homologation**: `mvn test -Phomologation -pl arca-sdk-client -am -Dtest=RealHomologationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false`. Configure `ARCA_TEST_CERT_PATH`, `ARCA_TEST_CERT_PASSWORD`, and `ARCA_TEST_CUIT` externally. This opt-in test authenticates and queries homologation; it does not issue vouchers. A skipped test is not a successful real-service validation.
+- **Real authorization**: run the same command with `-Dtest=RealHomologationAuthorizationIntegrationTest` only after reviewing the explicit write opt-in and voucher configuration described in the README. Use a dedicated homologation sales point and retain the same explicit voucher number when reconciling an interrupted run.
 
 ## Commits
 

@@ -8,12 +8,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,6 +44,21 @@ class PersistentTicketCacheTest {
 
     @TempDir
     Path tempDir;
+
+    /**
+     * Reports a read-only deployment volume through an SDK exception.
+     */
+    @Test
+    void rejectsReadOnlyVolumes() {
+        var filesystem = FileSystems.getFileSystem(URI.create("jrt:/"));
+        assertThat(filesystem.isReadOnly()).isTrue();
+        var cache = new PersistentTicketCache(filesystem.getPath("/modules/java.base"), new FixedClock(NOW));
+        assertThatThrownBy(() -> cache.put(KEY, new ArcaAccessTicket(TOKEN, SIGN, GEN, EXP)))
+                .isInstanceOf(ArcaAuthException.class);
+        assertThatThrownBy(() -> cache.get(KEY)).isInstanceOf(ArcaAuthException.class);
+        assertThatThrownBy(() -> cache.evict(KEY)).isInstanceOf(ArcaAuthException.class);
+        assertThatThrownBy(cache::clear).isInstanceOf(ArcaAuthException.class);
+    }
 
     @Test
     void constructorRejectsNulls() {
@@ -173,5 +197,91 @@ class PersistentTicketCacheTest {
                           PosixFilePermission.OWNER_WRITE)
                 .doesNotContain(PosixFilePermission.GROUP_READ,
                                 PosixFilePermission.OTHERS_READ);
+
+        var lockPermissions = Files.getPosixFilePermissions(tempDir.resolve(".ticket-cache.lock"));
+        assertThat(lockPermissions)
+                .contains(PosixFilePermission.OWNER_READ,
+                          PosixFilePermission.OWNER_WRITE)
+                .doesNotContain(PosixFilePermission.GROUP_READ,
+                                PosixFilePermission.OTHERS_READ);
+    }
+
+    /**
+     * Verifies that concurrent cache instances never expose partially written tickets.
+     *
+     * @throws Exception if a concurrent cache operation fails.
+     */
+    @Test
+    void concurrentInstancesShareAConsistentTicketFile() throws Exception {
+        var firstCache = new PersistentTicketCache(tempDir, new FixedClock(NOW));
+        var secondCache = new PersistentTicketCache(tempDir, new FixedClock(NOW));
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<?>> operations = new ArrayList<>();
+
+        try {
+            for (int worker = 0; worker < 8; worker++) {
+                PersistentTicketCache cache = worker % 2 == 0 ? firstCache : secondCache;
+                int workerId = worker;
+                operations.add(executor.submit(() -> {
+                    start.await();
+                    for (int iteration = 0; iteration < 30; iteration++) {
+                        cache.put(KEY, new ArcaAccessTicket(
+                                "token-" + workerId + "-" + iteration, SIGN, GEN, EXP));
+                        cache.get(KEY).ifPresent(ticket ->
+                                assertThat(ticket.token()).startsWith("token-"));
+                    }
+                    return null;
+                }));
+            }
+            start.countDown();
+            for (Future<?> operation : operations) {
+                operation.get(10, TimeUnit.SECONDS);
+            }
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    /**
+     * Verifies that separate JVMs serialize ticket updates through the shared lock file.
+     *
+     * @throws Exception if a probe process fails or does not exit within the test deadline.
+     */
+    @Test
+    void serializesTicketUpdatesAcrossProcesses() throws Exception {
+        String executableName = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
+        Path javaExecutable = Path.of(System.getProperty("java.home"), "bin", executableName);
+        String classPath = System.getProperty("java.class.path");
+        Process first = new ProcessBuilder(
+                javaExecutable.toString(), "-cp", classPath, TicketCacheProcessProbe.class.getName(),
+                tempDir.toString(), "worker-a")
+                .redirectErrorStream(true)
+                .start();
+        Process second = new ProcessBuilder(
+                javaExecutable.toString(), "-cp", classPath, TicketCacheProcessProbe.class.getName(),
+                tempDir.toString(), "worker-b")
+                .redirectErrorStream(true)
+                .start();
+
+        boolean firstExited = first.waitFor(15, TimeUnit.SECONDS);
+        boolean secondExited = second.waitFor(15, TimeUnit.SECONDS);
+        if (!firstExited) {
+            first.destroyForcibly();
+        }
+        if (!secondExited) {
+            second.destroyForcibly();
+        }
+        String firstOutput = new String(first.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String secondOutput = new String(second.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+        assertThat(firstExited).isTrue();
+        assertThat(secondExited).isTrue();
+        assertThat(first.exitValue()).isZero();
+        assertThat(second.exitValue()).isZero();
+        assertThat(firstOutput).contains("ok");
+        assertThat(secondOutput).contains("ok");
+        assertThat(new PersistentTicketCache(tempDir, new FixedClock(NOW)).get(KEY)).isPresent();
     }
 }

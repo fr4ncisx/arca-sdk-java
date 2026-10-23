@@ -1,5 +1,7 @@
 package io.github.fr4ncisx.arca.soap.internal.security;
 
+import java.security.Security;
+
 /**
  * Utility class for hardening JAX-WS and XML parsing against XXE vulnerabilities.
  * <p>
@@ -29,5 +31,20 @@ public final class SoapHardeningUtil {
         System.setProperty("javax.xml.accessExternalDTD", "");
         System.setProperty("javax.xml.accessExternalSchema", "");
         System.setProperty("javax.xml.accessExternalStylesheet", "");
+    }
+
+    /**
+     * Configures JVM-wide certificate revocation checking for TLS connections.
+     * <p>
+     * Enables CRL and OCSP validation in JSSE. Call this before creating TLS
+     * clients; the configuration affects the entire JVM and does not replace
+     * applying the runtime vendor's security patches.
+     *
+     * @since 1.2.4
+     */
+    public static void enableTlsRevocationChecking() {
+        System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+        System.setProperty("com.sun.security.enableCRLDP", "true");
+        Security.setProperty("ocsp.enable", "true");
     }
 }

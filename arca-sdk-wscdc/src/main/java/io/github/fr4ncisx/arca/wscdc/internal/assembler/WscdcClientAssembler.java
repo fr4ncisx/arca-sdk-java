@@ -75,7 +75,7 @@ public final class WscdcClientAssembler {
                     } catch (Exception e) {
                         throw new WebServiceException(e);
                     }
-                }, soapConfig);
+                }, soapConfig, true);
 
         ConstatVoucherUseCase constatUseCase = new ConstatVoucherUseCase(config, authProvider, constatSoapPort);
         WscdcDummyClient dummyClient = new WscdcDummyClient(port, config.environment(), config.readTimeout());

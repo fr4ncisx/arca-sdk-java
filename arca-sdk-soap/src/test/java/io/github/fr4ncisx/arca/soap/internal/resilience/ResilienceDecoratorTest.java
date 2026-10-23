@@ -7,6 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import java.net.SocketTimeoutException;
 import java.net.http.HttpTimeoutException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -123,5 +128,90 @@ class ResilienceDecoratorTest {
         String result2 = port.invoke(REQUEST);
         assertThat(result2).isEqualTo(RESPONSE);
         assertThat(callCount.get()).isEqualTo(3);
+    }
+
+    /**
+     * Verifies that only one request probes the remote service while the circuit is half-open.
+     *
+     * @throws Exception if the probe does not finish within the test deadline.
+     */
+    @Test
+    void allowsOnlyOneConcurrentHalfOpenProbe() throws Exception {
+        var callCount = new AtomicInteger();
+        var probeStarted = new CountDownLatch(1);
+        var releaseProbe = new CountDownLatch(1);
+        ArcaSoapPort<String, String> delegate = req -> {
+            int attempt = callCount.incrementAndGet();
+            if (attempt == 1) {
+                throw new ArcaSoapException("Timeout", new SocketTimeoutException("Read timed out"));
+            }
+            if (attempt == 2) {
+                probeStarted.countDown();
+                try {
+                    releaseProbe.await();
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    throw new ArcaSoapException("Probe interrupted", exception);
+                }
+            }
+            return RESPONSE;
+        };
+        var port = new ResilienceDecorator<>(delegate, 1, 0L, 1, 0L);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        try {
+            assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaSoapException.class);
+            Thread.sleep(5);
+            Future<String> probe = executor.submit(() -> port.invoke(REQUEST));
+
+            assertThat(probeStarted.await(2, TimeUnit.SECONDS)).isTrue();
+            assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaCircuitOpenException.class);
+            releaseProbe.countDown();
+
+            assertThat(probe.get(2, TimeUnit.SECONDS)).isEqualTo(RESPONSE);
+            assertThat(callCount.get()).isEqualTo(2);
+        } finally {
+            releaseProbe.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    /**
+     * Verifies that the retry limit counts the initial attempt in the total invocation limit.
+     */
+    @Test
+    void limitsSafeOperationToThreeTotalAttempts() {
+        var callCount = new AtomicInteger();
+        ArcaSoapPort<String, String> delegate = req -> {
+            callCount.incrementAndGet();
+            throw new ArcaSoapException("Timeout", new SocketTimeoutException("Read timed out"));
+        };
+        var port = new ResilienceDecorator<>(delegate, 3, 0L, 5, 1000L);
+
+        assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaSoapException.class);
+
+        assertThat(callCount.get()).isEqualTo(3);
+    }
+
+    /**
+     * Verifies that a transient failure from a half-open probe reopens the circuit.
+     *
+     * @throws Exception if the circuit cooldown cannot be reached.
+     */
+    @Test
+    void reopensCircuitAfterFailedHalfOpenProbe() throws Exception {
+        var callCount = new AtomicInteger();
+        ArcaSoapPort<String, String> delegate = req -> {
+            callCount.incrementAndGet();
+            throw new ArcaSoapException("Timeout", new SocketTimeoutException("Read timed out"));
+        };
+        var port = new ResilienceDecorator<>(delegate, 1, 0L, 1, 1_000L);
+
+        assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaSoapException.class);
+        Thread.sleep(1_100L);
+        assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaSoapException.class);
+
+        assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaCircuitOpenException.class);
+        assertThat(callCount.get()).isEqualTo(2);
     }
 }

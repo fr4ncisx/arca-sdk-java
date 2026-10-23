@@ -90,7 +90,7 @@ Luego, en tu proyecto, elige una de estas opciones:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.4</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -104,9 +104,72 @@ Luego, en tu proyecto, elige una de estas opciones:
 <dependency>
     <groupId>io.github.fr4ncisx</groupId>
     <artifactId>arca-sdk-bundle</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.4</version>
 </dependency>
 ```
+
+## Actualización a 1.2.4
+
+- Los DTO conservan copias inmutables de sus listas. Para editar sus datos, utiliza una lista propia y construye un nuevo DTO.
+- Las autorizaciones y los informes de comprobantes no se reintentan automáticamente. Ante un timeout, consulta el estado antes de reenviar. Las consultas seguras conservan hasta tres intentos totales.
+- Los lotes interrumpidos por el hilo conservan una entrada por posición, incluidos duplicados. Los errores distinguen solicitudes no enviadas de operaciones con resultado incierto. La estrategia fail-fast conserva el prefijo procesado.
+- El caché persistente se separa por ambiente y CUIT; los archivos planos antiguos no se migran. Coordina la actualización con la expiración del ticket vigente para evitar el rechazo de WSAA por un ticket ya activo.
+- El directorio de caché debe permitir escritura, bloqueo de archivos y reemplazo atómico. En Windows, restringe sus permisos a la cuenta de la aplicación.
+- Los importes CAE y CAEA deben ser finitos y las cotizaciones, finitas y positivas.
+- Un timeout de cero desactiva el límite correspondiente. Las respuestas WSAA se limitan a 1 MiB.
+- Los logs del transporte SOAP contienen únicamente dirección y tipo de mensaje. El hardening TLS es optativo y global para la JVM; no sustituye los parches del proveedor de Java.
+
+Consulta [SECURITY.md](SECURITY.md) para los detalles de seguridad y transición. Estos cambios conservan las firmas públicas; las integraciones que mutaban listas de DTO deben adaptarse.
+
+## Verificación del SDK
+
+Ejecuta desde la raíz, con Java 21 o 25 y Python 3.9 o superior:
+
+```bash
+python -B -m unittest discover -s scripts -p 'test_*.py'
+python -B scripts/check_compatibility.py
+```
+
+El segundo comando construye el tag `v1.2.3` en un directorio temporal, verifica su commit y ejecuta pruebas, cobertura y comparación de API pública. También compila consumidores Java y Spring de referencia contra ambas versiones y ejecuta su bytecode contra el candidato. Requiere disponer del tag local; no modifica ramas ni instala la versión anterior en el repositorio Maven local.
+
+La comparación de firmas no detecta por sí sola cambios de comportamiento. Los consumidores de referencia cubren construcción de DTO, edición mediante copias de listas y autoconfiguración Spring. No sustituyen las pruebas de una aplicación externa.
+
+La suite local y la comparación de compatibilidad no requieren credenciales de ARCA. Las pruebas reales de homologación son optativas; cuando no se dispone de un entorno para ejecutarlas, la integración remota queda sin verificar.
+
+Para consultas reales de homologación, configura externamente `ARCA_TEST_CERT_PATH`, `ARCA_TEST_CERT_PASSWORD` y `ARCA_TEST_CUIT`:
+
+```bash
+mvn test -Phomologation -pl arca-sdk-client -am -Dtest=RealHomologationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+La autorización real es una prueba separada: `RealHomologationAuthorizationIntegrationTest`. Solo se activa con `ARCA_TEST_WRITE_ENABLED=true` y requiere estos datos revisados por el operador:
+
+| Variable | Valor requerido |
+|---|---|
+| `ARCA_TEST_SALES_POINT` | Punto de venta reservado para homologación, sin otros emisores concurrentes |
+| `ARCA_TEST_VOUCHER_TYPE` | Código del tipo de comprobante |
+| `ARCA_TEST_VOUCHER_NUMBER` | Número explícito; no se incrementa automáticamente al repetir la prueba |
+| `ARCA_TEST_RECEIVER_CUIT` | CUIT del receptor de prueba |
+| `ARCA_TEST_VOUCHER_DATE` | Fecha revisada en formato `AAAA-MM-DD` |
+| `ARCA_TEST_NET_AMOUNT` | Importe neto positivo, con punto decimal |
+| `ARCA_TEST_VAT_AMOUNT` | IVA no negativo, con punto decimal |
+| `ARCA_TEST_VAT_TYPE` | Código de alícuota, obligatorio cuando el IVA es mayor que cero |
+
+Esta prueba utiliza productos, moneda PES y un único desglose de IVA. Consulta la secuencia antes de emitir y luego consulta la misma identidad. Si el número ya existe, únicamente lo concilia. Ante un fallo de transporte, consulta y no reenvía. Nunca apunta a producción. Una prueba omitida o una conciliación de un comprobante anterior no demuestra una nueva autorización en esa ejecución.
+
+El workflow `NVD Database Refresh` actualiza la base en cambios a `main` y diariamente; `Security Scan` escanea los PR con esa caché, sin exponerles `NVD_API_KEY`. Conserva el informe y el SBOM; verifica la fecha interna de NVD además del marcador de caché. Los PR fallan si la base falta o supera las 48 horas.
+
+El escáner usa Dependency-Check 12.2.2 y una base separada en `.dependency-check-data/db-5.6`, compatible con las referencias largas actuales de NVD. La actualización se rechaza si registra errores de procesamiento, aunque Maven termine con `BUILD SUCCESS`.
+
+Con una base local actualizada y su marcador de actualización validado, puedes repetir el escaneo sin refrescar NVD:
+
+```bash
+python -B scripts/check_security_cache.py .dependency-check-data/db-5.6
+mvn package dependency-check:aggregate -Psecurity-scan -DskipTests -DautoUpdate=false
+python -B scripts/check_security_cache.py .dependency-check-data/db-5.6 --report target/dependency-check-report.json
+```
+
+Los informes quedan en `target/dependency-check-report.html` y `target/dependency-check-report.json`; el SBOM, en `target/bom.json` y `target/bom.xml`. El escaneo falla ante vulnerabilidades con CVSS de 7 o superior. No crees ni renueves el marcador para hacer pasar una base que no se actualizó correctamente.
 
 ## Uso
 

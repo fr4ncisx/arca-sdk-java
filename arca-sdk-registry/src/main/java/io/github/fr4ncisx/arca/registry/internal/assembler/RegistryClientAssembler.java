@@ -77,7 +77,8 @@ public final class RegistryClientAssembler {
                     throw new WebServiceException(e);
                 }
             },
-            soapConfig
+            soapConfig,
+            true
         );
 
         GetTaxpayerUseCase getTaxpayerUseCase = new GetTaxpayerUseCase(config, authProvider, getTaxpayerSoapPort);

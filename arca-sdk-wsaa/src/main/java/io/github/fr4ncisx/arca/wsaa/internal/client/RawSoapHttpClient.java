@@ -3,16 +3,23 @@ package io.github.fr4ncisx.arca.wsaa.internal.client;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
+import org.jspecify.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow;
 import java.util.regex.Pattern;
 
 /**
@@ -32,6 +39,7 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
     private static final String SOAP_NS = "http://schemas.xmlsoap.org/soap/envelope/";
     private static final String WSAA_NS = "http://wsaa.view.sua.dvadac.desein.afip.gov";
     private static final String CONTENT_TYPE = "text/xml; charset=utf-8";
+    private static final int MAX_RESPONSE_BYTES = 1_048_576;
     private static final Pattern STRICT_BASE64_PATTERN = Pattern.compile("^[A-Za-z0-9+/]+={0,2}$");
     private static final Pattern LOOPBACK_IPV4_PATTERN = Pattern.compile("^127(\\.\\d{1,3}){3}$");
 
@@ -68,9 +76,11 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
         }
         this.endpoint = endpoint;
         this.readTimeout = readTimeout;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(connectTimeout)
-                .build();
+        HttpClient.Builder clientBuilder = HttpClient.newBuilder();
+        if (!connectTimeout.isZero()) {
+            clientBuilder.connectTimeout(connectTimeout);
+        }
+        this.httpClient = clientBuilder.build();
     }
 
     private static boolean isSecureEndpoint(URI endpoint) {
@@ -142,11 +152,14 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
     private HttpResponse<String> sendRequest(String envelope) throws ArcaSoapException {
         HttpRequest request;
         try {
-            request = HttpRequest.newBuilder()
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(endpoint)
                     .header("Content-Type", CONTENT_TYPE)
-                    .header("SOAPAction", "")
-                    .timeout(readTimeout)
+                    .header("SOAPAction", "");
+            if (!readTimeout.isZero()) {
+                requestBuilder.timeout(readTimeout);
+            }
+            request = requestBuilder
                     .POST(HttpRequest.BodyPublishers.ofString(envelope, StandardCharsets.UTF_8))
                     .build();
         } catch (IllegalArgumentException e) {
@@ -154,15 +167,28 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
         }
 
         try {
-            return httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            return httpClient.send(request, responseInfo -> new LimitedBodySubscriber());
         } catch (HttpTimeoutException e) {
             throw new ArcaSoapException("Timeout communicating with WSAA at " + endpoint, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ArcaSoapException("Interrupted while communicating with WSAA at " + endpoint, e);
         } catch (IOException e) {
+            if (hasCause(e, ResponseTooLargeException.class)) {
+                throw new ArcaSoapException(
+                        "WSAA response exceeded the maximum response size of " + MAX_RESPONSE_BYTES + " bytes", e);
+            }
             throw new ArcaSoapException("Network error communicating with WSAA at " + endpoint, e);
         }
+    }
+
+    private static boolean hasCause(Throwable failure, Class<? extends Throwable> causeType) {
+        for (Throwable current = failure; current != null; current = current.getCause()) {
+            if (causeType.isInstance(current)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void validateResponse(HttpResponse<String> response) throws ArcaSoapException {
@@ -186,5 +212,60 @@ final class RawSoapHttpClient implements ArcaSoapPort<String, String> {
     static boolean isSoapFault(String responseBody) {
         return responseBody != null
             && (responseBody.contains(":Fault>") || responseBody.contains("<Fault>"));
+    }
+
+    private static final class LimitedBodySubscriber implements HttpResponse.BodySubscriber<String> {
+
+        private final CompletableFuture<String> body = new CompletableFuture<>();
+        private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        private Flow.@Nullable Subscription subscription;
+        private int bytesRead;
+
+        @Override
+        public CompletionStage<String> getBody() {
+            return body;
+        }
+
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(1);
+        }
+
+        @Override
+        public void onNext(List<ByteBuffer> buffers) {
+            Flow.Subscription currentSubscription = subscription;
+            if (currentSubscription == null) {
+                body.completeExceptionally(new IOException("WSAA response body arrived before subscription"));
+                return;
+            }
+            for (ByteBuffer source : buffers) {
+                int remaining = source.remaining();
+                if (remaining > MAX_RESPONSE_BYTES - bytesRead) {
+                    currentSubscription.cancel();
+                    body.completeExceptionally(new ResponseTooLargeException());
+                    return;
+                }
+                byte[] chunk = new byte[remaining];
+                source.get(chunk);
+                buffer.writeBytes(chunk);
+                bytesRead += remaining;
+            }
+            currentSubscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable failure) {
+            body.completeExceptionally(failure);
+        }
+
+        @Override
+        public void onComplete() {
+            body.complete(buffer.toString(StandardCharsets.UTF_8));
+        }
+    }
+
+    private static final class ResponseTooLargeException extends IOException {
+        private static final long serialVersionUID = 1L;
     }
 }

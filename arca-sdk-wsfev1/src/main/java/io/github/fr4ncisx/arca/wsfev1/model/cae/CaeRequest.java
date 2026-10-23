@@ -41,6 +41,23 @@ public record CaeRequest(
         List<CaeVatLine> vatLines
 ) {
 
+    /**
+     * Creates a CAE request with finite amounts and an immutable VAT snapshot.
+     *
+     * @param voucherType the type of voucher
+     * @param salesPoint the issuing sales point
+     * @param number the voucher number
+     * @param concept the billing concept
+     * @param customerCuit the taxpayer CUIT of the buyer
+     * @param netTaxed the net taxable amount
+     * @param netUntaxed the net non-taxable amount
+     * @param exempted the exempt amount
+     * @param vatTotal the total VAT tax amount
+     * @param total the total invoice amount
+     * @param date the date of the voucher
+     * @param vatLines the list of VAT breakdowns
+     * @throws ArcaValidationException if required fields are null, identifiers are invalid, amounts are non-finite, or the total differs from its components.
+     */
     public CaeRequest {
         if (voucherType == null) {
             throw new ArcaValidationException("voucherType must not be null");
@@ -63,10 +80,24 @@ public record CaeRequest(
         if (vatLines == null) {
             throw new ArcaValidationException("vatLines list must not be null");
         }
-        
+        for (CaeVatLine vatLine : vatLines) {
+            if (vatLine == null) {
+                throw new ArcaValidationException("vatLines must not contain null entries");
+            }
+        }
+        vatLines = List.copyOf(vatLines);
+
+        if (!Double.isFinite(netTaxed)
+                || !Double.isFinite(netUntaxed)
+                || !Double.isFinite(exempted)
+                || !Double.isFinite(vatTotal)
+                || !Double.isFinite(total)) {
+            throw new ArcaValidationException("monetary amounts must be finite");
+        }
+
         double expectedTotal = netTaxed + netUntaxed + exempted + vatTotal;
-        if (Math.abs(total - expectedTotal) > 0.011) {
-            throw new ArcaValidationException("Invoice total amount mismatch: expected " 
+        if (!Double.isFinite(expectedTotal) || Math.abs(total - expectedTotal) > 0.011) {
+            throw new ArcaValidationException("Invoice total amount mismatch: expected "
                     + expectedTotal + " but was " + total);
         }
     }

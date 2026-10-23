@@ -69,67 +69,67 @@ public final class WsfeClientAssembler {
         bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
 
         ArcaSoapPort<FECompUltimoAutorizado, FERecuperaLastCbteResponse> lastVoucherSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feCompUltimoAutorizado(req.getAuth(), req.getPtoVta(), req.getCbteTipo()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feCompUltimoAutorizado(req.getAuth(), req.getPtoVta(), req.getCbteTipo()), soapConfig, true);
 
         ArcaSoapPort<FECAESolicitar, FECAEResponse> requestCaeSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fecaeSolicitar(req.getAuth(), req.getFeCAEReq()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fecaeSolicitar(req.getAuth(), req.getFeCAEReq()), soapConfig, false);
 
         ArcaSoapPort<FECompConsultar, FECompConsultaResponse> getVoucherSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feCompConsultar(req.getAuth(), req.getFeCompConsReq()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feCompConsultar(req.getAuth(), req.getFeCompConsReq()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetPtosVenta, FEPtoVentaResponse> getSalesPointsSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetPtosVenta(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetPtosVenta(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposCbte, CbteTipoResponse> getVoucherTypesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposCbte(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposCbte(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposDoc, DocTipoResponse> getDocumentTypesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposDoc(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposDoc(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposIva, IvaTipoResponse> getVatTypesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposIva(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposIva(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposMonedas, MonedaResponse> getCurrenciesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposMonedas(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposMonedas(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetCotizacion, FECotizacionResponse> getExchangeRateSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetCotizacion(req.getAuth(), req.getMonId(), req.getFchCotiz()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetCotizacion(req.getAuth(), req.getMonId(), req.getFchCotiz()), soapConfig, true);
 
         ArcaSoapPort<FECompTotXRequest, FERegXReqResponse> getMaxRecordsSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feCompTotXRequest(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feCompTotXRequest(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposConcepto, ConceptoTipoResponse> getConceptTypesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposConcepto(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposConcepto(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposOpcional, OpcionalTipoResponse> getOptionalFieldTypesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposOpcional(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposOpcional(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposPaises, FEPaisResponse> getCountriesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposPaises(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposPaises(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetTiposTributos, FETributoResponse> getTaxTypesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposTributos(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetTiposTributos(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetActividades, FEActividadesResponse> getActivitiesSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetActividades(req.getAuth()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetActividades(req.getAuth()), soapConfig, true);
 
         ArcaSoapPort<FEParamGetCondicionIvaReceptor, CondicionIvaReceptorResponse> getReceiverVatConditionsSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.feParamGetCondicionIvaReceptor(req.getAuth(), req.getClaseCmp()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.feParamGetCondicionIvaReceptor(req.getAuth(), req.getClaseCmp()), soapConfig, true);
 
         ArcaSoapPort<FECAEASolicitar, FECAEAGetResponse> requestCaeaSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fecaeaSolicitar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fecaeaSolicitar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig, false);
 
         ArcaSoapPort<FECAEARegInformativo, FECAEAResponse> reportCaeaSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fecaeaRegInformativo(req.getAuth(), req.getFeCAEARegInfReq()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fecaeaRegInformativo(req.getAuth(), req.getFeCAEARegInfReq()), soapConfig, false);
 
         ArcaSoapPort<FECAEAConsultar, FECAEAGetResponse> queryCaeaSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fecaeaConsultar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fecaeaConsultar(req.getAuth(), req.getPeriodo(), req.getOrden()), soapConfig, true);
 
         ArcaSoapPort<FECAEASinMovimientoInformar, FECAEASinMovResponse> reportCaeaNoMovementSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fecaeaSinMovimientoInformar(req.getAuth(), req.getPtoVta(), req.getCAEA()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fecaeaSinMovimientoInformar(req.getAuth(), req.getPtoVta(), req.getCAEA()), soapConfig, false);
 
         ArcaSoapPort<FECAEASinMovimientoConsultar, FECAEASinMovConsResponse> queryCaeaNoMovementSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fecaeaSinMovimientoConsultar(req.getAuth(), req.getCAEA(), req.getPtoVta()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fecaeaSinMovimientoConsultar(req.getAuth(), req.getCAEA(), req.getPtoVta()), soapConfig, true);
 
         GetLastVoucherUseCase getLastVoucherUseCase =
                 new GetLastVoucherUseCase(config, authProvider, lastVoucherSoapPort);

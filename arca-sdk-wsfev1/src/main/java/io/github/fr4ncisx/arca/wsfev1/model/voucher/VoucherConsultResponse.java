@@ -20,9 +20,21 @@ public record VoucherConsultResponse(
         List<AfipError> errors
 ) {
 
+    /**
+     * Creates an immutable snapshot of the supplied collections.
+     *
+     * @param detail the voucher details if found and authorized, or null if not found
+     * @param errors the list of business errors returned by ARCA
+     * @throws ArcaValidationException if a required collection or one of its elements is null.
+     */
     public VoucherConsultResponse {
         if (errors == null) {
             throw new ArcaValidationException("errors must not be null");
+        }
+        try {
+            errors = List.copyOf(errors);
+        } catch (NullPointerException exception) {
+            throw new ArcaValidationException("errors must not contain null entries", exception);
         }
     }
 }

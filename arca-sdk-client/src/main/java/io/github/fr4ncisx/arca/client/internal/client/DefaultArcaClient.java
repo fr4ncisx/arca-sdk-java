@@ -25,6 +25,8 @@ import io.github.fr4ncisx.arca.wscdc.spi.WscdcClient;
 import io.github.fr4ncisx.arca.registry.internal.assembler.RegistryClientAssembler;
 import io.github.fr4ncisx.arca.registry.spi.RegistryClient;
 
+import java.nio.file.Path;
+
 /**
  * Factory class responsible for wiring and instantiating the unified {@link ArcaClient}.
  *
@@ -64,9 +66,7 @@ public final class DefaultArcaClient {
         TraGenerator traGenerator = new TraGenerator(SystemClock.INSTANCE);
         LoginCmsClient loginCmsClient = new LoginCmsClient(config, config.environment().getWsaaUrl().toString());
 
-        TicketCache ticketCache = config.ticketCacheDir() != null
-                ? new PersistentTicketCache(config.ticketCacheDir(), SystemClock.INSTANCE)
-                : new InMemoryTicketCache(SystemClock.INSTANCE);
+        TicketCache ticketCache = createTicketCache(config);
 
         AuthProvider authProvider = new DefaultAuthProvider(ticketCache, traGenerator, signer, loginCmsClient);
 
@@ -77,5 +77,15 @@ public final class DefaultArcaClient {
         WscdcClient wscdcClient = WscdcClientAssembler.assemble(config, authProvider);
 
         return new ArcaClient(wsfeClient, registryClient, wsfexClient, wsmtxcaClient, wscdcClient);
+    }
+
+    static TicketCache createTicketCache(ArcaConfig config) {
+        Path cacheRoot = config.ticketCacheDir();
+        if (cacheRoot == null) {
+            return new InMemoryTicketCache(SystemClock.INSTANCE);
+        }
+        Path scopedDirectory = cacheRoot.resolve(
+                config.environment().name() + "-" + config.cuit().number());
+        return new PersistentTicketCache(scopedDirectory, SystemClock.INSTANCE);
     }
 }

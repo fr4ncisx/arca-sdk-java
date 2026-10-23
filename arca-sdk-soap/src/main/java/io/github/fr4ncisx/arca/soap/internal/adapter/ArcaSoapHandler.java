@@ -1,8 +1,5 @@
 package io.github.fr4ncisx.arca.soap.internal.adapter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +9,6 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
-import io.github.fr4ncisx.arca.core.logging.LogSanitizer;
-import jakarta.xml.soap.SOAPException;
 import jakarta.xml.ws.handler.MessageContext;
 import jakarta.xml.ws.handler.soap.SOAPHandler;
 import jakarta.xml.ws.handler.soap.SOAPMessageContext;
@@ -24,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * Internal SOAP handler for SDK technical headers and sanitized diagnostics.
  * <p>
  * The handler adds ARCA SDK traceability headers to outbound HTTP transport
- * metadata and sanitizes serialized SOAP messages before any diagnostic output.
+ * metadata and emits direction-only diagnostics without serializing SOAP payloads.
  * It never mutates the SOAP envelope body, headers, or faults.
  *
  * @author fr4ncisx
@@ -43,7 +38,7 @@ public final class ArcaSoapHandler implements SOAPHandler<SOAPMessageContext> {
     private final Consumer<String> diagnosticSink;
 
     /**
-     * Creates a handler that writes sanitized SOAP diagnostics to the SDK logger
+     * Creates a handler that writes SOAP direction and message kind to the SDK logger
      * when debug logging is enabled.
      */
     public ArcaSoapHandler() {
@@ -76,7 +71,7 @@ public final class ArcaSoapHandler implements SOAPHandler<SOAPMessageContext> {
     @Override
     public boolean handleMessage(SOAPMessageContext context) {
         addTechnicalHeadersIfOutbound(context);
-        writeSanitizedDiagnostic(context);
+        writeDiagnostic(context, "message");
         return true;
     }
 
@@ -88,7 +83,7 @@ public final class ArcaSoapHandler implements SOAPHandler<SOAPMessageContext> {
      */
     @Override
     public boolean handleFault(SOAPMessageContext context) {
-        writeSanitizedDiagnostic(context);
+        writeDiagnostic(context, "fault");
         return true;
     }
 
@@ -129,24 +124,12 @@ public final class ArcaSoapHandler implements SOAPHandler<SOAPMessageContext> {
         context.put(MessageContext.HTTP_REQUEST_HEADERS, headers);
     }
 
-    private void writeSanitizedDiagnostic(SOAPMessageContext context) {
-        String diagnostic = serializeMessage(context);
-        if (diagnostic != null) {
-            diagnosticSink.accept(LogSanitizer.sanitize(diagnostic));
-        }
-    }
-
-    private static String serializeMessage(SOAPMessageContext context) {
-        if (context == null || context.getMessage() == null) {
-            return null;
-        }
-
-        try {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            context.getMessage().writeTo(output);
-            return output.toString(StandardCharsets.UTF_8);
-        } catch (SOAPException | IOException exception) {
-            return exception.getClass().getSimpleName() + ": " + exception.getMessage();
+    private void writeDiagnostic(SOAPMessageContext context, String kind) {
+        if (context != null) {
+            String direction = Boolean.TRUE.equals(context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY))
+                    ? "outbound"
+                    : "inbound";
+            diagnosticSink.accept("SOAP " + direction + " " + kind);
         }
     }
 

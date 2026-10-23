@@ -38,7 +38,19 @@ public record CaeaReportDetail(
 ) {
 
     /**
-     * Standard compact constructor validating individual voucher details.
+     * Creates a CAEA detail with finite amounts and an immutable VAT snapshot.
+     *
+     * @param concept the billing concept type (e.g. products, services)
+     * @param customerCuit the customer CUIT identifier
+     * @param number the voucher number
+     * @param date the voucher issuance date
+     * @param total the total amount of the voucher
+     * @param netTaxed the net amount subject to VAT
+     * @param exempted the amount exempted from VAT
+     * @param vatTotal the total VAT amount
+     * @param vatLines the list of individual VAT lines
+     * @throws ArcaValidationException if required fields are null, the number is invalid, the total is negative, or an amount is non-finite.
+     * @throws NullPointerException if the VAT list contains a null element.
      */
     public CaeaReportDetail {
         if (concept == null) {
@@ -52,6 +64,10 @@ public record CaeaReportDetail(
         }
         if (date == null) {
             throw new ArcaValidationException("date must not be null");
+        }
+        if (!Double.isFinite(total) || !Double.isFinite(netTaxed)
+                || !Double.isFinite(exempted) || !Double.isFinite(vatTotal)) {
+            throw new ArcaValidationException("monetary amounts must be finite");
         }
         if (total < 0) {
             throw new ArcaValidationException("total amount cannot be negative");

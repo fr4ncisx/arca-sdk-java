@@ -1,6 +1,7 @@
 package io.github.fr4ncisx.arca.soap.internal.adapter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,11 +21,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for {@link ArcaSoapHandler}.
  * <p>
- * Verifies sanitized diagnostics, technical HTTP headers, and non-interference
+ * Verifies body-free diagnostics, technical HTTP headers, and non-interference
  * with the SOAP message envelope.
  *
  * @author fr4ncisx
@@ -42,21 +47,24 @@ class ArcaSoapHandlerTest {
      * @throws Exception if the SOAP message cannot be created.
      */
     @Test
-    void sanitizesOutboundMessageAndAddsOnlyTechnicalHeaders() throws Exception {
+    void emitsOnlyOutboundMetadataAndAddsOnlyTechnicalHeaders() throws Exception {
         List<String> diagnostics = new ArrayList<>();
         var handler = new ArcaSoapHandler(diagnostics::add);
-        var context = new TestSoapMessageContext(sensitiveMessage());
+        var message = spy(sensitiveMessage());
+        var context = new TestSoapMessageContext(message);
         context.put(MessageContext.MESSAGE_OUTBOUND_PROPERTY, Boolean.TRUE);
 
         boolean shouldContinue = handler.handleMessage(context);
 
         assertThat(shouldContinue).isTrue();
-        assertThat(diagnostics).hasSize(1);
+        assertThat(diagnostics).containsExactly("SOAP outbound message");
         assertThat(diagnostics.getFirst())
                 .doesNotContain(TOKEN)
                 .doesNotContain(SIGN)
                 .doesNotContain(PASSWORD)
-                .contains("[REDACTED]");
+                .doesNotContain("20333333334")
+                .doesNotContain("125000.75");
+        verify(message, never()).writeTo(any(OutputStream.class));
         assertThat(httpHeaders(context))
                 .containsOnlyKeys(ArcaSoapHandler.HEADER_SOURCE, ArcaSoapHandler.HEADER_VERSION)
                 .containsEntry(ArcaSoapHandler.HEADER_SOURCE, List.of(ArcaSoapHandler.SOURCE_VALUE))
@@ -69,7 +77,7 @@ class ArcaSoapHandlerTest {
      * @throws Exception if the SOAP fault cannot be created.
      */
     @Test
-    void sanitizesFaultMessage() throws Exception {
+    void emitsOnlyMetadataForFaultMessage() throws Exception {
         List<String> diagnostics = new ArrayList<>();
         var handler = new ArcaSoapHandler(diagnostics::add);
         var context = new TestSoapMessageContext(faultMessage());
@@ -77,10 +85,8 @@ class ArcaSoapHandlerTest {
         boolean shouldContinue = handler.handleFault(context);
 
         assertThat(shouldContinue).isTrue();
-        assertThat(diagnostics).hasSize(1);
-        assertThat(diagnostics.getFirst())
-                .doesNotContain("Bearer sensitive-token")
-                .contains("Authorization: [REDACTED]");
+        assertThat(diagnostics).containsExactly("SOAP inbound fault");
+        assertThat(diagnostics.getFirst()).doesNotContain("Bearer sensitive-token");
     }
 
     /**
@@ -137,6 +143,8 @@ class ArcaSoapHandlerTest {
         operation.addChildElement("token").addTextNode(TOKEN);
         operation.addChildElement("sign").addTextNode(SIGN);
         operation.addChildElement("password").addTextNode(PASSWORD);
+        operation.addChildElement("DocNro").addTextNode("20333333334");
+        operation.addChildElement("ImpTotal").addTextNode("125000.75");
         message.saveChanges();
         return message;
     }

@@ -6,21 +6,26 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 
 import java.io.IOException;
-import java.nio.channels.Channels;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * File-system based implementation of the WSAA ticket cache.
@@ -36,9 +41,13 @@ import java.util.Set;
  * pre-configured by the operator with equivalent restrictions.
  * <p>
  * Expired tickets are cleaned up lazily from disk during read operations.
- * {@link #clear()} only deletes files owned by this cache (the
- * {@code *.cache} entries inside the configured directory). Technical I/O
- * issues are caught and translated to {@link ArcaAuthException}.
+ * {@link #clear()} only deletes files owned by this cache. Technical I/O issues
+ * are caught and translated to {@link ArcaAuthException}.
+ * <p>
+ * The directory must be writable even for reads. Cooperating instances must use
+ * the same path and retain the stable lock file. Writes require atomic replacement
+ * support on the deployment filesystem. Locks protect individual cache operations,
+ * not the entire authentication sequence across clients or processes.
  *
  * @author fr4ncisx
  * @since 0.3.0-M1
@@ -46,10 +55,14 @@ import java.util.Set;
 public final class PersistentTicketCache implements TicketCache {
 
     private static final String CACHE_FILE_SUFFIX = ".cache";
+    private static final String LOCK_FILE_NAME = ".ticket-cache.lock";
+    private static final String TEMP_FILE_PREFIX = ".arca-sdk-ticket-";
+    private static final String TEMP_FILE_SUFFIX = ".tmp";
     private static final Set<PosixFilePermission> RESTRICTED_FILE_PERMISSIONS =
             PosixFilePermissions.fromString("rw-------");
     private static final Set<PosixFilePermission> RESTRICTED_DIRECTORY_PERMISSIONS =
             PosixFilePermissions.fromString("rwx------");
+    private static final ReentrantLock[] DIRECTORY_LOCKS = createDirectoryLocks();
 
     private final Path directory;
     private final ArcaClock clock;
@@ -68,7 +81,7 @@ public final class PersistentTicketCache implements TicketCache {
         if (clock == null) {
             throw new ArcaValidationException("clock must not be null");
         }
-        this.directory = directory;
+        this.directory = directory.toAbsolutePath().normalize();
         this.clock = clock;
     }
 
@@ -78,46 +91,23 @@ public final class PersistentTicketCache implements TicketCache {
      * @param key cache key associated with the ticket (e.g. the service name)
      * @return the valid cached ticket, or empty if missing or expired
      * @throws ArcaValidationException if key is null or blank
-     * @throws ArcaAuthException       if the file is corrupt or an I/O error occurs
+     * @throws ArcaAuthException       if the file is corrupt, inaccessible, or the filesystem lacks required capabilities
      */
     @Override
     public Optional<ArcaAccessTicket> get(String key) {
         validateKey(key);
+        if (!Files.isDirectory(directory)) {
+            return Optional.empty();
+        }
+
         Path filePath = resolvePath(key);
-        Properties props = new Properties();
-        try (FileChannel channel = FileChannel.open(filePath, StandardOpenOption.READ);
-             FileLock lock = channel.lock(0, Long.MAX_VALUE, true)) {
-            props.load(Channels.newInputStream(channel));
-        } catch (java.nio.file.NoSuchFileException e) {
-            return Optional.empty();
-        } catch (IOException | IllegalArgumentException e) {
-            throw new ArcaAuthException("Failed to read persistent ticket cache file for key: " + key, e);
-        }
-
-        String token = props.getProperty("token");
-        String sign = props.getProperty("sign");
-        String genStr = props.getProperty("generationTime");
-        String expStr = props.getProperty("expirationTime");
-
-        if (token == null || sign == null || genStr == null || expStr == null) {
-            throw new ArcaAuthException("Corrupt ticket cache structure for key: " + key);
-        }
-
-        ArcaAccessTicket ticket;
         try {
-            Instant generationTime = Instant.parse(genStr);
-            Instant expirationTime = Instant.parse(expStr);
-            ticket = new ArcaAccessTicket(token, sign, generationTime, expirationTime);
-        } catch (Exception e) {
-            throw new ArcaAuthException("Failed to parse persistent ticket timestamps for key: " + key, e);
-        }
-
-        if (ticket.isExpired(clock)) {
-            evict(key);
+            return withDirectoryLock(() -> readTicket(key, filePath));
+        } catch (NoSuchFileException exception) {
             return Optional.empty();
+        } catch (IOException | IllegalArgumentException | UnsupportedOperationException exception) {
+            throw new ArcaAuthException("Failed to read persistent ticket cache file for key: " + key, exception);
         }
-
-        return Optional.of(ticket);
     }
 
     /**
@@ -126,7 +116,7 @@ public final class PersistentTicketCache implements TicketCache {
      * @param key    cache key associated with the ticket
      * @param ticket the ticket to store
      * @throws ArcaValidationException if key or ticket is null
-     * @throws ArcaAuthException       if an I/O error occurs writing to disk
+     * @throws ArcaAuthException       if writing fails or the filesystem lacks required capabilities
      */
     @Override
     public void put(String key, ArcaAccessTicket ticket) {
@@ -137,21 +127,12 @@ public final class PersistentTicketCache implements TicketCache {
 
         Path filePath = resolvePath(key);
         try {
-            Files.createDirectories(directory);
-            restrictDirectoryPermissions();
-            Properties props = new Properties();
-            props.setProperty("token", ticket.token());
-            props.setProperty("sign", ticket.sign());
-            props.setProperty("generationTime", ticket.generationTime().toString());
-            props.setProperty("expirationTime", ticket.expirationTime().toString());
-
-            prepareRestrictedFile(filePath);
-            try (FileChannel channel = FileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-                 FileLock lock = channel.lock()) {
-                props.store(Channels.newOutputStream(channel), "ARCA SDK WSAA Access Ticket Cache File");
-            }
-        } catch (IOException e) {
-            throw new ArcaAuthException("Failed to write persistent ticket cache file for key: " + key, e);
+            withDirectoryLock(() -> {
+                writeTicket(filePath, ticket);
+                return null;
+            });
+        } catch (IOException | UnsupportedOperationException exception) {
+            throw new ArcaAuthException("Failed to write persistent ticket cache file for key: " + key, exception);
         }
     }
 
@@ -160,50 +141,162 @@ public final class PersistentTicketCache implements TicketCache {
      *
      * @param key cache key to evict
      * @throws ArcaValidationException if key is null or blank
-     * @throws ArcaAuthException       if an I/O error occurs deleting the file
+     * @throws ArcaAuthException       if deletion fails or the filesystem lacks required capabilities
      */
     @Override
     public void evict(String key) {
         validateKey(key);
+        if (!Files.isDirectory(directory)) {
+            return;
+        }
+
         Path filePath = resolvePath(key);
         try {
-            Files.deleteIfExists(filePath);
-        } catch (IOException e) {
-            throw new ArcaAuthException("Failed to delete persistent ticket cache file for key: " + key, e);
+            withDirectoryLock(() -> Files.deleteIfExists(filePath));
+        } catch (IOException | UnsupportedOperationException exception) {
+            throw new ArcaAuthException("Failed to delete persistent ticket cache file for key: " + key, exception);
         }
     }
 
     /**
-     * Clears every cached ticket file owned by this cache in the directory.
-     * <p>
-     * Only regular files ending with {@code *.cache} are deleted; unrelated
-     * files sharing the configured directory are preserved.
+     * Clears every ticket file and temporary write owned by this cache.
      *
-     * @throws ArcaAuthException if an I/O error occurs listing or deleting files
+     * @throws ArcaAuthException if listing or deletion fails, or the filesystem lacks required capabilities
      */
     @Override
     public void clear() {
+        if (!Files.isDirectory(directory)) {
+            return;
+        }
+
         try {
-            if (Files.exists(directory)) {
-                try (var stream = Files.list(directory)) {
-                    for (Path path : stream.toList()) {
+            withDirectoryLock(() -> {
+                try (var paths = Files.list(directory)) {
+                    for (Path path : paths.toList()) {
                         if (isOwnedCacheFile(path)) {
-                            Files.delete(path);
+                            Files.deleteIfExists(path);
                         }
                     }
                 }
-            }
-        } catch (IOException e) {
-            throw new ArcaAuthException("Failed to clear persistent ticket cache directory", e);
+                return null;
+            });
+        } catch (IOException | UnsupportedOperationException exception) {
+            throw new ArcaAuthException("Failed to clear persistent ticket cache directory", exception);
         }
     }
 
-    private static boolean isOwnedCacheFile(Path path) throws IOException {
-        if (!Files.isRegularFile(path)) {
+    private Optional<ArcaAccessTicket> readTicket(String key, Path filePath) throws IOException {
+        Properties properties = new Properties();
+        try (InputStream input = Files.newInputStream(filePath)) {
+            properties.load(input);
+        }
+
+        String token = properties.getProperty("token");
+        String sign = properties.getProperty("sign");
+        String generationTimeText = properties.getProperty("generationTime");
+        String expirationTimeText = properties.getProperty("expirationTime");
+        if (token == null || sign == null || generationTimeText == null || expirationTimeText == null) {
+            throw new ArcaAuthException("Corrupt ticket cache structure for key: " + key);
+        }
+
+        ArcaAccessTicket ticket;
+        try {
+            ticket = new ArcaAccessTicket(
+                    token,
+                    sign,
+                    Instant.parse(generationTimeText),
+                    Instant.parse(expirationTimeText));
+        } catch (DateTimeParseException | ArcaValidationException exception) {
+            throw new ArcaAuthException("Failed to parse persistent ticket timestamps for key: " + key, exception);
+        }
+
+        if (ticket.isExpired(clock)) {
+            Files.deleteIfExists(filePath);
+            return Optional.empty();
+        }
+        return Optional.of(ticket);
+    }
+
+    private void writeTicket(Path filePath, ArcaAccessTicket ticket) throws IOException {
+        Properties properties = new Properties();
+        properties.setProperty("token", ticket.token());
+        properties.setProperty("sign", ticket.sign());
+        properties.setProperty("generationTime", ticket.generationTime().toString());
+        properties.setProperty("expirationTime", ticket.expirationTime().toString());
+
+        Path temporaryFile = createRestrictedTemporaryFile();
+        try {
+            try (OutputStream output = Files.newOutputStream(
+                    temporaryFile,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING)) {
+                properties.store(output, "ARCA SDK WSAA Access Ticket Cache File");
+            }
+            Files.move(
+                    temporaryFile,
+                    filePath,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporaryFile);
+        }
+    }
+
+    private <T> T withDirectoryLock(IoOperation<T> operation) throws IOException {
+        ReentrantLock processLock = directoryLock();
+        processLock.lock();
+        try {
+            Files.createDirectories(directory);
+            restrictDirectoryPermissions();
+            Path lockPath = directory.resolve(LOCK_FILE_NAME);
+            prepareRestrictedFile(lockPath);
+            try (FileChannel channel = FileChannel.open(
+                    lockPath,
+                    StandardOpenOption.READ,
+                    StandardOpenOption.WRITE);
+                 FileLock ignored = channel.lock()) {
+                return operation.run();
+            }
+        } finally {
+            processLock.unlock();
+        }
+    }
+
+    private ReentrantLock directoryLock() {
+        int stripe = Math.floorMod(directory.hashCode(), DIRECTORY_LOCKS.length);
+        return DIRECTORY_LOCKS[stripe];
+    }
+
+    private Path createRestrictedTemporaryFile() throws IOException {
+        if (supportsPosix()) {
+            return Files.createTempFile(
+                    directory,
+                    TEMP_FILE_PREFIX,
+                    TEMP_FILE_SUFFIX,
+                    PosixFilePermissions.asFileAttribute(RESTRICTED_FILE_PERMISSIONS));
+        }
+        return Files.createTempFile(directory, TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX);
+    }
+
+    private static ReentrantLock[] createDirectoryLocks() {
+        ReentrantLock[] locks = new ReentrantLock[64];
+        for (int index = 0; index < locks.length; index++) {
+            locks[index] = new ReentrantLock();
+        }
+        return locks;
+    }
+
+    private static boolean isOwnedCacheFile(Path path) {
+        if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
             return false;
         }
-        var fileName = path.getFileName();
-        return fileName != null && fileName.toString().endsWith(CACHE_FILE_SUFFIX);
+        Path fileName = path.getFileName();
+        if (fileName == null) {
+            return false;
+        }
+        String name = fileName.toString();
+        return name.endsWith(CACHE_FILE_SUFFIX)
+                || (name.startsWith(TEMP_FILE_PREFIX) && name.endsWith(TEMP_FILE_SUFFIX));
     }
 
     private Path resolvePath(String key) {
@@ -228,13 +321,22 @@ public final class PersistentTicketCache implements TicketCache {
     }
 
     private static void prepareRestrictedFile(Path filePath) throws IOException {
-        if (!supportsPosix()) {
-            return;
-        }
         try {
-            Files.createFile(filePath, PosixFilePermissions.asFileAttribute(RESTRICTED_FILE_PERMISSIONS));
-        } catch (FileAlreadyExistsException e) {
-            Files.setPosixFilePermissions(filePath, RESTRICTED_FILE_PERMISSIONS);
+            if (supportsPosix()) {
+                Files.createFile(filePath, PosixFilePermissions.asFileAttribute(RESTRICTED_FILE_PERMISSIONS));
+            } else {
+                Files.createFile(filePath);
+            }
+        } catch (FileAlreadyExistsException exception) {
+            if (supportsPosix()) {
+                Files.setPosixFilePermissions(filePath, RESTRICTED_FILE_PERMISSIONS);
+            }
         }
+    }
+
+    @FunctionalInterface
+    private interface IoOperation<T> {
+
+        T run() throws IOException;
     }
 }

@@ -52,13 +52,13 @@ public final class WsfexClientAssembler {
         bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
 
         ArcaSoapPort<ClsFEXLastCMP, FEXResponseLastCMP> lastVoucherSoapPort =
-                new ArcaSoapClient<>(bp, port::fexGetLastCMP, soapConfig);
+                new ArcaSoapClient<>(bp, port::fexGetLastCMP, soapConfig, true);
 
         ArcaSoapPort<FEXAuthorize, FEXResponseAuthorize> authorizeSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fexAuthorize(req.getAuth(), req.getCmp()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fexAuthorize(req.getAuth(), req.getCmp()), soapConfig, false);
 
         ArcaSoapPort<FEXGetCMP, FEXGetCMPResponseDataType> getVoucherSoapPort =
-                new ArcaSoapClient<>(bp, req -> port.fexGetCMP(req.getAuth(), req.getCmp()), soapConfig);
+                new ArcaSoapClient<>(bp, req -> port.fexGetCMP(req.getAuth(), req.getCmp()), soapConfig, true);
 
         GetLastExportVoucherUseCase getLastExportVoucherUseCase =
                 new GetLastExportVoucherUseCase(config, authProvider, lastVoucherSoapPort);

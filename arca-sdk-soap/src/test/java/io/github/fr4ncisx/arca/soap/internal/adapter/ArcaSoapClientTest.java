@@ -203,6 +203,27 @@ class ArcaSoapClientTest {
     }
 
     /**
+     * Verifies that timed-out state-changing calls are not retried and report an unknown outcome.
+     */
+    @Test
+    void doesNotRetryTimedOutStateChangingOperation() {
+        AtomicInteger callCount = new AtomicInteger();
+        WebServiceException timeout = new WebServiceException(
+                "transport failed", new SocketTimeoutException("Read timed out"));
+        ArcaSoapClient<TestRequest, TestResponse> client = new ArcaSoapClient<>(
+                bindingProvider(new HashMap<>()), request -> {
+                    callCount.incrementAndGet();
+                    throw timeout;
+                }, CONFIG, false);
+
+        assertThatThrownBy(() -> client.invoke(REQUEST))
+                .isInstanceOf(ArcaSoapException.class)
+                .hasMessageContaining("outcome is unknown")
+                .satisfies(exception -> assertThat(exception.getCause()).isSameAs(timeout));
+        assertThat(callCount.get()).isEqualTo(1);
+    }
+
+    /**
      * Verifies that a non-timeout JAX-WS runtime failure is translated to the SDK SOAP exception.
      */
     @Test
@@ -250,7 +271,7 @@ class ArcaSoapClientTest {
 
     private static ArcaSoapClient<TestRequest, TestResponse> client(
             Function<TestRequest, TestResponse> operation) {
-        return new ArcaSoapClient<>(bindingProvider(new HashMap<>()), operation, CONFIG);
+        return new ArcaSoapClient<>(bindingProvider(new HashMap<>()), operation, CONFIG, true);
     }
 
     private static BindingProvider bindingProvider(Map<String, Object> requestContext) {
