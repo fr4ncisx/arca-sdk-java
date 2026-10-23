@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @param requests    the list of individual invoice authorization requests
  * @param strategy    the batch processing strategy to apply
- * @param maxParallel the maximum number of concurrent threads allowed (must be positive if PARALLEL_LIMITED)
+ * @param maxParallel the maximum number of in-flight requests in this batch; must be positive for PARALLEL_LIMITED
  * @author fr4ncisx
  * @since 0.4.0-M1
  */
@@ -20,10 +20,24 @@ public record BatchRequest(
         int maxParallel
 ) {
 
+    /**
+     * Creates a batch with an immutable snapshot of its requests.
+     *
+     * @param requests the list of individual invoice authorization requests
+     * @param strategy the batch processing strategy to apply
+     * @param maxParallel the maximum number of in-flight requests in this batch; must be positive for PARALLEL_LIMITED
+     * @throws ArcaValidationException if requests or strategy are invalid, an entry is null, or parallelism is invalid.
+     */
     public BatchRequest {
         if (requests == null || requests.isEmpty()) {
             throw new ArcaValidationException("requests list must not be null or empty");
         }
+        for (CaeRequest request : requests) {
+            if (request == null) {
+                throw new ArcaValidationException("requests list must not contain null entries");
+            }
+        }
+        requests = List.copyOf(requests);
         if (strategy == null) {
             throw new ArcaValidationException("strategy must not be null");
         }
