@@ -7,9 +7,9 @@
     <artifactId>arca-sdk-java</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
-    <name>ARCA SDK Java</name>
+    <name>ARCA / AFIP Java SDK</name>
     <description>SDK Java puro para consumir los Web Services SOAP de ARCA (ex-AFIP). Provee autenticación WSAA,
-        transporte SOAP encapsulado, modelos tipados propios, manejo de errores y sanitización de datos sensibles.
+        facturación electrónica nacional y de exportación (WSFEv1, WSFEXv1, WSMTXCA), padrón A4 y manejo seguro de tokens.
     </description>
     <url>https://github.com/fr4ncisx/arca-sdk-java</url>
     <licenses>
@@ -77,7 +77,7 @@
         <output.dir>${project.build.directory}/classes</output.dir>
         <test.output.dir>${project.build.directory}/test-classes</test.output.dir>
         <cyclonedx.version>2.9.1</cyclonedx.version>
-        <central-publishing.version>0.7.0</central-publishing.version>
+        <central-publishing.version>0.12.0</central-publishing.version>
         <gpg.version>3.2.7</gpg.version>
     </properties>
     <dependencyManagement>

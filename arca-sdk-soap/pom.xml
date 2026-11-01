@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-soap</artifactId>
 
-    <name>ARCA SDK SOAP</name>
-    <description>Cliente SOAP común, timeouts, handlers, factories JAXB/JAX-WS. Encapsula Metro y Jakarta XML Web Services.</description>
+    <name>ARCA / AFIP SDK SOAP</name>
+    <description>Capa de transporte SOAP, resilience y configuración JAX-WS para Web Services de ARCA (ex-AFIP).</description>
 
     <dependencies>
         <dependency>

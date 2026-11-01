@@ -14,8 +14,8 @@
     <artifactId>arca-sdk-bom</artifactId>
     <packaging>pom</packaging>
 
-    <name>ARCA SDK BOM</name>
-    <description>Bill of Materials para ARCA SDK. Centraliza versiones de todos los módulos del SDK.</description>
+    <name>ARCA / AFIP SDK BOM</name>
+    <description>Bill of Materials (BOM) para ARCA (ex-AFIP) SDK Java. Centraliza la gestión de versiones y dependencias.</description>
 
     <dependencyManagement>
         <dependencies>

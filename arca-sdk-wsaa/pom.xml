@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-wsaa</artifactId>
 
-    <name>ARCA SDK WSAA</name>
-    <description>Autenticación WSAA: TRA, firma CMS, LoginCms, Ticket de Acceso, cache y renovación.</description>
+    <name>ARCA / AFIP SDK WSAA</name>
+    <description>Autenticación WSAA de ARCA (ex-AFIP): generación de TRA, firma CMS (PKCS#7), obtención y renovación de Tickets de Acceso (Token y Sign).</description>
 
     <dependencies>
         <dependency>

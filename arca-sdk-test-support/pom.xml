@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-test-support</artifactId>
 
-    <name>ARCA SDK Test Support</name>
-    <description>Mocks, fixtures XML, builders de test y utilidades para integración. Scope test para consumidores.</description>
+    <name>ARCA / AFIP SDK Test Support</name>
+    <description>Mocks, fixtures XML y utilidades WireMock para pruebas de integración con servicios SOAP de ARCA (ex-AFIP).</description>
 
     <dependencies>
         <dependency>

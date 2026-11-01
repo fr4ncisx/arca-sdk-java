@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-spring-boot-starter</artifactId>
 
-    <name>ARCA SDK Spring Boot Starter</name>
-    <description>Integración y autoconfiguración automática de ARCA SDK para aplicaciones Spring Boot.</description>
+    <name>ARCA / AFIP Spring Boot Starter</name>
+    <description>Starter oficial de Spring Boot para facturación electrónica y servicios SOAP de ARCA (ex-AFIP) con autoconfiguración automática.</description>
 
     <dependencies>
         <!-- SDK Client Facade -->

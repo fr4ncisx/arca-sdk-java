@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-wsfexv1</artifactId>
 
-    <name>ARCA SDK WSFEXv1</name>
-    <description>Facade pública para factura electrónica de exportación WSFEXv1 y mapeo hacia stubs internos generados por wsimport.</description>
+    <name>ARCA / AFIP SDK WSFEXv1</name>
+    <description>Facturación electrónica de exportación WSFEXv1 de ARCA (ex-AFIP): comprobantes tipo E, permisos de embarque y divisas.</description>
 
     <dependencies>
         <dependency>

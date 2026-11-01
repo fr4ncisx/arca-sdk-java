@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-wsmtxca</artifactId>
 
-    <name>ARCA SDK WSMTXCA</name>
-    <description>Facade pública para facturación matricial con detalle de artículos WSMTXCA y mapeo hacia stubs internos generados por wsimport.</description>
+    <name>ARCA / AFIP SDK WSMTXCA</name>
+    <description>Facturación electrónica con detalle de ítems y código de barras WSMTXCA de ARCA (ex-AFIP): comprobantes con CAE y CAEA.</description>
 
     <dependencies>
         <dependency>

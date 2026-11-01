@@ -14,8 +14,8 @@
     <artifactId>arca-sdk-bundle</artifactId>
     <packaging>pom</packaging>
 
-    <name>ARCA SDK Bundle</name>
-    <description>Artefacto de conveniencia que incluye todos los módulos del SDK y sus dependencias de runtime.</description>
+    <name>ARCA / AFIP SDK Bundle</name>
+    <description>Artefacto de conveniencia que agrupa todos los módulos del SDK ARCA (ex-AFIP) para facturación electrónica (WSFEv1, WSFEXv1, WSMTXCA), padrón y autenticación WSAA.</description>
 
     <dependencies>
         <!-- Módulos del SDK -->

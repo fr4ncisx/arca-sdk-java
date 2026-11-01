@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-wscdc</artifactId>
 
-    <name>ARCA SDK WSCDC</name>
-    <description>Facade pública para constatación de comprobantes WSCDC y mapeo hacia stubs internos generados por wsimport.</description>
+    <name>ARCA / AFIP SDK WSCDC</name>
+    <description>Módulo para el servicio de constatación de comprobantes WSCDC de ARCA (ex-AFIP).</description>
 
     <dependencies>
         <dependency>

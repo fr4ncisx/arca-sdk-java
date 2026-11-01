@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-wsfev1</artifactId>
 
-    <name>ARCA SDK WSFEv1</name>
-    <description>Facade pública para factura electrónica WSFEv1 y mapeo hacia stubs internos generados por wsimport.</description>
+    <name>ARCA / AFIP SDK WSFEv1</name>
+    <description>Facturación electrónica nacional WSFEv1 de ARCA (ex-AFIP): emisión y autorización de comprobantes (CAE), notas de débito y crédito.</description>
 
     <dependencies>
         <dependency>

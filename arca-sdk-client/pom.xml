@@ -13,8 +13,8 @@
 
     <artifactId>arca-sdk-client</artifactId>
 
-    <name>ARCA SDK Client</name>
-    <description>Fachada unificada de entrada principal para acceder a WSFEv1 y Padrón A4.</description>
+    <name>ARCA / AFIP SDK Client</name>
+    <description>Fachada unificada y cliente principal de alto nivel para facturación electrónica con ARCA (ex-AFIP) y consulta de Padrón A4.</description>
 
     <dependencies>
         <dependency>

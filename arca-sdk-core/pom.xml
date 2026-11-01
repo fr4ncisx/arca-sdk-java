@@ -13,4 +13,7 @@
 
     <artifactId>arca-sdk-core</artifactId>
 
+    <name>ARCA / AFIP SDK Core</name>
+    <description>Núcleo común del SDK ARCA (ex-AFIP): modelos de dominio, validaciones de CUIT, excepciones tipadas y sanitización de datos sensibles.</description>
+
 </project>
