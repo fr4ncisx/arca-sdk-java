@@ -34,6 +34,11 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
+      - name: Set up Maven 3.9.9
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: '3.9.9'
+
       - name: Publish artifacts to Sonatype Central
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_CENTRAL_USERNAME }}
