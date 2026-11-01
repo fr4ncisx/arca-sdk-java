@@ -5,6 +5,7 @@ import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.cache.InMemoryTicketCache;
@@ -100,7 +101,7 @@ class DefaultAuthProviderTest {
     @Test
     void authenticateRejectsBlankService() {
         var provider = new DefaultAuthProvider(ticketCache, traGenerator, cmsSigner, loginCmsClient);
-        assertThatThrownBy(() -> provider.authenticate(null))
+        assertThatThrownBy(() -> provider.authenticate((String) null))
                 .isInstanceOf(ArcaValidationException.class);
         assertThatThrownBy(() -> provider.authenticate("   "))
                 .isInstanceOf(ArcaValidationException.class);
@@ -258,6 +259,25 @@ class DefaultAuthProviderTest {
               </credentials>
             </loginTicketReturn>
             """.formatted(token, sign);
+    }
+
+    @Test
+    void authenticateWithWsaaServiceEnumDelegatesToServiceIdentifier() throws Exception {
+        var cachedTicket = new ArcaAccessTicket("token-wsfe", "sign-wsfe", NOW, NOW.plusSeconds(3600));
+        ticketCache.put("wsfe", cachedTicket);
+
+        var provider = new DefaultAuthProvider(ticketCache, traGenerator, cmsSigner, loginCmsClient);
+        var result = provider.authenticate(WsaaService.WSFE);
+
+        assertThat(result).isSameAs(cachedTicket);
+    }
+
+    @Test
+    void authenticateWithWsaaServiceEnumRejectsNull() {
+        var provider = new DefaultAuthProvider(ticketCache, traGenerator, cmsSigner, loginCmsClient);
+        assertThatThrownBy(() -> provider.authenticate((WsaaService) null))
+                .isInstanceOf(ArcaValidationException.class)
+                .hasMessageContaining("service must not be null");
     }
 
     private static KeyStore createKeyStore(String dn) throws Exception {

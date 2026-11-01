@@ -2,6 +2,8 @@ package io.github.fr4ncisx.arca.wsaa.internal.auth;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
+import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
 
 /**
@@ -28,4 +30,22 @@ public interface AuthProvider {
      * @throws ArcaSoapException if a network or SOAP transport error occurs
      */
     ArcaAccessTicket authenticate(String service) throws ArcaAuthException, ArcaSoapException;
+
+    /**
+     * Resolves a valid access ticket for the requested standard ARCA service.
+     *
+     * @param service the strongly-typed ARCA service
+     * @return a valid access ticket containing the token and signature
+     * @throws ArcaAuthException if authentication fails due to invalid credentials,
+     *                           cryptographic errors, or rejection from WSAA
+     * @throws ArcaSoapException if a network or SOAP transport error occurs
+     * @throws ArcaValidationException if service is null
+     * @since 1.3.0
+     */
+    default ArcaAccessTicket authenticate(WsaaService service) throws ArcaAuthException, ArcaSoapException {
+        if (service == null) {
+            throw new ArcaValidationException("service must not be null");
+        }
+        return authenticate(service.serviceId());
+    }
 }
