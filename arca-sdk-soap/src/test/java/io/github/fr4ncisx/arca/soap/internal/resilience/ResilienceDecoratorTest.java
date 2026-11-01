@@ -1,7 +1,9 @@
 package io.github.fr4ncisx.arca.soap.internal.resilience;
 
+import io.github.fr4ncisx.arca.core.config.ResilienceConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaCircuitOpenException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
+import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import org.junit.jupiter.api.Test;
 
@@ -213,5 +215,42 @@ class ResilienceDecoratorTest {
 
         assertThatThrownBy(() -> port.invoke(REQUEST)).isInstanceOf(ArcaCircuitOpenException.class);
         assertThat(callCount.get()).isEqualTo(2);
+    }
+
+    /**
+     * Verifies that creating a ResilienceDecorator with a ResilienceConfig executes successfully.
+     *
+     * @author fr4ncisx
+     * @since 1.3.0
+     */
+    @Test
+    void configuresFromResilienceConfigAndExecutesSuccessfully() throws Exception {
+        var callCount = new AtomicInteger(0);
+        ArcaSoapPort<String, String> delegate = req -> {
+            callCount.incrementAndGet();
+            return RESPONSE;
+        };
+        var config = ResilienceConfig.DEFAULT;
+        var port = new ResilienceDecorator<>(delegate, config, true);
+
+        String result = port.invoke(REQUEST);
+
+        assertThat(result).isEqualTo(RESPONSE);
+        assertThat(callCount.get()).isEqualTo(1);
+    }
+
+    /**
+     * Verifies that null ResilienceConfig is rejected on instantiation.
+     *
+     * @author fr4ncisx
+     * @since 1.3.0
+     */
+    @Test
+    void rejectsNullResilienceConfig() {
+        ArcaSoapPort<String, String> delegate = req -> RESPONSE;
+
+        assertThatThrownBy(() -> new ResilienceDecorator<>(delegate, null, true))
+                .isInstanceOf(ArcaValidationException.class)
+                .hasMessageContaining("config must not be null");
     }
 }

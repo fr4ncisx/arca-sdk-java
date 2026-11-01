@@ -59,6 +59,33 @@ class ArcaAutoConfigurationTest {
     }
 
     @Test
+    void shouldConfigureCustomResilienceParametersFromProperties() throws IOException {
+        Path tempCert = Files.createTempFile(tempDir, "test-cert", ".p12");
+        Files.writeString(tempCert, "dummy-pkcs12-bytes");
+        String certPath = tempCert.toAbsolutePath().toString();
+
+        contextRunner
+            .withPropertyValues(
+                "arca.cuit=20-33333333-4",
+                "arca.certificate-location=file:" + certPath,
+                "arca.certificate-password=changeit",
+                "arca.resilience.max-attempts=5",
+                "arca.resilience.base-delay=2s",
+                "arca.resilience.max-consecutive-failures=10",
+                "arca.resilience.reset-timeout=45s"
+            )
+            .run(context -> {
+                assertThat(context).hasSingleBean(ArcaProperties.class);
+                ArcaProperties properties = context.getBean(ArcaProperties.class);
+                assertThat(properties.resilience()).isNotNull();
+                assertThat(properties.resilience().maxAttempts()).isEqualTo(5);
+                assertThat(properties.resilience().baseDelay()).isEqualTo(Duration.ofSeconds(2));
+                assertThat(properties.resilience().maxConsecutiveFailures()).isEqualTo(10);
+                assertThat(properties.resilience().resetTimeout()).isEqualTo(Duration.ofSeconds(45));
+            });
+    }
+
+    @Test
     void shouldAutoconfigureFromNonFileResource() {
         Resource nonFileResource = new ByteArrayResource(new byte[]{1, 2, 3});
         contextRunner

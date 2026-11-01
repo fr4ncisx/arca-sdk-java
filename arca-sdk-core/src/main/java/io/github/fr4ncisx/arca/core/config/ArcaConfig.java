@@ -31,7 +31,24 @@ public record ArcaConfig(Cuit cuit,
                          Duration connectTimeout,
                          Duration readTimeout,
                          boolean resilienceEnabled,
-                         @Nullable Path ticketCacheDir) {
+                         @Nullable Path ticketCacheDir,
+                         ResilienceConfig resilienceConfig) {
+
+    /**
+     * Creates an ArcaConfig with default resilience parameters.
+     *
+     * @param cuit taxpayer CUIT.
+     * @param environment target environment.
+     * @param connectTimeout connection timeout; zero disables the limit.
+     * @param readTimeout read timeout; zero disables the limit.
+     * @param resilienceEnabled whether resilience is enabled.
+     * @param ticketCacheDir optional ticket cache directory.
+     * @since 0.1.0-M2
+     */
+    public ArcaConfig(Cuit cuit, ArcaEnvironment environment, Duration connectTimeout, Duration readTimeout,
+                      boolean resilienceEnabled, @Nullable Path ticketCacheDir) {
+        this(cuit, environment, connectTimeout, readTimeout, resilienceEnabled, ticketCacheDir, ResilienceConfig.DEFAULT);
+    }
 
     /**
      * Creates an ArcaConfig with resilience enabled and no persistent ticket cache.
@@ -76,6 +93,8 @@ public record ArcaConfig(Cuit cuit,
         if (readTimeout == null || readTimeout.isNegative())
             throw new ArcaValidationException(
                     "readTimeout must not be null or negative");
+        if (resilienceConfig == null)
+            throw new ArcaValidationException("resilienceConfig must not be null");
     }
 
     /**
@@ -90,7 +109,7 @@ public record ArcaConfig(Cuit cuit,
      */
     public ArcaConfig withConnectTimeout(Duration timeout) {
         validateTimeout(timeout, "connectTimeout");
-        return new ArcaConfig(cuit, environment, timeout, readTimeout, resilienceEnabled, ticketCacheDir);
+        return new ArcaConfig(cuit, environment, timeout, readTimeout, resilienceEnabled, ticketCacheDir, resilienceConfig);
     }
 
     /**
@@ -105,7 +124,7 @@ public record ArcaConfig(Cuit cuit,
      */
     public ArcaConfig withReadTimeout(Duration timeout) {
         validateTimeout(timeout, "readTimeout");
-        return new ArcaConfig(cuit, environment, connectTimeout, timeout, resilienceEnabled, ticketCacheDir);
+        return new ArcaConfig(cuit, environment, connectTimeout, timeout, resilienceEnabled, ticketCacheDir, resilienceConfig);
     }
 
     /**
@@ -118,7 +137,7 @@ public record ArcaConfig(Cuit cuit,
      * @since 1.1.0
      */
     public ArcaConfig withResilienceEnabled(boolean enabled) {
-        return new ArcaConfig(cuit, environment, connectTimeout, readTimeout, enabled, ticketCacheDir);
+        return new ArcaConfig(cuit, environment, connectTimeout, readTimeout, enabled, ticketCacheDir, resilienceConfig);
     }
 
     /**
@@ -133,7 +152,24 @@ public record ArcaConfig(Cuit cuit,
      * @since 1.2.0
      */
     public ArcaConfig withTicketCacheDir(@Nullable Path directory) {
-        return new ArcaConfig(cuit, environment, connectTimeout, readTimeout, resilienceEnabled, directory);
+        return new ArcaConfig(cuit, environment, connectTimeout, readTimeout, resilienceEnabled, directory, resilienceConfig);
+    }
+
+    /**
+     * Returns a new configuration instance with the resilience parameters updated.
+     * <p>
+     * The original instance remains unchanged.
+     *
+     * @param config the new resilience configuration.
+     * @return a new configuration instance with the updated resilience configuration.
+     * @throws ArcaValidationException if config is null.
+     * @since 1.3.0
+     */
+    public ArcaConfig withResilienceConfig(ResilienceConfig config) {
+        if (config == null) {
+            throw new ArcaValidationException("resilienceConfig must not be null");
+        }
+        return new ArcaConfig(cuit, environment, connectTimeout, readTimeout, resilienceEnabled, ticketCacheDir, config);
     }
 
     private static void validateTimeout(Duration timeout, String fieldName) {

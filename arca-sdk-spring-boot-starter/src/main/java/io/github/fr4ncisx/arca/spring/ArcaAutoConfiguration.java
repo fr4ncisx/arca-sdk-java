@@ -81,6 +81,9 @@ final class ArcaAutoConfiguration {
                 properties.readTimeout(),
                 properties.resilienceEnabled()
             );
+            if (properties.resilience() != null) {
+                config = config.withResilienceConfig(properties.resilience().toConfig());
+            }
 
             return ArcaClient.builder()
                 .config(config)

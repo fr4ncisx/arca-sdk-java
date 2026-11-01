@@ -115,7 +115,7 @@ public final class ArcaSoapClient<R, S> implements ArcaSoapPort<R, S> {
         };
 
         if (config.resilienceEnabled()) {
-            this.runner = new ResilienceDecorator<>(rawPort, retrySafe);
+            this.runner = new ResilienceDecorator<>(rawPort, config.resilienceConfig(), retrySafe);
         } else {
             this.runner = rawPort;
         }

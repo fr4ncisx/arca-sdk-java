@@ -4,6 +4,7 @@ import java.time.Duration;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
+import io.github.fr4ncisx.arca.core.config.ResilienceConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import org.junit.jupiter.api.Test;
@@ -126,6 +127,23 @@ class SoapConfigTest {
         assertThatThrownBy(() -> new SoapConfig(CONNECT_TIMEOUT, OVERFLOW_TIMEOUT))
                 .isInstanceOf(ArcaValidationException.class)
                 .hasMessage("readTimeout must not exceed " + Integer.MAX_VALUE + " milliseconds");
+    }
+
+    @Test
+    void fromCopiesResilienceConfigFromArcaConfig() {
+        ResilienceConfig custom = new ResilienceConfig(5, Duration.ofSeconds(1), 10, Duration.ofSeconds(30));
+        ArcaConfig arcaConfig = arcaConfig(CONNECT_TIMEOUT, READ_TIMEOUT).withResilienceConfig(custom);
+
+        SoapConfig soapConfig = SoapConfig.from(arcaConfig);
+
+        assertThat(soapConfig.resilienceConfig()).isEqualTo(custom);
+    }
+
+    @Test
+    void defaultsResilienceConfigWhenNotProvided() {
+        SoapConfig soapConfig = new SoapConfig(CONNECT_TIMEOUT, READ_TIMEOUT, true);
+
+        assertThat(soapConfig.resilienceConfig()).isEqualTo(ResilienceConfig.DEFAULT);
     }
 
     private static ArcaConfig arcaConfig(Duration connectTimeout, Duration readTimeout) {

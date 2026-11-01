@@ -347,4 +347,31 @@ class ArcaConfigTest {
         );
         assertThat(config.environment()).isEqualTo(environment);
     }
+
+    @Test
+    void shouldDefaultResilienceConfigToProductionDefaults() {
+        ArcaConfig config = validConfig();
+        assertThat(config.resilienceConfig()).isEqualTo(ResilienceConfig.DEFAULT);
+    }
+
+    @Test
+    void withResilienceConfigShouldReturnUpdatedInstance() {
+        ArcaConfig original = validConfig();
+        ResilienceConfig custom = new ResilienceConfig(5, Duration.ofSeconds(1), 10, Duration.ofSeconds(30));
+
+        ArcaConfig updated = original.withResilienceConfig(custom);
+
+        assertThat(updated).isNotSameAs(original);
+        assertThat(updated.resilienceConfig()).isEqualTo(custom);
+        assertThat(updated.cuit()).isEqualTo(original.cuit());
+        assertThat(updated.environment()).isEqualTo(original.environment());
+    }
+
+    @Test
+    void withResilienceConfigShouldRejectNull() {
+        ArcaConfig config = validConfig();
+        assertThatThrownBy(() -> config.withResilienceConfig(null))
+                .isInstanceOf(ArcaValidationException.class)
+                .hasMessageContaining("resilienceConfig must not be null");
+    }
 }

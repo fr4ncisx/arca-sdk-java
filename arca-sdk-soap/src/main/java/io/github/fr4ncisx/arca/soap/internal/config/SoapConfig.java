@@ -3,6 +3,7 @@ package io.github.fr4ncisx.arca.soap.internal.config;
 import java.time.Duration;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
+import io.github.fr4ncisx.arca.core.config.ResilienceConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 
 /**
@@ -17,7 +18,18 @@ import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
  * @author fr4ncisx
  * @since 0.1.0-M3
  */
-public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean resilienceEnabled) {
+public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean resilienceEnabled, ResilienceConfig resilienceConfig) {
+
+    /**
+     * Creates an internal SOAP configuration with default resilience parameters.
+     *
+     * @param connectTimeout maximum time allowed to establish a SOAP connection; zero disables the limit.
+     * @param readTimeout maximum time allowed to wait for SOAP response data; zero disables the limit.
+     * @param resilienceEnabled whether retry and circuit breaker logic is enabled.
+     */
+    public SoapConfig(Duration connectTimeout, Duration readTimeout, boolean resilienceEnabled) {
+        this(connectTimeout, readTimeout, resilienceEnabled, ResilienceConfig.DEFAULT);
+    }
 
     private static final String NULL_CONFIG = "config must not be null";
     private static final String CONNECT_TIMEOUT = "connectTimeout";
@@ -45,6 +57,9 @@ public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean 
     public SoapConfig {
         validateTimeout(connectTimeout, CONNECT_TIMEOUT);
         validateTimeout(readTimeout, READ_TIMEOUT);
+        if (resilienceConfig == null) {
+            throw new ArcaValidationException("resilienceConfig must not be null");
+        }
     }
 
     /**
@@ -58,7 +73,7 @@ public record SoapConfig(Duration connectTimeout, Duration readTimeout, boolean 
         if (config == null) {
             throw new ArcaValidationException(NULL_CONFIG);
         }
-        return new SoapConfig(config.connectTimeout(), config.readTimeout(), config.resilienceEnabled());
+        return new SoapConfig(config.connectTimeout(), config.readTimeout(), config.resilienceEnabled(), config.resilienceConfig());
     }
 
     /**

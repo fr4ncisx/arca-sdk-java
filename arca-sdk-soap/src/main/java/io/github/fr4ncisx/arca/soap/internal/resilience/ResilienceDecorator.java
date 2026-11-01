@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.soap.internal.resilience;
 
 import io.github.fr4ncisx.arca.core.exception.ArcaCircuitOpenException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
+import io.github.fr4ncisx.arca.core.config.ResilienceConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import org.slf4j.Logger;
@@ -64,6 +65,31 @@ public final class ResilienceDecorator<R, S> implements ArcaSoapPort<R, S> {
      */
     public ResilienceDecorator(ArcaSoapPort<R, S> delegate, boolean retrySafe) {
         this(delegate, 3, 500L, 5, 60_000L, retrySafe);
+    }
+
+    /**
+     * Creates a new ResilienceDecorator configured from a {@link ResilienceConfig}.
+     *
+     * @param delegate the concrete SOAP port to decorate
+     * @param config the resilience settings to apply
+     * @param retrySafe whether transient failures can safely trigger a retry
+     * @throws ArcaValidationException if delegate or config is null
+     * @since 1.3.0
+     */
+    public ResilienceDecorator(ArcaSoapPort<R, S> delegate, ResilienceConfig config, boolean retrySafe) {
+        this(delegate,
+             validateResilienceConfig(config).maxAttempts(),
+             config.baseDelay().toMillis(),
+             config.maxConsecutiveFailures(),
+             config.resetTimeout().toMillis(),
+             retrySafe);
+    }
+
+    private static ResilienceConfig validateResilienceConfig(ResilienceConfig config) {
+        if (config == null) {
+            throw new ArcaValidationException("config must not be null");
+        }
+        return config;
     }
 
     /**
