@@ -1,6 +1,7 @@
 package io.github.fr4ncisx.arca.wscdc.internal.usecase;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
@@ -49,7 +50,7 @@ public final class ConstatVoucherUseCase {
      */
     public WscdcConstatResponse execute(WscdcConstatRequest request) {
         Objects.requireNonNull(request, "request must not be null");
-        ArcaAccessTicket ticket = authProvider.authenticate("wscdc");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.WSCDC);
         CmpAuthRequest auth = WscdcMapper.mapAuth(ticket, config.cuit());
         CmpDatos reqData = WscdcMapper.mapRequest(request);
 

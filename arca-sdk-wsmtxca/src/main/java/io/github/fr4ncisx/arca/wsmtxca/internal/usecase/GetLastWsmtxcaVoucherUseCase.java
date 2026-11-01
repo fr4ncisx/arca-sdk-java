@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wsmtxca.internal.usecase;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
@@ -39,7 +40,7 @@ public final class GetLastWsmtxcaVoucherUseCase {
         if (request == null) {
             throw new ArcaValidationException("request must not be null");
         }
-        ArcaAccessTicket ticket = authProvider.authenticate("wsmtxca");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.WSMTXCA);
         ConsultarUltimoComprobanteAutorizadoRequestType soapReq = WsmtxcaMapper.toLastVoucherRequest(ticket, config.cuit(), request);
         ConsultarUltimoComprobanteAutorizadoResponseType soapResp = soapPort.invoke(soapReq);
         WsmtxcaLastVoucherResponse mapped = WsmtxcaMapper.toLastVoucherResponse(soapResp);

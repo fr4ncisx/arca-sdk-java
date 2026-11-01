@@ -3,6 +3,7 @@ package io.github.fr4ncisx.arca.wsfev1.internal.usecase.caea;
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
@@ -60,7 +61,7 @@ public final class QueryCaeaNoMovementUseCase {
         if (query == null) {
             throw new ArcaValidationException("query must not be null");
         }
-        ArcaAccessTicket ticket = authProvider.authenticate("wsfe");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.WSFE);
         FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, config.cuit());
         FECAEASinMovimientoConsultar soapReq = CaeaMapper.toSoapRequest(auth, query);
         FECAEASinMovConsResponse result = soapPort.invoke(soapReq);

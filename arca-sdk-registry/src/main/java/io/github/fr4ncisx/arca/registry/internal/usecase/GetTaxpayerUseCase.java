@@ -4,6 +4,7 @@ import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaAuthException;
 import io.github.fr4ncisx.arca.core.exception.ArcaSoapException;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
@@ -66,7 +67,7 @@ public final class GetTaxpayerUseCase {
             throw new ArcaValidationException("cuit must not be null");
         }
 
-        ArcaAccessTicket ticket = authProvider.authenticate("ws_sr_padron_a4");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.REGISTRY_A4);
 
         GetPersona request = new GetPersona();
         request.setToken(ticket.token());

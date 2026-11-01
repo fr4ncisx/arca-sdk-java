@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wscdc.internal.usecase;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
@@ -47,7 +48,7 @@ class WscdcUseCasesTest {
         );
         authProvider = mock(AuthProvider.class);
         ticket = new ArcaAccessTicket("token-123", "sign-456", Instant.now(), Instant.now().plusSeconds(3600));
-        when(authProvider.authenticate(any())).thenReturn(ticket);
+        when(authProvider.authenticate(WsaaService.WSCDC)).thenReturn(ticket);
     }
 
     /**

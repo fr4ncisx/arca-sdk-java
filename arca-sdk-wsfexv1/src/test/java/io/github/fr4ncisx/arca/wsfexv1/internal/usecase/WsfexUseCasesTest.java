@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wsfexv1.internal.usecase;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.config.ArcaEnvironment;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
@@ -51,7 +52,7 @@ class WsfexUseCasesTest {
         );
         authProvider = mock(AuthProvider.class);
         ticket = new ArcaAccessTicket("token-123", "sign-456", Instant.now(), Instant.now().plusSeconds(3600));
-        when(authProvider.authenticate("wsfex")).thenReturn(ticket);
+        when(authProvider.authenticate(WsaaService.WSFEX)).thenReturn(ticket);
     }
 
     @Test

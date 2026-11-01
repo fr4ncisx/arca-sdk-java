@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
@@ -57,7 +58,7 @@ public final class GetCountriesUseCase {
      * @return the list of country details
      */
     public List<CountryInfo> execute() {
-        ArcaAccessTicket ticket = authProvider.authenticate("wsfe");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.WSFE);
         FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, config.cuit());
 
         FEParamGetTiposPaises soapRequest = new FEParamGetTiposPaises();

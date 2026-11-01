@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wsfexv1.internal.usecase;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
@@ -41,7 +42,7 @@ public final class GetExportVoucherUseCase {
         if (request == null) {
             throw new ArcaValidationException("request must not be null");
         }
-        ArcaAccessTicket ticket = authProvider.authenticate("wsfex");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.WSFEX);
         ClsFEXAuthRequest auth = WsfexMapper.toAuthRequest(ticket, config.cuit());
         ClsFEXGetCMP cmp = WsfexMapper.toGetCmpRequest(request);
 

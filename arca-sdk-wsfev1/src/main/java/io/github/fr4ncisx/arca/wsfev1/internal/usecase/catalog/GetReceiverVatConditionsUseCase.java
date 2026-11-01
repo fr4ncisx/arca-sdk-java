@@ -2,6 +2,7 @@ package io.github.fr4ncisx.arca.wsfev1.internal.usecase.catalog;
 
 import io.github.fr4ncisx.arca.core.config.ArcaConfig;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
+import io.github.fr4ncisx.arca.core.service.WsaaService;
 import io.github.fr4ncisx.arca.soap.spi.ArcaSoapPort;
 import io.github.fr4ncisx.arca.wsaa.internal.auth.AuthProvider;
 import io.github.fr4ncisx.arca.wsaa.model.ArcaAccessTicket;
@@ -59,7 +60,7 @@ public final class GetReceiverVatConditionsUseCase {
      * @return the list of receiver VAT condition details
      */
     public List<VatConditionInfo> execute(@Nullable String voucherClass) {
-        ArcaAccessTicket ticket = authProvider.authenticate("wsfe");
+        ArcaAccessTicket ticket = authProvider.authenticate(WsaaService.WSFE);
         FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, config.cuit());
 
         FEParamGetCondicionIvaReceptor soapRequest = new FEParamGetCondicionIvaReceptor();
