@@ -31,6 +31,10 @@ or text manipulation; use the edit tool instead. Batch independent tool calls
 - `mvn clean verify -Pgenerate-stubs`: regenerate stubs from WSDL files.
 - `mvn verify -Darca.integration=true`: run integration tests that require real
   ARCA credentials and certificates.
+- `python scripts/check_compatibility.py`: compile baseline `v1.2.3` and verify binary
+  backward compatibility (ABI) via `japicmp` and reference consumers.
+- `mvn verify -Prelease -DskipTests`: verify release packaging, javadocs, sources,
+  and GPG signing without deploying.
 
 ## Coding style and naming conventions
 
@@ -150,6 +154,7 @@ objects and interfaces for ports.
   in loops — use `StringBuilder` or collector patterns instead.
 
 - **Strict Hexagonal Boundaries**: The domain layer (input/output records, exceptions, use cases) must remain pure and free from framework, transport, or serialization dependencies (such as `jakarta.xml.ws.*` or JAXB generated stubs under `internal.generated.*`). All SOAP mapping must reside exclusively within the infrastructure/mapper layer (`*Mapper.java`).
+- **Binary Backward Compatibility (ABI)**: Maintain 100% binary backward compatibility against the pinned baseline (`v1.2.3`). When modifying, extending, or adding components to existing records, DTOs, or public classes, preserve previous constructors and method signatures via constructor overloading so external consumers link without runtime linkage errors (`NoSuchMethodError`, `IncompatibleClassChangeError`). Validate continuously with `japicmp`.
 - **Single Responsibility Use Cases (SRP)**: Each remote call or operation must be encapsulated in its own separate Use Case class (e.g., `GetLastVoucherUseCase`, `RequestCaeUseCase`). Do not group unrelated operations into monolithic service classes.
 - **Interface Segregation & Encapsulation**: Concrete implementations (e.g., `DefaultWsfeClient`) and assemblers (`WsfeClientAssembler`) must be package-private or hidden in `internal.*` packages. The public facade (`WsfeClient`, `ArcaClient`) must expose only minimal, abstract interfaces and immutable records.
 - **Dependency Inversion (DIP)**: Use Case classes must depend on ports/abstractions (e.g., `AuthProvider`, `ArcaSoapPort`), never on concrete SOAP port implementations or client classes.
@@ -178,9 +183,14 @@ available, and notes for security-sensitive changes.
 
 - **Modular Commits**: Group changes into atomic, logical commits. Avoid creating large, single commits containing unrelated changes.
 - **Conventional Commits**: Apply Conventional Commits conventions (e.g., `feat(wsfev1): ...`, `fix(core): ...`, `test(client): ...`, `chore(clean): ...`) to make the history clean and readable.
+- **Pre-Push Verification Gate**: Always execute the full test verification suite (`mvn clean verify` and `python scripts/check_compatibility.py`) locally and confirm 100% green before proposing or executing any git push.
+- **CI Gate Before Release Tag**: Never create or push a release tag (`v*`) until all GitHub Actions CI and Security workflows on the candidate commit have completed with 100% success.
+- **Safe Remote Updates**: When updating rewritten or rebased remote branches, always use `git push --force-with-lease` rather than raw `--force` to prevent overwriting unobserved upstream changes.
+- **Release Documentation Language**: Annotated release tag descriptions (`git tag -a vX.Y.Z -m "..."`) and `CHANGELOG.md` must be written **strictly in professional Spanish**, detailing each functional change, normative compliance, and dependency update. (Code comments and Javadocs remain strictly in professional English).
 - **Explicit User Approvals**: Never perform git commits, pushes, or tags automatically. Present the exact file diffs and command proposals to the User, and wait for their explicit approval before executing any write or push operations to the repository.
 - **Version Synchronization**: Every new milestone or release version must explicitly update the version identifier across all project `pom.xml` files (parent and modules) and references in the `README.md` to guarantee documentation alignment.
 - **Annotated Releases**: All releases must use annotated Git tags (e.g., `git tag -a vX.Y.Z -m "Release description"`) summarizing the version changelog, and tags must be pushed to the remote repository explicitly after user confirmation.
+- **Centralized Release Distribution**: Keep `arca-sdk-bom`, `arca-sdk-bundle`, and `arca-sdk-spring-boot-starter` synchronized and published simultaneously to Maven Central alongside core domain modules.
 
 ## Security and configuration tips
 
