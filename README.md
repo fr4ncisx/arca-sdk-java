@@ -90,7 +90,7 @@ Luego, en tu proyecto, elige una de estas opciones:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.2.5</version>
+            <version>1.3.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -104,7 +104,7 @@ Luego, en tu proyecto, elige una de estas opciones:
 <dependency>
     <groupId>io.github.fr4ncisx</groupId>
     <artifactId>arca-sdk-bundle</artifactId>
-    <version>1.2.5</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -168,7 +168,7 @@ El informe queda en `target/grype-report.json`; el SBOM, en `target/bom.json` y 
 
 Grype utiliza principalmente GitHub Security Advisories para Maven y otras fuentes según el ecosistema. Los resultados pueden diferir de Dependency-Check. La caché acelera ejecuciones posteriores, pero sigue existiendo una descarga inicial y dependencia de la disponibilidad de Anchore. En PowerShell anterior a 7.4, guarda la salida JSON de `db status` explícitamente en UTF-8; la redirección de Windows PowerShell puede producir UTF-16.
 
-La migración actualiza Bouncy Castle de 1.78.1 a 1.85 para corregir los avisos detectados en el proveedor criptográfico y PKIX, incluidos CVE-2026-8763 y CVE-2026-13506. La versión del SDK y sus firmas públicas se mantienen; se requiere volver a validar el classpath si la aplicación consumidora fuerza otra versión de Bouncy Castle.
+La migración actualiza Bouncy Castle de 1.78.1 a 1.86 para corregir los avisos detectados en el proveedor criptográfico y PKIX, incluidos CVE-2026-8763 y CVE-2026-13506. La versión del SDK y sus firmas públicas se mantienen; se requiere volver a validar el classpath si la aplicación consumidora fuerza otra versión de Bouncy Castle.
 
 ## Uso
 

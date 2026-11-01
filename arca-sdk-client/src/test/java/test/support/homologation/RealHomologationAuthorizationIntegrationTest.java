@@ -6,6 +6,7 @@ import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ReceiverVatCondition;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
 import io.github.fr4ncisx.arca.wsfev1.model.lastvoucher.LastVoucherRequest;
@@ -48,9 +49,15 @@ class RealHomologationAuthorizationIntegrationTest {
                 .as("finite non-negative test amounts").isTrue();
         List<CaeVatLine> lines = vat == 0 ? List.of() : List.of(new CaeVatLine(
                 VatType.fromCode(Integer.parseInt(required("ARCA_TEST_VAT_TYPE"))), net, vat));
+
+        String vatConditionEnv = System.getenv("ARCA_TEST_RECEIVER_VAT_CONDITION");
+        ReceiverVatCondition vatCondition = (vatConditionEnv != null && !vatConditionEnv.isBlank())
+                ? ReceiverVatCondition.fromCode(Integer.parseInt(vatConditionEnv))
+                : null;
+
         CaeRequest request = new CaeRequest(type, salesPoint, number, ConceptType.PRODUCTS,
                 Cuit.parse(required("ARCA_TEST_RECEIVER_CUIT")), net, 0, 0, vat, net + vat,
-                LocalDate.parse(required("ARCA_TEST_VOUCHER_DATE")), lines);
+                LocalDate.parse(required("ARCA_TEST_VOUCHER_DATE")), lines, vatCondition);
         ArcaClient client = RealHomologationIntegrationTest.createClient(true);
         long lastNumber = client.wsfev1().getLastVoucher(new LastVoucherRequest(salesPoint, type)).lastNumber();
         assertThat(lastNumber >= number - 1).as("explicit voucher number follows the remote sequence").isTrue();

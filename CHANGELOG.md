@@ -1,5 +1,29 @@
 # Historial de cambios
 
+## 1.3.0
+
+### Compatibilidad y soporte normativo ARCA (RG 5616)
+
+- Incorpora el modelo fuertemente tipado `ReceiverVatCondition` para representar las 11 condiciones de IVA del receptor reguladas por la Resolución General 5616/2024 de ARCA.
+- Agrega el soporte de `CondicionIVAReceptorId` en solicitudes de emisión de CAE (`CaeRequest`) y de reporte de comprobantes bajo CAEA (`CaeaReportDetail`).
+- Mantiene compatibilidad binaria (ABI) y de código fuente mediante constructores sobrecargados que preservan las signaturas anteriores.
+- Implementa inferencia inteligente (fallback) de condición de IVA según la clase del comprobante (`IVA_RESPONSABLE_INSCRIPTO` para comprobantes clase A/M y `CONSUMIDOR_FINAL` para clase B/C) para evitar rechazos en emisiones donde el usuario no explicite el valor.
+- Amplía la validación del catálogo de tipos de documento (`DocumentTypeInfo`) admitiendo el código oficial 0 (CI Policía Federal).
+
+### Centralización de Servicios WSAA y Resiliencia Configurable
+
+- Centraliza los identificadores de servicio WSAA en el enum fuertemente tipado `WsaaService` (`WSFE`, `WSFEX`, `WSMTXCA`, `WSCDC`, `REGISTRY_A4`, `REGISTRY_A5`, `REGISTRY_A10`, `REGISTRY_A13`), eliminando strings mágicos en los 25 casos de uso de todos los módulos.
+- Incorpora `ResilienceConfig` en `arca-sdk-core` para parametrizar de manera inmutable la política de reintentos (`maxAttempts`), retroceso exponencial (`baseDelay`), tolerancia de fallos (`maxConsecutiveFailures`) y tiempo de recuperación del circuit breaker (`resetTimeout`).
+- Expone la configuración de resiliencia en Spring Boot Starter mediante prefijo `arca.resilience.*` (`max-attempts`, `base-delay`, `max-consecutive-failures`, `reset-timeout`) preservando los valores por defecto recomendados para producción.
+- Mantiene 100% de compatibilidad binaria (ABI) y de código fuente contra la versión baseline v1.2.3 verificado mediante `japicmp` y consumidores de referencia compilados externamente.
+
+### Dependencias y Seguridad
+
+- Actualiza Bouncy Castle a 1.86 (`bcpkix-jdk18on` y `bcprov-jdk18on`).
+- Actualiza JAX-WS Metro a 4.0.5 (`jaxws-rt`) y GlassFish JAXB Runtime a 4.0.9 (`jaxb-runtime`).
+- Actualiza SLF4J a 2.0.20 (`slf4j-api`) y JSpecify a 1.0.1 (`jspecify`).
+- Actualiza dependencias de testing: Mockito 5.24.0 y XMLUnit 2.14.0.
+
 ## 1.2.5
 
 ### Seguridad
