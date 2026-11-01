@@ -47,13 +47,13 @@
         <module>arca-sdk-spring-boot-starter</module>
     </modules>
     <properties>
-        <revision>1.2.5</revision>
+        <revision>1.3.0</revision>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>4.0.8</spring-boot.version>
-        <metro.version>4.0.4</metro.version>
-        <jaxb.version>4.0.8</jaxb.version>
-        <slf4j.version>2.0.17</slf4j.version>
+        <metro.version>4.0.5</metro.version>
+        <jaxb.version>4.0.9</jaxb.version>
+        <slf4j.version>2.0.20</slf4j.version>
         <junit.version>6.0.3</junit.version>
         <!--
         MapStruct 1.7.0.Beta2 is intentionally used while the SDK is in milestone phase.
@@ -63,10 +63,10 @@
         <mapstruct.version>1.7.0.Beta2</mapstruct.version>
         <wiremock.version>3.13.2</wiremock.version>
         <assertj.version>3.27.7</assertj.version>
-        <xmlunit.version>2.11.0</xmlunit.version>
-        <bouncycastle.version>1.85</bouncycastle.version>
-        <jspecify.version>1.0.0</jspecify.version>
-        <mockito.version>5.23.0</mockito.version>
+        <xmlunit.version>2.14.0</xmlunit.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
+        <jspecify.version>1.0.1</jspecify.version>
+        <mockito.version>5.24.0</mockito.version>
         <japicmp.version>0.23.0</japicmp.version>
         <!-- SonarQube configuration -->
         <sonar.exclusions>
