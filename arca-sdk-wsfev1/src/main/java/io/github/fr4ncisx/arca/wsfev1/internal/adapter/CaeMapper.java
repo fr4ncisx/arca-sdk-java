@@ -7,6 +7,9 @@ import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeResponse;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.common.AfipError;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ReceiverVatCondition;
+import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -51,6 +54,7 @@ public final class CaeMapper {
         det.setImpIVA(request.vatTotal());
         det.setMonId("PES");
         det.setMonCotiz(1.0);
+        det.setCondicionIVAReceptorId(resolveReceiverVatCondition(request.voucherType(), request.receiverVatCondition()));
 
         if (!request.vatLines().isEmpty()) {
             ArrayOfAlicIva arrayIva = new ArrayOfAlicIva();
@@ -124,5 +128,21 @@ public final class CaeMapper {
         }
 
         return new CaeResponse(approved, cae, caeExpiration, errors);
+    }
+
+    static int resolveReceiverVatCondition(VoucherType voucherType, @Nullable ReceiverVatCondition explicitCondition) {
+        if (explicitCondition != null) {
+            return explicitCondition.code();
+        }
+        return defaultConditionFor(voucherType).code();
+    }
+
+    static ReceiverVatCondition defaultConditionFor(VoucherType voucherType) {
+        return switch (voucherType) {
+            case INVOICE_A, DEBIT_NOTE_A, CREDIT_NOTE_A, RECEIPT_A,
+                 INVOICE_A_MIPYME, DEBIT_NOTE_A_MIPYME, CREDIT_NOTE_A_MIPYME,
+                 INVOICE_M, DEBIT_NOTE_M, CREDIT_NOTE_M, RECEIPT_M -> ReceiverVatCondition.IVA_RESPONSABLE_INSCRIPTO;
+            default -> ReceiverVatCondition.CONSUMIDOR_FINAL;
+        };
     }
 }

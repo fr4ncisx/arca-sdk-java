@@ -78,6 +78,46 @@ class CatalogMapperTest {
         assertThat(list.get(0).until()).isNull();
     }
 
+    /**
+     * Verifies that document types with code zero (e.g. CI Policia Federal) are accepted.
+     */
+    @Test
+    void toDocumentTypesSupportsZeroCode() {
+        var response = new DocTipoResponse();
+        var resultGet = new ArrayOfDocTipo();
+        var type = new DocTipo();
+        type.setId(0);
+        type.setDesc("CI Policia Federal");
+        type.setFchDesde("20080725");
+        type.setFchHasta(null);
+        resultGet.getDocTipo().add(type);
+        response.setResultGet(resultGet);
+
+        List<DocumentTypeInfo> list = CatalogMapper.toDocumentTypes(response);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).code()).isZero();
+        assertThat(list.get(0).description()).isEqualTo("CI Policia Federal");
+    }
+
+    /**
+     * Verifies that document types with negative codes are rejected.
+     */
+    @Test
+    void rejectsNegativeDocumentTypeCode() {
+        var response = new DocTipoResponse();
+        var resultGet = new ArrayOfDocTipo();
+        var type = new DocTipo();
+        type.setId(-1);
+        type.setDesc("Invalid");
+        resultGet.getDocTipo().add(type);
+        response.setResultGet(resultGet);
+
+        assertThatThrownBy(() -> CatalogMapper.toDocumentTypes(response))
+                .isInstanceOf(ArcaValidationException.class)
+                .hasMessageContaining("greater than or equal to 0");
+    }
+
     @Test
     void toVatTypesSucceeds() {
         var response = new IvaTipoResponse();

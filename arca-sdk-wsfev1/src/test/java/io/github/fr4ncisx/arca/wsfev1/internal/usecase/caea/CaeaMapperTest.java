@@ -8,6 +8,7 @@ import io.github.fr4ncisx.arca.wsfev1.internal.adapter.CommonMapper;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.caea.*;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ReceiverVatCondition;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,6 +150,7 @@ class CaeaMapperTest {
         assertThat(det.getImpTotal()).isEqualTo(121.0);
         assertThat(det.getImpNeto()).isEqualTo(100.0);
         assertThat(det.getImpIVA()).isEqualTo(21.0);
+        assertThat(det.getCondicionIVAReceptorId()).isEqualTo(1);
 
         var vatArray = det.getIva();
         assertThat(vatArray).isNotNull();
@@ -157,6 +159,32 @@ class CaeaMapperTest {
         assertThat(vat.getId()).isEqualTo(VatType.VAT_21.code());
         assertThat(vat.getBaseImp()).isEqualTo(100.0);
         assertThat(vat.getImporte()).isEqualTo(21.0);
+    }
+
+    @Test
+    void toSoapRequestForReportCaeaSetsExplicitReceiverVatCondition() {
+        FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, companyCuit);
+        CaeaReportRequest request = new CaeaReportRequest(
+                "caea-456",
+                1,
+                VoucherType.INVOICE_B,
+                List.of(new CaeaReportDetail(
+                        ConceptType.PRODUCTS,
+                        Cuit.parse("27-44444444-9"),
+                        106L,
+                        LocalDate.of(2026, 7, 8),
+                        121.0,
+                        100.0,
+                        0.0,
+                        21.0,
+                        List.of(new CaeVatLine(VatType.VAT_21, 100.0, 21.0)),
+                        ReceiverVatCondition.IVA_SUJETO_EXENTO
+                ))
+        );
+
+        FECAEARegInformativo soapRequest = CaeaMapper.toSoapRequest(auth, request);
+        var details = soapRequest.getFeCAEARegInfReq().getFeDetReq().getFECAEADetRequest();
+        assertThat(details.get(0).getCondicionIVAReceptorId()).isEqualTo(ReceiverVatCondition.IVA_SUJETO_EXENTO.code());
     }
 
     @Test

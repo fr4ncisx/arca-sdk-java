@@ -27,8 +27,8 @@ public record DocumentTypeInfo(
 ) {
 
     public DocumentTypeInfo {
-        if (code <= 0) {
-            throw new ArcaValidationException("code must be greater than 0");
+        if (code < 0) {
+            throw new ArcaValidationException("code must be greater than or equal to 0");
         }
         if (description == null || description.trim().isEmpty()) {
             throw new ArcaValidationException("description must not be null or blank");

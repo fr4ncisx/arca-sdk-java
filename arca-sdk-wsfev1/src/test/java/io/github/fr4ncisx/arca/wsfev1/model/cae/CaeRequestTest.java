@@ -3,6 +3,7 @@ package io.github.fr4ncisx.arca.wsfev1.model.cae;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ReceiverVatCondition;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,47 @@ class CaeRequestTest {
                 .isInstanceOf(ArcaValidationException.class);
         assertThat(createRequest(0, 0, 0, 0, 0, List.of()).total()).isZero();
         assertThat(createRequest(100.1, 0, 0, 21.02, 121.12, List.of()).total()).isEqualTo(121.12);
+    }
+
+    @Test
+    void supportsExplicitReceiverVatCondition() {
+        CaeRequest request = new CaeRequest(
+                VoucherType.INVOICE_A,
+                1,
+                100L,
+                ConceptType.PRODUCTS,
+                Cuit.parse("20-33333333-4"),
+                100.0,
+                0.0,
+                0.0,
+                21.0,
+                121.0,
+                LocalDate.of(2026, 11, 1),
+                List.of(new CaeVatLine(VatType.VAT_21, 100.0, 21.0)),
+                ReceiverVatCondition.IVA_RESPONSABLE_INSCRIPTO
+        );
+
+        assertThat(request.receiverVatCondition()).isEqualTo(ReceiverVatCondition.IVA_RESPONSABLE_INSCRIPTO);
+    }
+
+    @Test
+    void defaultsReceiverVatConditionToNullWhenUsingLegacyConstructor() {
+        CaeRequest request = new CaeRequest(
+                VoucherType.INVOICE_B,
+                1,
+                101L,
+                ConceptType.PRODUCTS,
+                Cuit.parse("20-33333333-4"),
+                100.0,
+                0.0,
+                0.0,
+                21.0,
+                121.0,
+                LocalDate.of(2026, 11, 1),
+                List.of(new CaeVatLine(VatType.VAT_21, 100.0, 21.0))
+        );
+
+        assertThat(request.receiverVatCondition()).isNull();
     }
 
     private static CaeRequest createRequest(

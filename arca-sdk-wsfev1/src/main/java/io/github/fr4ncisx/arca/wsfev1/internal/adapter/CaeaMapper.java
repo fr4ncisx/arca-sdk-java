@@ -106,7 +106,7 @@ public final class CaeaMapper {
             FECAEADetRequest det = new FECAEADetRequest();
             det.setCAEA(request.caea());
             det.setConcepto(detail.concept().code());
-            det.setDocTipo(80); // CUIT is 80
+            det.setDocTipo(80);
             det.setDocNro(detail.customerCuit().number());
             det.setCbteDesde(detail.number());
             det.setCbteHasta(detail.number());
@@ -119,6 +119,7 @@ public final class CaeaMapper {
             det.setImpIVA(detail.vatTotal());
             det.setMonId("PES");
             det.setMonCotiz(1.0);
+            det.setCondicionIVAReceptorId(CaeMapper.resolveReceiverVatCondition(request.voucherType(), detail.receiverVatCondition()));
 
             if (!detail.vatLines().isEmpty()) {
                 ArrayOfAlicIva arrayIva = new ArrayOfAlicIva();

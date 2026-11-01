@@ -9,6 +9,7 @@ import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeRequest;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeResponse;
 import io.github.fr4ncisx.arca.wsfev1.model.cae.CaeVatLine;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ReceiverVatCondition;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VatType;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,6 +81,7 @@ class CaeMapperTest {
         assertThat(det.getImpTotal()).isEqualTo(121.0);
         assertThat(det.getImpNeto()).isEqualTo(100.0);
         assertThat(det.getImpIVA()).isEqualTo(21.0);
+        assertThat(det.getCondicionIVAReceptorId()).isEqualTo(1);
 
         var vatArray = det.getIva();
         assertThat(vatArray).isNotNull();
@@ -88,6 +90,76 @@ class CaeMapperTest {
         assertThat(vatLine.getId()).isEqualTo(VatType.VAT_21.code());
         assertThat(vatLine.getBaseImp()).isEqualTo(100.0);
         assertThat(vatLine.getImporte()).isEqualTo(21.0);
+    }
+
+    @Test
+    void toSoapRequestSetsExplicitReceiverVatCondition() {
+        FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, companyCuit);
+        CaeRequest request = new CaeRequest(
+                VoucherType.INVOICE_B,
+                1,
+                201L,
+                ConceptType.PRODUCTS,
+                Cuit.parse("27-44444444-9"),
+                100.0,
+                0.0,
+                0.0,
+                21.0,
+                121.0,
+                LocalDate.of(2026, 11, 1),
+                List.of(new CaeVatLine(VatType.VAT_21, 100.0, 21.0)),
+                ReceiverVatCondition.IVA_SUJETO_EXENTO
+        );
+
+        FECAESolicitar soapRequest = CaeMapper.toSoapRequest(auth, request);
+        var det = soapRequest.getFeCAEReq().getFeDetReq().getFECAEDetRequest().get(0);
+        assertThat(det.getCondicionIVAReceptorId()).isEqualTo(ReceiverVatCondition.IVA_SUJETO_EXENTO.code());
+    }
+
+    @Test
+    void toSoapRequestInfersConsumidorFinalForInvoiceBWhenConditionIsNull() {
+        FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, companyCuit);
+        CaeRequest request = new CaeRequest(
+                VoucherType.INVOICE_B,
+                1,
+                202L,
+                ConceptType.PRODUCTS,
+                Cuit.parse("27-44444444-9"),
+                100.0,
+                0.0,
+                0.0,
+                21.0,
+                121.0,
+                LocalDate.of(2026, 11, 1),
+                List.of(new CaeVatLine(VatType.VAT_21, 100.0, 21.0))
+        );
+
+        FECAESolicitar soapRequest = CaeMapper.toSoapRequest(auth, request);
+        var det = soapRequest.getFeCAEReq().getFeDetReq().getFECAEDetRequest().get(0);
+        assertThat(det.getCondicionIVAReceptorId()).isEqualTo(ReceiverVatCondition.CONSUMIDOR_FINAL.code());
+    }
+
+    @Test
+    void toSoapRequestInfersConsumidorFinalForInvoiceCWhenConditionIsNull() {
+        FEAuthRequest auth = CommonMapper.toAuthRequest(ticket, companyCuit);
+        CaeRequest request = new CaeRequest(
+                VoucherType.INVOICE_C,
+                1,
+                203L,
+                ConceptType.PRODUCTS,
+                Cuit.parse("27-44444444-9"),
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                LocalDate.of(2026, 11, 1),
+                List.of()
+        );
+
+        FECAESolicitar soapRequest = CaeMapper.toSoapRequest(auth, request);
+        var det = soapRequest.getFeCAEReq().getFeDetReq().getFECAEDetRequest().get(0);
+        assertThat(det.getCondicionIVAReceptorId()).isEqualTo(ReceiverVatCondition.CONSUMIDOR_FINAL.code());
     }
 
     @Test
@@ -122,7 +194,6 @@ class CaeMapperTest {
         cab.setResultado("R");
         result.setFeCabResp(cab);
 
-        // Header errors
         var errorsArray = new ArrayOfErr();
         var err = new Err();
         err.setCode(1001);
@@ -130,7 +201,6 @@ class CaeMapperTest {
         errorsArray.getErr().add(err);
         result.setErrors(errorsArray);
 
-        // Details observations
         var detResponse = new FECAEDetResponse();
         var obsArray = new ArrayOfObs();
         var obs = new Obs();

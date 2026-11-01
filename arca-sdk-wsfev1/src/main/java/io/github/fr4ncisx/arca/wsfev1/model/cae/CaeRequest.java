@@ -3,7 +3,9 @@ package io.github.fr4ncisx.arca.wsfev1.model.cae;
 import io.github.fr4ncisx.arca.core.exception.ArcaValidationException;
 import io.github.fr4ncisx.arca.core.tax.Cuit;
 import io.github.fr4ncisx.arca.wsfev1.model.common.ConceptType;
+import io.github.fr4ncisx.arca.wsfev1.model.common.ReceiverVatCondition;
 import io.github.fr4ncisx.arca.wsfev1.model.common.VoucherType;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,18 +13,19 @@ import java.util.List;
 /**
  * Request containing all payload details required to authorize a voucher and obtain a CAE.
  *
- * @param voucherType  the type of voucher
- * @param salesPoint   the issuing sales point
- * @param number       the voucher number
- * @param concept      the billing concept
- * @param customerCuit the taxpayer CUIT of the buyer
- * @param netTaxed     the net taxable amount
- * @param netUntaxed   the net non-taxable amount
- * @param exempted     the exempt amount
- * @param vatTotal     the total VAT tax amount
- * @param total        the total invoice amount
- * @param date         the date of the voucher
- * @param vatLines     the list of VAT breakdowns
+ * @param voucherType          the type of voucher
+ * @param salesPoint           the issuing sales point
+ * @param number               the voucher number
+ * @param concept              the billing concept
+ * @param customerCuit         the taxpayer CUIT of the buyer
+ * @param netTaxed             the net taxable amount
+ * @param netUntaxed           the net non-taxable amount
+ * @param exempted             the exempt amount
+ * @param vatTotal             the total VAT tax amount
+ * @param total                the total invoice amount
+ * @param date                 the date of the voucher
+ * @param vatLines             the list of VAT breakdowns
+ * @param receiverVatCondition the receiver VAT condition under RG 5616, or null to trigger automatic inference
  * @author fr4ncisx
  * @since 0.3.0-M1
  */
@@ -38,25 +41,28 @@ public record CaeRequest(
         double vatTotal,
         double total,
         LocalDate date,
-        List<CaeVatLine> vatLines
+        List<CaeVatLine> vatLines,
+        @Nullable ReceiverVatCondition receiverVatCondition
 ) {
 
     /**
      * Creates a CAE request with finite amounts and an immutable VAT snapshot.
      *
-     * @param voucherType the type of voucher
-     * @param salesPoint the issuing sales point
-     * @param number the voucher number
-     * @param concept the billing concept
-     * @param customerCuit the taxpayer CUIT of the buyer
-     * @param netTaxed the net taxable amount
-     * @param netUntaxed the net non-taxable amount
-     * @param exempted the exempt amount
-     * @param vatTotal the total VAT tax amount
-     * @param total the total invoice amount
-     * @param date the date of the voucher
-     * @param vatLines the list of VAT breakdowns
+     * @param voucherType          the type of voucher
+     * @param salesPoint           the issuing sales point
+     * @param number               the voucher number
+     * @param concept              the billing concept
+     * @param customerCuit         the taxpayer CUIT of the buyer
+     * @param netTaxed             the net taxable amount
+     * @param netUntaxed           the net non-taxable amount
+     * @param exempted             the exempt amount
+     * @param vatTotal             the total VAT tax amount
+     * @param total                the total invoice amount
+     * @param date                 the date of the voucher
+     * @param vatLines             the list of VAT breakdowns
+     * @param receiverVatCondition the receiver VAT condition under RG 5616, or null for automatic fallback
      * @throws ArcaValidationException if required fields are null, identifiers are invalid, amounts are non-finite, or the total differs from its components.
+     * @since 1.3.0
      */
     public CaeRequest {
         if (voucherType == null) {
@@ -100,5 +106,40 @@ public record CaeRequest(
             throw new ArcaValidationException("Invoice total amount mismatch: expected "
                     + expectedTotal + " but was " + total);
         }
+    }
+
+    /**
+     * Backward-compatible constructor defaulting {@code receiverVatCondition} to null for automatic inference.
+     *
+     * @param voucherType  the type of voucher
+     * @param salesPoint   the issuing sales point
+     * @param number       the voucher number
+     * @param concept      the billing concept
+     * @param customerCuit the taxpayer CUIT of the buyer
+     * @param netTaxed     the net taxable amount
+     * @param netUntaxed   the net non-taxable amount
+     * @param exempted     the exempt amount
+     * @param vatTotal     the total VAT tax amount
+     * @param total        the total invoice amount
+     * @param date         the date of the voucher
+     * @param vatLines     the list of VAT breakdowns
+     * @throws ArcaValidationException if validation rules fail
+     * @since 0.3.0-M1
+     */
+    public CaeRequest(
+            VoucherType voucherType,
+            int salesPoint,
+            long number,
+            ConceptType concept,
+            Cuit customerCuit,
+            double netTaxed,
+            double netUntaxed,
+            double exempted,
+            double vatTotal,
+            double total,
+            LocalDate date,
+            List<CaeVatLine> vatLines
+    ) {
+        this(voucherType, salesPoint, number, concept, customerCuit, netTaxed, netUntaxed, exempted, vatTotal, total, date, vatLines, null);
     }
 }
