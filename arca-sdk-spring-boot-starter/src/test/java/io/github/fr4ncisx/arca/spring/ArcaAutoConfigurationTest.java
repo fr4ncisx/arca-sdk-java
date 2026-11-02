@@ -10,7 +10,6 @@ import io.github.fr4ncisx.arca.wsfexv1.spi.WsfexClient;
 import io.github.fr4ncisx.arca.wsmtxca.spi.WsmtxcaClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +18,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -192,22 +192,24 @@ class ArcaAutoConfigurationTest {
             });
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T dummy(Class<T> type) {
+        return (T) Proxy.newProxyInstance(
+            type.getClassLoader(),
+            new Class<?>[]{type},
+            (proxy, method, args) -> null
+        );
+    }
+
     @Configuration
     static class CustomClientConfiguration {
-        static final ArcaClient MOCK_CLIENT = Mockito.mock(ArcaClient.class);
-        static final WsfeClient MOCK_WSFE = Mockito.mock(WsfeClient.class);
-        static final RegistryClient MOCK_REGISTRY = Mockito.mock(RegistryClient.class);
-        static final WsfexClient MOCK_WSFEX = Mockito.mock(WsfexClient.class);
-        static final WsmtxcaClient MOCK_WSMTXCA = Mockito.mock(WsmtxcaClient.class);
-        static final WscdcClient MOCK_WSCDC = Mockito.mock(WscdcClient.class);
-
-        static {
-            Mockito.when(MOCK_CLIENT.wsfev1()).thenReturn(MOCK_WSFE);
-            Mockito.when(MOCK_CLIENT.registry()).thenReturn(MOCK_REGISTRY);
-            Mockito.when(MOCK_CLIENT.wsfexv1()).thenReturn(MOCK_WSFEX);
-            Mockito.when(MOCK_CLIENT.wsmtxca()).thenReturn(MOCK_WSMTXCA);
-            Mockito.when(MOCK_CLIENT.wscdc()).thenReturn(MOCK_WSCDC);
-        }
+        static final WsfeClient MOCK_WSFE = dummy(WsfeClient.class);
+        static final RegistryClient MOCK_REGISTRY = dummy(RegistryClient.class);
+        static final WsfexClient MOCK_WSFEX = dummy(WsfexClient.class);
+        static final WsmtxcaClient MOCK_WSMTXCA = dummy(WsmtxcaClient.class);
+        static final WscdcClient MOCK_WSCDC = dummy(WscdcClient.class);
+        static final ArcaClient MOCK_CLIENT = new ArcaClient(
+                MOCK_WSFE, MOCK_REGISTRY, MOCK_WSFEX, MOCK_WSMTXCA, MOCK_WSCDC);
 
         @Bean
         ArcaClient arcaClient() {
@@ -217,7 +219,7 @@ class ArcaAutoConfigurationTest {
 
     @Configuration
     static class CustomSubClientConfiguration {
-        static final WsfeClient MOCK_WSFE = Mockito.mock(WsfeClient.class);
+        static final WsfeClient MOCK_WSFE = dummy(WsfeClient.class);
 
         @Bean
         WsfeClient customWsfeClient() {

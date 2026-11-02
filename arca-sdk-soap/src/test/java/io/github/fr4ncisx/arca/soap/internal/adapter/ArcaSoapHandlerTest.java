@@ -58,7 +58,7 @@ class ArcaSoapHandlerTest {
 
         assertThat(shouldContinue).isTrue();
         assertThat(diagnostics).containsExactly("SOAP outbound message");
-        assertThat(diagnostics.getFirst())
+        assertThat(diagnostics.get(0))
                 .doesNotContain(TOKEN)
                 .doesNotContain(SIGN)
                 .doesNotContain(PASSWORD)
@@ -86,7 +86,7 @@ class ArcaSoapHandlerTest {
 
         assertThat(shouldContinue).isTrue();
         assertThat(diagnostics).containsExactly("SOAP inbound fault");
-        assertThat(diagnostics.getFirst()).doesNotContain("Bearer sensitive-token");
+        assertThat(diagnostics.get(0)).doesNotContain("Bearer sensitive-token");
     }
 
     /**

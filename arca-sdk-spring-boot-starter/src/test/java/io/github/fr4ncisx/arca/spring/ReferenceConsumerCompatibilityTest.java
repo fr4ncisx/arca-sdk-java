@@ -6,6 +6,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javax.tools.ToolProvider;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -77,7 +78,7 @@ class ReferenceConsumerCompatibilityTest {
                 assertThat(input).isNotNull();
                 Files.writeString(source, new String(input.readAllBytes(), StandardCharsets.UTF_8), StandardCharsets.UTF_8);
             }
-            int status = compiler.run(null, null, null, "--release", "21", "-encoding", "UTF-8",
+            int status = compiler.run(InputStream.nullInputStream(), null, null, "--release", "17", "-encoding", "UTF-8",
                     "-classpath", classpath, "-d", temporary.toString(), source.toString());
             assertThat(status).as("consumer compilation").isZero();
             try (var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {

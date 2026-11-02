@@ -39,7 +39,8 @@ def main():
         baseline.mkdir()
         unpack_baseline(content, baseline)
         print(f"Building compatibility baseline {commit}", flush=True)
-        subprocess.run([maven, "package", "-DskipTests", "-Djapicmp.skip=true",
+        subprocess.run([maven, "package", "-Dmaven.test.skip=true", "-Djapicmp.skip=true",
+                        "-Denforcer.skip=true", "-Dmaven.compiler.release=17",
                         "--batch-mode", "--no-transfer-progress"], cwd=baseline, check=True)
         subprocess.run([maven, "clean", "verify", "-Pci,compatibility",
                         f"-DcompatibilityBaselineDirectory={baseline}",
