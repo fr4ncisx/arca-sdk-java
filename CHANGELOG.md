@@ -1,5 +1,15 @@
 # Historial de cambios
 
+## 1.3.1
+
+### Compatibilidad y Plataforma
+
+- Establece como línea base oficial de compilación **Java 17 LTS** (`maven.compiler.release=17`), generando bytecode compatible con Java 17, 21 y 25 (`class file version 61.0`).
+- Incorpora la matriz de pruebas automatizadas en GitHub Actions CI para los entornos Temurin JDK 17, 21 y 25.
+- Agrega tabla comparativa de soporte exclusivo para versiones LTS en la documentación principal (`README.md`).
+- Adapta los tests de transporte SOAP para ejecución nativa en Java 17 eliminando dependencias de métodos de colecciones secuenciadas de Java 21+.
+- Mantiene 100% de compatibilidad binaria (ABI) contra el baseline `v1.2.3` verificada con `japicmp` y consumidores de referencia.
+
 ## 1.3.0
 
 ### Compatibilidad y soporte normativo ARCA (RG 5616)

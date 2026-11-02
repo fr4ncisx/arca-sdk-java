@@ -24,7 +24,7 @@ See the [Oracle Security Alert](https://www.oracle.com/security-alerts/alert-cve
 
 #### Impact for SDK Consumers
 
-The SDK is compiled for Java 21, but that does not identify the Java vendor or runtime build used by a consuming application. Actual exposure depends on that runtime and its JSSE implementation. The SDK cannot determine whether a consumer's runtime is affected.
+The SDK bytecode targets Java 17 LTS (runnable on Java 17, 21, 25+), but that does not identify the Java vendor or runtime build used by a consuming application. Actual exposure depends on that runtime and its JSSE implementation. The SDK cannot determine whether a consumer's runtime is affected.
 
 #### Remediation
 

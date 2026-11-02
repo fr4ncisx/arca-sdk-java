@@ -5,7 +5,7 @@ aligned with the module boundaries below.
 
 ## Project structure and module organization
 
-This is a Java 21 multi-module Maven SDK for ARCA SOAP services. Code lives in
+This is a Java 17+ multi-module Maven SDK for ARCA SOAP services. Code lives in
 each module's `src/main/java`, and tests live in `src/test/java`.
 
 - `arca-sdk-core`: shared config, clocks, validation, exceptions, and log
@@ -38,7 +38,7 @@ or text manipulation; use the edit tool instead. Batch independent tool calls
 
 ## Coding style and naming conventions
 
-Use Java 21 features deliberately, including records and sealed hierarchies. Use
+Use modern Java features deliberately, including records and sealed hierarchies (targeting Java 17 LTS baseline). Use
 four-space indentation. Keep public API types outside `internal.*`; generated
 JAXB classes must stay isolated under
 `internal.generated`. Prefer package names under `io.github.fr4ncisx.arca`.

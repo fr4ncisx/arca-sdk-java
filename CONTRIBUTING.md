@@ -4,7 +4,7 @@ Gracias por tu interés en contribuir. Este SDK simplifica la integración con l
 
 ## Prerrequisitos
 
-- Java 21 o superior
+- Java 17 o superior
 - Maven 3.9 o superior
 - Certificado PKCS#12 de homologación (opcional, para tests de integración)
 

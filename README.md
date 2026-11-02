@@ -1,6 +1,6 @@
 # ARCA SDK Java
 
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://jdk.java.net/21/)
+[![Java](https://img.shields.io/badge/Java-17%2B-orange)](https://jdk.java.net/17/)
 [![version](https://img.shields.io/github/v/tag/fr4ncisx/arca-sdk-java?style=flat&label=version&color=green)]()
 [![status](https://img.shields.io/badge/status-beta--release-green)]()
 [![build](https://img.shields.io/github/actions/workflow/status/fr4ncisx/arca-sdk-java/ci.yml?branch=main)]()
@@ -24,8 +24,18 @@ El consumidor trabaja con modelos propios del proyecto y evita interactuar direc
 
 | Herramienta | Versión |
 |---|---|
-| Java | 21 o superior |
+| Java | 17 o superior (LTS) |
 | Maven | 3.9 o superior |
+
+## Compatibilidad de versiones de Java (LTS)
+
+| Versión LTS | Estado | Detalle técnico |
+|---|:---:|---|
+| **Java 8 LTS** | ❌ | Incompatible. Namespace `javax.*` descontinuado y carece de soporte para `records` y tipos sellados. |
+| **Java 11 LTS** | ❌ | Incompatible. JAX-WS fue retirado del JDK (JEP 320) y carece de soporte para `records`. |
+| **Java 17 LTS** | ✅ | **Compatible**. Versión mínima oficial soportada (Bytecode `class file version 61.0`). |
+| **Java 21 LTS** | ✅ | **Compatible**. Versión recomendada para entornos de producción modernos. |
+| **Java 25 LTS** | ✅ | **Compatible**. Versión LTS vigente, validada activamente en la matriz de integración continua. |
 
 ## Configuración por variables de entorno
 
@@ -90,7 +100,7 @@ Luego, en tu proyecto, elige una de estas opciones:
         <dependency>
             <groupId>io.github.fr4ncisx</groupId>
             <artifactId>arca-sdk-bom</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -104,7 +114,7 @@ Luego, en tu proyecto, elige una de estas opciones:
 <dependency>
     <groupId>io.github.fr4ncisx</groupId>
     <artifactId>arca-sdk-bundle</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 
@@ -114,7 +124,7 @@ Consulta [CHANGELOG.md](CHANGELOG.md) para ver las notas de cada versión. Los d
 
 ## Verificación del SDK
 
-Ejecuta desde la raíz, con Java 21 o 25 y Python 3.9 o superior:
+Ejecuta desde la raíz, con Java 17, 21 o 25 y Python 3.9 o superior:
 
 ```bash
 python -B -m unittest discover -s scripts -p 'test_*.py'
@@ -382,7 +392,7 @@ ArcaClient client = ArcaClient.builder()
 
 ## Compatibilidad
 
-* Java 21 o superior.
+* Java 17 o superior (LTS).
 * Maven 3.9 o superior.
 * Spring Boot 4.0.x para el starter.
 
