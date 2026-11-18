@@ -40,6 +40,30 @@ On thread interruption, a batch retains one entry per input position, including 
 SoapHardeningUtil.enableTlsRevocationChecking();
 ```
 
+### 2. OpenJDK / Oracle Java Base64 Intrinsics Security Alert (CVE-2026-114938 — CVSS 8.1)
+
+Oracle and OpenJDK identify the HotSpot compiler's hardware-accelerated `java.util.Base64.Decoder` intrinsic (AVX-512 VBMI on x86-64) as the affected component and rate this vulnerability CVSS 3.1 8.1. Processing crafted Base64 inputs on affected x86-64 runtimes can trigger heap memory corruption, denial of service, or remote code execution.
+
+| Java Release | Affected Versions | Fixed Version (Oracle / OpenJDK baseline) |
+| :----------- | :---------------- | :---------------------------------------- |
+| Java 17 | `17.0.6` through `17.0.21.0.3` | `17.0.21.1` or vendor equivalent |
+| Java 21 | Up to `21.0.13.0.3` | `21.0.13.1` or vendor equivalent |
+| Java 25 | Up to `25.0.5.0.3` | `25.0.5.1` or vendor equivalent |
+| Java 27 | Up to `27.0.1.0.3` | `27.0.1.1` or vendor equivalent |
+
+ARM64 and x86-64 CPUs without AVX-512 VBMI are not affected. Check the advisory from your actual Java runtime vendor (Oracle, Eclipse Temurin, Amazon Corretto, Microsoft Build of OpenJDK, Azul Zulu, Red Hat, GraalVM) rather than inferring status solely from Oracle version numbers.
+
+#### Impact for SDK Consumers
+
+The SDK production code does not invoke `java.util.Base64.Decoder` (it only encodes CMS payloads via `Base64.getEncoder()` and loads binary PKCS#12 keystores), and it does not bundle a Java runtime. However, consuming applications running on unpatched x86-64 JVMs with AVX-512 VBMI remain exposed at the runtime level wherever the host application or its frameworks decode untrusted Base64 input.
+
+#### Remediation
+
+Upgrade the deployed Java runtime to a patched vendor build and restart all Java processes. If immediate patching is not possible, apply one of these temporary JVM mitigations until the runtime is updated:
+
+- Disable Base64 hardware intrinsics (portable across architectures): `-XX:-UseBASE64Intrinsics`
+- Restrict AVX level on x86-64 only (combine with `-XX:+IgnoreUnrecognizedVMOptions` on mixed architectures, as ARM64 JVMs reject `UseAVX`): `-XX:UseAVX=2`
+
 ---
 
 ## Hardening Guidance for Integrators
